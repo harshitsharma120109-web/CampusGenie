@@ -1,78 +1,70 @@
-﻿# 🎓 CampusGenie — All-in-One AI Student Copilot
+﻿# 🎓 CampusGenie — 360° Smart Campus ERP & AI Student Copilot
 > **SkillUp Hackathon in collaboration with IBM SkillsBuild**  
 > **Track:** Track 1 — Student AI Track (EdTech + Productivity + Student Wellness)  
-> **Developed using:** IBM Bob AI Environment
+> **Developed using:** IBM Bob AI IDE  
+> 
+> 📄 **Official Document on IBM Bob Usage:** [Read IBM_BOB_USAGE.md](./IBM_BOB_USAGE.md)
 
 ---
 
 ## 📌 Problem Statement & Why It Matters
-College students juggle multiple responsibilities every day—attending lectures, avoiding the strict **75% minimum attendance rule**, tracking daily schedules, preparing for exams, and handling acute academic stress. 
+College students juggle multiple responsibilities every day—attending lectures, avoiding the strict **75% minimum attendance rule**, tracking daily schedules, preparing for exams, managing sudden hostel illnesses, and searching for career opportunities.
 
-Currently, students have to check separate ERP portals for attendance, browse through messy WhatsApp groups for timetables, and struggle alone with exam anxiety. 
-
-**CampusGenie** solves this by providing a unified, intelligent AI Copilot that combines **Campus Administration, Academic Learning, and Mental Wellness** into a single glassmorphic dashboard.
+**CampusGenie** unifies **Academic Attendance, Exam Results, Timetables, AI Doubt Solving, Health First-Aid, and Verified Job Opportunities** into a single glassmorphic dashboard.
 
 ---
 
 ## 🚀 Key Features
 
-### 1. 📊 Smart Attendance Manager & 75% Rule Alert
+### 1. 📊 Subject Attendance & Exam Marks Matrix
 - Real-time subject-wise percentage calculation.
 - Automated alert triggers when attendance dips below 75%.
-- **Actionable Recovery Calculation:** Tells the student the exact number of consecutive lectures needed to clear attendance shortage (e.g., *"You need to attend next 2 OS lectures"*).
-- Instant 1-click **Present / Absent** logging.
+- **Actionable Recovery Calculation:** Tells the student the exact number of consecutive lectures needed to clear shortage (e.g., *"You need to attend next 2 OS lectures"*).
+- **Exam Marks & Grades:** Tracks scores out of 100 with automated **Pass / Fail** evaluation.
+- 1-click **Present / Absent** logging for teachers and students.
 
 ### 2. 📅 Dynamic Timetable & Lecture Tracker
-- Displays today's scheduled classes with time, lecture halls, and faculty names.
-- Live badges indicating **Ongoing**, **Upcoming**, or **Completed** sessions.
-- Natural language queries: *"What's my next lecture?"*
+- Displays scheduled classes with time, lecture halls/labs, and faculty names.
+- Complete details: **Who** takes the class, **Where** it takes place, and **When**.
 
-### 3. 📚 AI Study Buddy & Doubt Solver
+### 3. 📚 AI Academic Doubt Solver
 - "Explain Like I'm 10" simple conceptual breakdowns for CS & Engineering topics.
 - Direct exam pro-tips and frequently asked viva questions (Deadlock, Binary Search, DBMS Normalization, OOP Polymorphism, TCP/UDP).
 
-### 4. 🧘 Student Wellness & 4-7-8 Breathing Reset
-- Integrated stress-buster module.
-- Guided 1-minute 4-7-8 deep breathing modal to soothe exam anxiety and regain focus.
-- 20-20-20 screen eye strain rules and healthy study snack advice.
+### 4. 🩺 AI Health & Symptom Triage (First-Aid & Medicines)
+- Symptom-based triage (fever, headache, cold, stomach ache, acidity, stress).
+- Recommends safe over-the-counter (OTC) first-aid medicines, home remedies, and campus clinic warning flags.
+
+### 5. 🏆 Hackathons & Jobs Opportunities Board
+- Curated board for national hackathons, coding contests, and internships with direct apply links.
+
+### 6. 👨‍🏫 Faculty Administration & Multi-Student Roster
+- Add unlimited students and switch between student profiles with one click.
+- Enter student exam marks, schedule classes, and broadcast college notices.
 
 ---
 
-## 🛠️ Tech Stack & IBM Bob Integration
+## 🛠️ Tech Stack
 - **Development Environment:** IBM Bob AI IDE
 - **Backend:** Python 3.12, Flask REST API
-- **Frontend:** Modern Responsive Glassmorphic UI (Tailwind CSS, FontAwesome 6, Vanilla JavaScript)
-- **Data Layer:** Local JSON state store (`student_data.json`)
+- **Frontend:** Responsive Glassmorphic UI (Tailwind CSS, FontAwesome 6, Vanilla JavaScript)
+- **Data Layer:** Local JSON state store (`data/student_data.json`)
+- **Documentation:** [IBM_BOB_USAGE.md](./IBM_BOB_USAGE.md)
 
 ---
 
 ## 💻 How to Run CampusGenie
 
-### Inside IBM Bob:
-1. Open **IBM Bob**.
-2. Click **File -> Open Folder** and select `C:\Users\manoj\.gemini\antigravity\scratch\campus_genie`.
-3. Open Bob's built-in terminal: `Ctrl + \`` (or `Terminal -> New Terminal`).
-4. Run:
-   ```bash
-   python app.py
-   ```
-5. Open your browser and visit:
-   ```
-   http://127.0.0.1:5000
-   ```
+```bash
+# 1. Clone repository
+git clone https://github.com/harshitsharma120109-web/CampusGenie.git
+cd CampusGenie
 
----
+# 2. Install dependencies
+pip install -r requirements.txt
 
-## 🎤 2-Minute Presentation Pitch for Judges (Hindi / Hinglish Script)
+# 3. Run server
+python app.py
 
-> *"Good afternoon respected judges!*  
-> *Hamara project hai **CampusGenie — All-in-One AI Student Copilot**, jise humne **IBM Bob** environment ke andar develop kiya hai under **Track 1: Student AI Track**.*  
-> 
-> *Har college student ki sabse badi daily problem hoti hai **75% attendance rule maintain karna**, daily lecture timetable track karna, aur exam time par doubts aur mental stress manage karna.*  
-> 
-> *CampusGenie in sabhi cheezon ko ek single intelligent AI platform par solve karta hai:*  
-> *1. Ye student ki subject-wise attendance track karta hai aur shortage aane par exact calculation batata hai ki kitni classes attend karni padengi.*  
-> *2. Student simple bhasha mein chatbot se puch sakta hai ki 'Mera agla lecture kaun sa hai?' ya 'Binary search simple bhasha me samjhao'.*  
-> *3. Humne isme **Student Wellness Module** bhi add kiya hai jisme guided 4-7-8 breathing exercise aur exam stress relief tips hain.*  
-> 
-> *Is tarah CampusGenie sirf ek administrative tool nahi, balki har student ka complete 24/7 AI buddy ban jaata hai. Thank you!"*
+# 4. Open in browser: http://127.0.0.1:5000
+```

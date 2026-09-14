@@ -1,4 +1,4 @@
-﻿{
+{
   "active_student_id": "22CS1084",
   "students": [
     {
@@ -9,16 +9,52 @@
       "semester": "5th Semester",
       "target_attendance": 75,
       "attendance": {
-        "os": { "attended": 22, "total": 31, "percentage": 70.96, "status": "warning" },
-        "dsa": { "attended": 29, "total": 35, "percentage": 82.85, "status": "safe" },
-        "dbms": { "attended": 25, "total": 30, "percentage": 83.33, "status": "safe" },
-        "cn": { "attended": 21, "total": 30, "percentage": 70.0, "status": "warning" }
+        "os": {
+          "attended": 38,
+          "total": 47,
+          "percentage": 80.85,
+          "status": "safe"
+        },
+        "dsa": {
+          "attended": 32,
+          "total": 38,
+          "percentage": 84.21,
+          "status": "safe"
+        },
+        "dbms": {
+          "attended": 25,
+          "total": 30,
+          "percentage": 83.33,
+          "status": "safe"
+        },
+        "cn": {
+          "attended": 21,
+          "total": 30,
+          "percentage": 70.0,
+          "status": "warning"
+        }
       },
       "marks": {
-        "os": { "score": 78, "total": 100, "status": "Pass" },
-        "dsa": { "score": 85, "total": 100, "status": "Pass" },
-        "dbms": { "score": 72, "total": 100, "status": "Pass" },
-        "cn": { "score": 38, "total": 100, "status": "Fail" }
+        "os": {
+          "score": 78,
+          "total": 100,
+          "status": "Pass"
+        },
+        "dsa": {
+          "score": 85,
+          "total": 100,
+          "status": "Pass"
+        },
+        "dbms": {
+          "score": 72,
+          "total": 100,
+          "status": "Pass"
+        },
+        "cn": {
+          "score": 38,
+          "total": 100,
+          "status": "Fail"
+        }
       }
     },
     {
@@ -29,24 +65,115 @@
       "semester": "5th Semester",
       "target_attendance": 75,
       "attendance": {
-        "os": { "attended": 28, "total": 31, "percentage": 90.32, "status": "safe" },
-        "dsa": { "attended": 32, "total": 35, "percentage": 91.42, "status": "safe" },
-        "dbms": { "attended": 27, "total": 30, "percentage": 90.0, "status": "safe" },
-        "cn": { "attended": 27, "total": 30, "percentage": 90.0, "status": "safe" }
+        "os": {
+          "attended": 28,
+          "total": 31,
+          "percentage": 90.32,
+          "status": "safe"
+        },
+        "dsa": {
+          "attended": 32,
+          "total": 35,
+          "percentage": 91.42,
+          "status": "safe"
+        },
+        "dbms": {
+          "attended": 27,
+          "total": 30,
+          "percentage": 90.0,
+          "status": "safe"
+        },
+        "cn": {
+          "attended": 27,
+          "total": 30,
+          "percentage": 90.0,
+          "status": "safe"
+        }
       },
       "marks": {
-        "os": { "score": 91, "total": 100, "status": "Pass" },
-        "dsa": { "score": 94, "total": 100, "status": "Pass" },
-        "dbms": { "score": 88, "total": 100, "status": "Pass" },
-        "cn": { "score": 85, "total": 100, "status": "Pass" }
+        "os": {
+          "score": 91,
+          "total": 100,
+          "status": "Pass"
+        },
+        "dsa": {
+          "score": 94,
+          "total": 100,
+          "status": "Pass"
+        },
+        "dbms": {
+          "score": 88,
+          "total": 100,
+          "status": "Pass"
+        },
+        "cn": {
+          "score": 85,
+          "total": 100,
+          "status": "Pass"
+        }
       }
+    },
+    {
+      "id": "26330",
+      "name": "jay",
+      "roll_no": "26330",
+      "branch": "CSE GEN B",
+      "semester": "5th Sem",
+      "target_attendance": 75,
+      "attendance": {
+        "os": {
+          "attended": 1,
+          "total": 1,
+          "percentage": 100.0,
+          "status": "safe"
+        },
+        "dsa": {
+          "attended": 0,
+          "total": 1,
+          "percentage": 0.0,
+          "status": "warning"
+        },
+        "dbms": {
+          "attended": 1,
+          "total": 1,
+          "percentage": 100.0,
+          "status": "safe"
+        },
+        "cn": {
+          "attended": 1,
+          "total": 1,
+          "percentage": 100.0,
+          "status": "safe"
+        }
+      },
+      "marks": {}
     }
   ],
   "subjects": [
-    { "id": "os", "code": "CS-501", "name": "Operating Systems", "faculty": "Prof. R. K. Verma" },
-    { "id": "dsa", "code": "CS-502", "name": "Data Structures & Algorithms", "faculty": "Dr. Sunita Rao" },
-    { "id": "dbms", "code": "CS-503", "name": "Database Management Systems", "faculty": "Dr. Alok Gupta" },
-    { "id": "cn", "code": "CS-504", "name": "Computer Networks", "faculty": "Prof. Sneha Kapoor" }
+    {
+      "id": "os",
+      "code": "CS-501",
+      "name": "Operating Systems",
+      "faculty": "Prof. R. K. Verma"
+    },
+    {
+      "id": "dsa",
+      "code": "CS-502",
+      "name": "Data Structures & Algorithms",
+      "faculty": "Dr. Sunita Rao"
+    },
+    {
+      "id": "dbms",
+      "code": "CS-503",
+      "name": "Database Management Systems",
+      "faculty": "Dr. Alok Gupta"
+    },
+    {
+      "id": "cn",
+      "code": "CS-504",
+      "name": "Computer Networks",
+      "faculty": "Prof. Sneha Kapoor"
+    }
   ],
   "timetable": [
     {

@@ -1,14 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CampusGenie — 360° Smart Campus ERP & AI Academic/Health Copilot</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
@@ -32,14 +29,14 @@
                 </div>
             </div>
 
-            <!-- Header Controls (Student Switcher & Mode Toggle) -->
+            <!-- Header Controls -->
             <div class="flex items-center space-x-3">
                 <!-- Multi-Student Switcher Dropdown -->
                 <div class="flex items-center space-x-1.5 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700/80 text-xs shadow-inner">
                     <i class="fa-solid fa-user-graduate text-cyan-400"></i>
                     <span class="text-slate-400 text-[11px] hidden sm:inline">Student:</span>
                     <select id="studentSelectDropdown" onchange="handleSwitchStudent(this.value)" class="bg-transparent text-slate-100 font-bold focus:outline-none cursor-pointer text-xs">
-                        <option value="" disabled>Loading students...</option>
+                        <option value="" disabled>Loading...</option>
                     </select>
                 </div>
 
@@ -49,7 +46,7 @@
                         <i class="fa-solid fa-book-open-reader mr-1"></i> Student View
                     </button>
                     <button id="btnAdminMode" onclick="switchView('admin')" class="px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition-all">
-                        <i class="fa-solid fa-chalkboard-user mr-1"></i> Faculty & Admin Hub
+                        <i class="fa-solid fa-chalkboard-user mr-1"></i> Faculty Hub
                     </button>
                 </div>
             </div>
@@ -59,7 +56,7 @@
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-        <!-- FACULTY / ADMIN CONTROL HUB (Expanded on Toggle) -->
+        <!-- FACULTY / ADMIN CONTROL HUB -->
         <div id="facultyAdminSection" class="hidden space-y-6 mb-8">
             <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/50 to-slate-900 border border-indigo-500/40 shadow-2xl">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
@@ -75,18 +72,19 @@
                     </span>
                 </div>
 
-                <!-- 5 Admin Operation Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    
+                <!-- 6 Admin Operation Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+
                     <!-- Card 1: Enroll Student -->
                     <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5">
                         <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2">
                             <i class="fa-solid fa-user-plus text-emerald-400"></i> 1. Enroll Student
                         </h3>
                         <form onsubmit="handleAdminAddStudent(event)" class="space-y-2 text-xs">
-                            <input type="text" id="newStudentName" placeholder="Full Name" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
-                            <input type="text" id="newStudentRoll" placeholder="Roll No (e.g. 22CS1086)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
-                            <input type="text" id="newStudentBranch" placeholder="Branch (e.g. CSE)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
+                            <input type="text" id="newStudentName" placeholder="Full Name" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <input type="text" id="newStudentRoll" placeholder="Roll No (e.g. 22CS1086)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <input type="text" id="newStudentBranch" placeholder="Branch (e.g. CSE-B)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <input type="text" id="newStudentSemester" placeholder="Semester (e.g. 5th Sem)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
                             <button type="submit" class="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all">
                                 + Add Student
                             </button>
@@ -99,9 +97,9 @@
                             <i class="fa-solid fa-book-bookmark text-blue-400"></i> 2. Add Subject
                         </h3>
                         <form onsubmit="handleAdminAddSubject(event)" class="space-y-2 text-xs">
-                            <input type="text" id="adminSubName" placeholder="Subject Name (e.g. AI)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
-                            <input type="text" id="adminSubCode" placeholder="Code (e.g. CS-505)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
-                            <input type="text" id="adminSubFaculty" placeholder="Faculty (e.g. Dr. Verma)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
+                            <input type="text" id="adminSubName" placeholder="Subject Name (e.g. AI)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <input type="text" id="adminSubCode" placeholder="Code (e.g. CS-505)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <input type="text" id="adminSubFaculty" placeholder="Faculty (e.g. Dr. Verma)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
                             <button type="submit" class="w-full py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all">
                                 + Add Subject
                             </button>
@@ -114,28 +112,38 @@
                             <i class="fa-solid fa-square-poll-vertical text-purple-400"></i> 3. Enter Marks
                         </h3>
                         <form onsubmit="handleAdminUpdateMarks(event)" class="space-y-2 text-xs">
-                            <select id="marksSubjectSelect" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1.5 text-white">
+                            <select id="marksStudentSelect" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1.5 text-white focus:border-indigo-500 focus:outline-none">
+                                <option value="" disabled selected>Select Student</option>
+                            </select>
+                            <select id="marksSubjectSelect" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1.5 text-white focus:border-indigo-500 focus:outline-none">
                                 <option value="" disabled selected>Select Subject</option>
                             </select>
                             <div class="grid grid-cols-2 gap-1.5">
-                                <input type="number" id="marksScoreInput" placeholder="Marks" min="0" max="100" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1.5 text-white">
-                                <input type="number" id="marksTotalInput" placeholder="Out of" value="100" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1.5 text-white">
+                                <input type="number" id="marksScoreInput" placeholder="Marks" min="0" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1.5 text-white focus:border-indigo-500 focus:outline-none">
+                                <input type="number" id="marksTotalInput" placeholder="Out of" value="100" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1.5 text-white focus:border-indigo-500 focus:outline-none">
                             </div>
+                            <p class="text-[10px] text-slate-500">Pass threshold: 40% | Auto-grades Pass/Fail</p>
                             <button type="submit" class="w-full py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all">
                                 💾 Save Marks
                             </button>
                         </form>
                     </div>
 
-                    <!-- Card 4: Schedule Class (Room, Time, Faculty) -->
+                    <!-- Card 4: Schedule Class -->
                     <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5">
                         <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2">
                             <i class="fa-regular fa-clock text-indigo-400"></i> 4. Schedule Class
                         </h3>
                         <form onsubmit="handleAdminAddTimetable(event)" class="space-y-2 text-xs">
-                            <input type="text" id="adminTtTime" placeholder="Time (e.g. 10:00 - 11:00 AM)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
-                            <input type="text" id="adminTtSub" placeholder="Subject Name" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
-                            <input type="text" id="adminTtRoom" placeholder="Room/Lab (e.g. Lab 2 / LH 302)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
+                            <input type="text" id="adminTtTime" placeholder="Time (e.g. 10:00 - 11:00 AM)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <input type="text" id="adminTtSub" placeholder="Subject Name" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <input type="text" id="adminTtRoom" placeholder="Room/Venue (e.g. LH 302 / Lab 2)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <input type="text" id="adminTtFaculty" placeholder="Faculty Name" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <select id="adminTtType" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1.5 text-white focus:border-indigo-500 focus:outline-none">
+                                <option value="Theory">Theory</option>
+                                <option value="Practical">Practical</option>
+                                <option value="Tutorial">Tutorial</option>
+                            </select>
                             <button type="submit" class="w-full py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all">
                                 + Schedule Class
                             </button>
@@ -145,26 +153,60 @@
                     <!-- Card 5: Post Hackathon / Job -->
                     <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5">
                         <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-briefcase text-amber-400"></i> 5. Post Hackathon / Job
+                            <i class="fa-solid fa-briefcase text-amber-400"></i> 5. Post Opportunity
                         </h3>
                         <form onsubmit="handleAdminAddOpportunity(event)" class="space-y-2 text-xs">
-                            <input type="text" id="oppTitle" placeholder="Title (e.g. Google Summer Intern)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
-                            <input type="text" id="oppDeadline" placeholder="Deadline (e.g. 30 Sept)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
-                            <input type="text" id="oppLink" placeholder="Link (https://...)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white">
+                            <input type="text" id="oppTitle" placeholder="Title (e.g. Google Summer Intern)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <input type="text" id="oppDeadline" placeholder="Deadline (e.g. 30 Sept)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <input type="text" id="oppLink" placeholder="Link (https://...)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
                             <button type="submit" class="w-full py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold transition-all">
                                 🚀 Post Opportunity
                             </button>
                         </form>
                     </div>
 
+                    <!-- Card 6: Post Notice -->
+                    <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5">
+                        <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-bell text-rose-400"></i> 6. Post Notice
+                        </h3>
+                        <form onsubmit="handleAdminAddNotice(event)" class="space-y-2 text-xs">
+                            <input type="text" id="noticeTitle" placeholder="Notice Title" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none">
+                            <textarea id="noticeContent" placeholder="Notice details..." required rows="3" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none resize-none text-xs"></textarea>
+                            <select id="noticeBadge" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1.5 text-white focus:border-indigo-500 focus:outline-none">
+                                <option value="Notice">General Notice</option>
+                                <option value="Urgent">Urgent</option>
+                                <option value="Exam">Exam</option>
+                                <option value="Event">Event</option>
+                            </select>
+                            <button type="submit" class="w-full py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold transition-all">
+                                📢 Post Notice
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Faculty Management Portal: Student × Subjects Table -->
+            <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+                <div class="flex items-center space-x-2 mb-4">
+                    <div class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-table-list"></i>
+                    </div>
+                    <h2 class="text-base font-bold text-slate-100">Faculty Management Portal — Attendance & Marks Summary</h2>
+                    <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold">Live Sync</span>
+                </div>
+                <div id="facultyMgmtTableContainer">
+                    <p class="text-xs text-slate-500 text-center py-4">Loading student data...</p>
                 </div>
             </div>
         </div>
 
-        <!-- MAIN 2-COLUMN GRID (DASHBOARD ON LEFT, AI COPILOT ON RIGHT) -->
+        <!-- MAIN 2-COLUMN GRID -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            <!-- LEFT COLUMN (Attendance, Marks, Timetable, Hackathons) -->
+            <!-- LEFT COLUMN -->
             <div class="lg:col-span-7 space-y-6">
 
                 <!-- Active Student Bio Card -->
@@ -182,7 +224,7 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <span id="overallBadge" class="text-xs px-3 py-1 rounded-full font-bold">Safe Status</span>
+                        <span id="overallBadge" class="text-xs px-3 py-1 rounded-full font-bold bg-slate-800 text-slate-400">Loading...</span>
                     </div>
                 </div>
 
@@ -195,11 +237,15 @@
                             </div>
                             <h2 class="text-base font-bold text-slate-100">Subject Attendance & Exam Marks</h2>
                         </div>
-                        <span class="text-xs text-slate-400">Click <strong>+</strong>/<strong>-</strong> for live attendance</span>
+                        <div class="flex items-center gap-2">
+                            <span class="hidden sm:flex items-center gap-1 text-[10px] text-slate-500">
+                                <span class="w-3 h-0.5 bg-white/40 border-dashed border-b-2 border-white/40 inline-block"></span>
+                                75% line
+                            </span>
+                            <span class="text-xs text-slate-400">Click <strong>+</strong>/<strong>-</strong> to log attendance</span>
+                        </div>
                     </div>
-
-                    <!-- Subjects Container -->
-                    <div id="subjectsContainer" class="space-y-3">
+                    <div id="subjectsContainer" class="space-y-4">
                         <!-- Populated by JS -->
                     </div>
                 </div>
@@ -213,15 +259,33 @@
                             </div>
                             <h2 class="text-base font-bold text-slate-100">Class Timetable (Venue, Time & Faculty)</h2>
                         </div>
-                        <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 font-medium">Daily Schedule</span>
+                        <div class="flex items-center gap-1.5 text-[10px]">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-slate-400">Live = ongoing class</span>
+                        </div>
                     </div>
-
                     <div id="timetableContainer" class="space-y-2.5">
                         <!-- Populated by JS -->
                     </div>
                 </div>
 
-                <!-- 3. HACKATHONS & JOBS OPPORTUNITIES BOARD -->
+                <!-- 3. COLLEGE NOTICES BOARD -->
+                <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-bell"></i>
+                            </div>
+                            <h2 class="text-base font-bold text-slate-100">College Notices & Announcements</h2>
+                        </div>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-semibold border border-rose-500/30">Admin Board</span>
+                    </div>
+                    <div id="noticesContainer" class="space-y-2.5">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- 4. HACKATHONS & JOBS OPPORTUNITIES BOARD -->
                 <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center space-x-2">
@@ -232,7 +296,6 @@
                         </div>
                         <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-semibold border border-amber-500/30">Verified Links</span>
                     </div>
-
                     <div id="opportunitiesContainer" class="space-y-3">
                         <!-- Populated by JS -->
                     </div>
@@ -240,10 +303,10 @@
 
             </div>
 
-            <!-- RIGHT COLUMN (360° AI COPILOT & HEALTH TRIAGE) -->
+            <!-- RIGHT COLUMN (360° AI COPILOT) -->
             <div class="lg:col-span-5">
                 <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[calc(100vh-6.5rem)] sticky top-20">
-                    
+
                     <!-- Chat Header -->
                     <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 rounded-t-2xl">
                         <div class="flex items-center space-x-3">
@@ -256,9 +319,9 @@
                             <div>
                                 <h3 class="text-sm font-bold text-slate-100 flex items-center gap-1.5">
                                     CampusGenie 360° AI
-                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-semibold">Live</span>
+                                    <span class="text-[10px] px-1.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold">Live</span>
                                 </h3>
-                                <p class="text-[11px] text-slate-400">Doubts • Health & Medicine • Marks • Venues</p>
+                                <p class="text-[11px] text-slate-400">Doubts • Health • Marks • Venues • Alerts</p>
                             </div>
                         </div>
                         <button onclick="clearChat()" title="Clear Chat" class="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition-colors">
@@ -274,28 +337,50 @@
                             </div>
                             <div class="bg-slate-800/90 border border-slate-700/60 p-3.5 rounded-2xl rounded-tl-sm max-w-[85%] text-slate-200 leading-relaxed space-y-2 shadow-sm">
                                 <p class="font-semibold text-slate-100">Namaste! 👋 I'm your AI Academic & Health Companion.</p>
-                                <p>Ask me to <strong>solve any study question</strong>, check your <strong>exam marks</strong>, or tell me if you have any <strong>health symptom (fever, headache, stomach ache)</strong> for first-aid medicines!</p>
-                                <p class="text-[11px] text-indigo-300 font-medium">Click any chip below to test instantly:</p>
+                                <p>Ask me to <strong>solve study doubts</strong>, check <strong>exam marks</strong>, get <strong>attendance alerts</strong>, or tell me any <strong>health symptom</strong> for first-aid advice!</p>
+                                <p class="text-[11px] text-indigo-300 font-medium">Tap a chip below to try instantly:</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Quick Suggestion Chips -->
                     <div class="px-4 py-2 bg-slate-950/50 border-t border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                        <button onclick="sendQuickPrompt('Explain binary search simply')" class="chip">📚 Binary Search</button>
-                        <button onclick="sendQuickPrompt('I have a severe headache and eye strain, what medicine or remedy should I take?')" class="chip">🩺 Headache Relief</button>
-                        <button onclick="sendQuickPrompt('I have mild fever and cold, what first aid to take?')" class="chip">💊 Fever & Cold</button>
-                        <button onclick="sendQuickPrompt('What is deadlock in OS and how to prevent it?')" class="chip">💻 Deadlock Doubt</button>
+                        <!-- Academic chips -->
+                        <button onclick="sendQuickPrompt('Explain merge sort algorithm with complexity')" class="chip">📚 Merge Sort</button>
+                        <button onclick="sendQuickPrompt('What is dynamic programming? Explain with example')" class="chip">🧠 DP</button>
+                        <button onclick="sendQuickPrompt('Explain heap data structure and priority queue')" class="chip">🌳 Heap</button>
+                        <button onclick="sendQuickPrompt('What is greedy algorithm? Give examples')" class="chip">⚡ Greedy</button>
+                        <button onclick="sendQuickPrompt('Explain recursion and backtracking with example')" class="chip">🔁 Recursion</button>
+                        <button onclick="sendQuickPrompt('Explain array operations sliding window two pointer')" class="chip">📊 Arrays</button>
+                        <button onclick="sendQuickPrompt('Explain CPU scheduling algorithms FCFS SJF Round Robin')" class="chip">⚙️ Scheduling</button>
+                        <button onclick="sendQuickPrompt('What are SQL joins? Explain INNER LEFT RIGHT JOIN')" class="chip">🗄️ SQL Joins</button>
+                        <button onclick="sendQuickPrompt('Explain OSI model 7 layers with protocols')" class="chip">🌐 OSI Model</button>
+                        <button onclick="sendQuickPrompt('What is deadlock in OS and Banker algorithm?')" class="chip">💻 Deadlock</button>
+                        <button onclick="sendQuickPrompt('Explain file system inode disk scheduling in OS')" class="chip">🗂️ File System</button>
+                        <button onclick="sendQuickPrompt('Explain polymorphism inheritance in OOP Java')" class="chip">☕ OOP</button>
+                        <!-- Health chips -->
+                        <button onclick="sendQuickPrompt('I have fever and headache, what first aid should I take?')" class="chip">🤒 Fever + Headache</button>
+                        <button onclick="sendQuickPrompt('I have acidity and heartburn, what should I take?')" class="chip">🩺 Acidity</button>
+                        <button onclick="sendQuickPrompt('I have loose motions and diarrhea, what should I do?')" class="chip">🚨 Diarrhea</button>
+                        <button onclick="sendQuickPrompt('I have muscle pain and body ache, how to treat?')" class="chip">💪 Muscle Pain</button>
+                        <button onclick="sendQuickPrompt('I have toothache, what medicine and home remedy?')" class="chip">🦷 Toothache</button>
+                        <button onclick="sendQuickPrompt('I cant sleep before exam, what should I do?')" class="chip">😴 Insomnia</button>
+                        <button onclick="sendQuickPrompt('My back pain from sitting too long, how to treat?')" class="chip">🦴 Back Pain</button>
+                        <button onclick="sendQuickPrompt('I have exam stress and anxiety, how to manage?')" class="chip">🧘 Exam Stress</button>
+                        <button onclick="sendQuickPrompt('I have eye strain from screen, what should I do?')" class="chip">👁️ Eye Strain</button>
+                        <!-- Dashboard chips -->
                         <button onclick="sendQuickPrompt('Show my exam marks and results')" class="chip">📋 My Marks</button>
-                        <button onclick="sendQuickPrompt('Where are my classes today?')" class="chip">📍 Class Rooms</button>
+                        <button onclick="sendQuickPrompt('Show my attendance shortage details')" class="chip">⚠️ Shortage</button>
+                        <button onclick="sendQuickPrompt('Where are my classes today? Show venue and timetable')" class="chip">📍 Classes</button>
+                        <button onclick="sendQuickPrompt('Show latest hackathons and internship opportunities')" class="chip">🚀 Hackathons</button>
                     </div>
 
                     <!-- Chat Input Bar -->
                     <form id="chatForm" onsubmit="handleChatSubmit(event)" class="p-3 border-t border-slate-800 bg-slate-900/90 rounded-b-2xl flex items-center space-x-2">
-                        <input 
-                            type="text" 
-                            id="chatInput" 
-                            placeholder="Ask any study doubt, health symptom, marks, or timetable..." 
+                        <input
+                            type="text"
+                            id="chatInput"
+                            placeholder="Ask doubts, health symptoms, marks, timetable..."
                             class="flex-1 bg-slate-950/80 border border-slate-700/80 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl transition-all"
                             autocomplete="off"
                         >
@@ -309,7 +394,6 @@
         </div>
     </main>
 
-    <!-- Scripts -->
     <script src="/static/js/app.js"></script>
 </body>
 </html>

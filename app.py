@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 import json
 import re
@@ -36,93 +36,547 @@ def get_active_student(data):
     return None
 
 def calculate_classes_needed(attended, total, target=75):
+    import math
     req = target * total - 100 * attended
     if req <= 0:
         return 0
-    import math
     return math.ceil(req / (100 - target))
 
+def calculate_max_bunks(attended, total, target=75):
+    """How many more classes can be missed while staying at or above target%."""
+    max_b = int((attended * 100) / target) - total
+    return max(0, max_b)
+
+# ── Academic Doubt Solver Knowledge Base ─────────────────────────────────────
+# Each key is a lowercase trigger phrase matched against the user message.
+# Multiple keys can map to the same concept via STUDY_ALIASES below.
+
 STUDY_KNOWLEDGE = {
+    # ── DATA STRUCTURES & ALGORITHMS ──────────────────────────────────────────
     "binary search": {
         "title": "Binary Search (Divide & Conquer)",
-        "explanation": "Works on a sorted array by repeatedly dividing the search interval in half. Compares target value to the middle element; if unequal, eliminates the half in which the target cannot lie.",
-        "complexity": "Time: O(log N) | Space: O(1) iterative",
-        "exam_tip": "Viva Question: Why is it faster than Linear Search? Because every step halves the search space from N to N/2 to N/4!"
+        "subject": "DSA",
+        "explanation": "Works on a **sorted array** by repeatedly halving the search interval. Compare the target to the middle element — if not equal, discard the half that cannot contain the target and repeat.",
+        "complexity": "Time: O(log N) average & worst | Space: O(1) iterative, O(log N) recursive",
+        "exam_tip": "Viva Q: Why faster than Linear Search? Every step halves the search space: N → N/2 → N/4 → ... → 1. Always verify array is sorted first — applying Binary Search to unsorted data gives wrong results."
     },
+    "bubble sort": {
+        "title": "Bubble Sort Algorithm",
+        "subject": "DSA",
+        "explanation": "Repeatedly steps through the list, compares adjacent elements, and swaps them if in the wrong order. Each full pass 'bubbles' the largest unsorted element to its correct position at the end.",
+        "complexity": "Time: O(N²) worst/average | O(N) best (already sorted with optimization) | Space: O(1) in-place",
+        "exam_tip": "Optimization: add a flag `swapped`. If no swap in a pass, array is sorted — break early. This gives O(N) best case. Never use Bubble Sort for large N in production."
+    },
+    "merge sort": {
+        "title": "Merge Sort (Divide & Conquer)",
+        "subject": "DSA",
+        "explanation": "Recursively divides the array into two halves, sorts each half, then **merges** the two sorted halves. The merge step is the key — it combines two sorted arrays in O(N) time by comparing elements one by one.",
+        "complexity": "Time: O(N log N) always (best, average, worst) | Space: O(N) auxiliary",
+        "exam_tip": "Merge Sort is a **stable** sort. Preferred for linked lists and external sorting (large files). Unlike Quick Sort, worst case is always O(N log N), not O(N²)."
+    },
+    "quick sort": {
+        "title": "Quick Sort (Divide & Conquer)",
+        "subject": "DSA",
+        "explanation": "Selects a **pivot** element and partitions the array into: elements < pivot (left) and elements > pivot (right). Recursively sorts both partitions. No extra space needed for the sort itself.",
+        "complexity": "Time: O(N log N) average | O(N²) worst (sorted array with last element as pivot) | Space: O(log N) stack",
+        "exam_tip": "Worst case avoided with **randomized pivot** or **median-of-three**. Quick Sort is cache-friendly and in-practice faster than Merge Sort for in-memory data due to low constant factors."
+    },
+    "linked list": {
+        "title": "Linked List Data Structure",
+        "subject": "DSA",
+        "explanation": "A linear data structure where each element (node) stores data and a pointer to the next node. Unlike arrays, nodes are not stored contiguously in memory. Types: Singly, Doubly, Circular.",
+        "complexity": "Access: O(N) | Insert/Delete at head: O(1) | Insert/Delete at tail (without tail ptr): O(N) | Search: O(N)",
+        "exam_tip": "Key trick for interviews: **Floyd's Cycle Detection** (slow/fast pointer) detects cycles in O(N) time and O(1) space. Reversing a linked list in-place is a classic viva question — draw the pointer changes."
+    },
+    "stack": {
+        "title": "Stack Data Structure (LIFO)",
+        "subject": "DSA",
+        "explanation": "A linear data structure following **Last In, First Out (LIFO)**. Main operations: push (add to top), pop (remove from top), peek (view top without removing). Implemented using arrays or linked lists.",
+        "complexity": "Push/Pop/Peek: O(1) | Search: O(N)",
+        "exam_tip": "Applications: function call stack, undo operations, expression evaluation (infix→postfix), balanced parentheses checking. Memorize: Infix to Postfix uses a stack — operators go on stack, operands go directly to output."
+    },
+    "queue": {
+        "title": "Queue Data Structure (FIFO)",
+        "subject": "DSA",
+        "explanation": "A linear data structure following **First In, First Out (FIFO)**. Enqueue adds to the rear, Dequeue removes from the front. Variants: Circular Queue (avoids false overflow), Deque (double-ended), Priority Queue.",
+        "complexity": "Enqueue/Dequeue: O(1) with proper implementation | Search: O(N)",
+        "exam_tip": "Circular Queue solves the false overflow problem of simple queue arrays. Priority Queue is implemented using a **Min/Max Heap** — not a sorted array. Used in CPU scheduling (FCFS, SJF)."
+    },
+    "tree": {
+        "title": "Trees & Binary Search Tree (BST)",
+        "subject": "DSA",
+        "explanation": "A hierarchical data structure with a root node and subtrees. BST property: left subtree values < root < right subtree values. Traversals: Inorder (Left-Root-Right), Preorder (Root-Left-Right), Postorder (Left-Right-Root).",
+        "complexity": "BST Search/Insert/Delete: O(log N) average | O(N) worst (skewed tree) | Balanced AVL/Red-Black: O(log N) guaranteed",
+        "exam_tip": "Inorder traversal of a BST gives **sorted output** — this is a critical exam fact. For height-balanced trees (AVL), remember the rotation types: LL, RR, LR, RL. Height of BST with N nodes: log N (balanced) to N (skewed)."
+    },
+    "graph": {
+        "title": "Graphs: BFS, DFS & Algorithms",
+        "subject": "DSA",
+        "explanation": "A non-linear structure of vertices (nodes) and edges. BFS (Breadth-First Search) uses a Queue — explores level by level. DFS (Depth-First Search) uses a Stack/Recursion — goes deep before backtracking.",
+        "complexity": "BFS/DFS: O(V + E) where V = vertices, E = edges | Dijkstra: O((V+E) log V) with min-heap",
+        "exam_tip": "BFS finds **shortest path in unweighted graphs**. DFS is used for topological sort, cycle detection, strongly connected components. Dijkstra's algorithm for weighted shortest path — does NOT work with negative weights (use Bellman-Ford instead)."
+    },
+    "hashing": {
+        "title": "Hashing & Hash Tables",
+        "subject": "DSA",
+        "explanation": "Maps keys to array indices using a **hash function**. Collision resolution methods: Chaining (linked list at each bucket) and Open Addressing (linear probing, quadratic probing, double hashing).",
+        "complexity": "Search/Insert/Delete: O(1) average | O(N) worst (all keys hash to same slot)",
+        "exam_tip": "Load factor α = n/m (n = keys, m = table size). Keep α < 0.7 for good performance. A good hash function distributes keys uniformly. Chaining is simpler; Open Addressing is cache-friendly."
+    },
+    "dynamic programming": {
+        "title": "Dynamic Programming (DP)",
+        "subject": "DSA",
+        "explanation": "Optimization technique that breaks problems into **overlapping subproblems**, solves each once, and stores results (memoization/tabulation). Two approaches: Top-Down (Memoization with recursion) and Bottom-Up (Tabulation with iteration).",
+        "complexity": "Depends on problem. Fibonacci: O(N) with DP vs O(2^N) naive. LCS: O(M×N). 0/1 Knapsack: O(N×W)",
+        "exam_tip": "DP applies when: (1) Optimal Substructure — optimal solution built from optimal sub-solutions; (2) Overlapping Subproblems — same sub-problems solved multiple times. Classic DPs: Fibonacci, LCS, LIS, 0/1 Knapsack, Matrix Chain Multiplication."
+    },
+
+    # ── OPERATING SYSTEMS ─────────────────────────────────────────────────────
     "deadlock": {
         "title": "Deadlock in Operating Systems",
-        "explanation": "A state where a set of processes are blocked because each process is holding a resource and waiting for another resource acquired by some other process.",
-        "complexity": "4 Conditions: Mutual Exclusion, Hold & Wait, No Preemption, Circular Wait",
-        "exam_tip": "Important 10-marker: Banker's Algorithm is used for Deadlock Avoidance by maintaining a safe state."
+        "subject": "OS",
+        "explanation": "A state where a set of processes are **permanently blocked** — each holds a resource and waits for one held by another. None can proceed.",
+        "complexity": "4 Necessary Conditions (Coffman): Mutual Exclusion, Hold & Wait, No Preemption, Circular Wait",
+        "exam_tip": "3 strategies: **Prevention** (negate one Coffman condition), **Avoidance** (Banker's Algorithm — maintain safe state), **Detection & Recovery** (allow deadlock, then kill/rollback). Banker's Algorithm is the #1 exam topic — always draw the allocation/need/available tables."
     },
+    "process scheduling": {
+        "title": "CPU Scheduling Algorithms",
+        "subject": "OS",
+        "explanation": "OS decides which ready process gets CPU time. Algorithms: FCFS (First Come First Serve), SJF (Shortest Job First), Round Robin (time quantum), Priority Scheduling, SRTF (Shortest Remaining Time First — preemptive SJF).",
+        "complexity": "FCFS: No starvation, high convoy effect. SJF: Minimum avg waiting time (optimal for non-preemptive). Round Robin: Fair, high context switch overhead.",
+        "exam_tip": "For numerical problems: **Gantt Chart** is mandatory. Key formulas: Waiting Time = Turnaround Time − Burst Time. Turnaround Time = Completion Time − Arrival Time. SJF suffers from starvation (solved by Aging). Round Robin time quantum choice is critical."
+    },
+    "paging": {
+        "title": "Paging & Virtual Memory",
+        "subject": "OS",
+        "explanation": "Memory management scheme that eliminates external fragmentation. Process is divided into fixed-size **pages**, physical memory into **frames**. OS maintains a Page Table mapping logical addresses to physical addresses.",
+        "complexity": "Logical Address = Page Number + Page Offset. Physical Address = Frame Number + Page Offset. Page Table Entry size = log2(# frames) bits.",
+        "exam_tip": "Page Table is stored in RAM — two memory accesses per data access (slow!). Solution: **TLB (Translation Lookaside Buffer)** — a fast cache for page table. Effective Access Time (EAT) = hit-ratio × TLB-time + (1-hit-ratio) × (TLB+2×memory-time). Page faults are expensive — minimized by LRU/Optimal replacement."
+    },
+    "semaphore": {
+        "title": "Semaphores & Process Synchronization",
+        "subject": "OS",
+        "explanation": "A semaphore is an integer variable accessed only through two atomic operations: **wait(S)** [P operation — decrements S, blocks if S<0] and **signal(S)** [V operation — increments S, wakes blocked process]. Types: Binary (mutex) and Counting.",
+        "complexity": "Solves: Mutual Exclusion, Producer-Consumer, Readers-Writers, Dining Philosophers problems.",
+        "exam_tip": "Binary semaphore (0 or 1) = mutex. Counting semaphore manages N resources. Classic problem: **Producer-Consumer** — producer does signal(full)/wait(empty), consumer does wait(full)/signal(empty). mutex semaphore prevents simultaneous buffer access. Always draw the sequence diagram in exams."
+    },
+
+    # ── COMPUTER NETWORKS ─────────────────────────────────────────────────────
+    "tcp vs udp": {
+        "title": "TCP vs UDP (Transport Layer)",
+        "subject": "CN",
+        "explanation": "**TCP** (Transmission Control Protocol): connection-oriented, reliable, ordered delivery, flow/congestion control via 3-way handshake (SYN → SYN-ACK → ACK). **UDP** (User Datagram Protocol): connectionless, unreliable, no handshake, low overhead.",
+        "complexity": "TCP: Heavyweight, reliable — used for HTTP/HTTPS, FTP, SMTP, SSH. UDP: Lightweight, fast — used for DNS, DHCP, video streaming, online gaming, VoIP.",
+        "exam_tip": "TCP 3-way handshake: SYN → SYN-ACK → ACK. 4-way termination: FIN → ACK, FIN → ACK. TCP has flow control (sliding window) and congestion control (slow start, congestion avoidance). UDP has none of these — that's why it's faster."
+    },
+    "osi model": {
+        "title": "OSI 7-Layer Reference Model",
+        "subject": "CN",
+        "explanation": "A conceptual framework dividing network communication into 7 layers: Physical, Data Link, Network, Transport, Session, Presentation, Application. Each layer provides services to the layer above and uses services of the layer below.",
+        "complexity": "Mnemonic (top-down): **All People Seem To Need Data Processing** (Application, Presentation, Session, Transport, Network, Data Link, Physical)",
+        "exam_tip": "Key protocols per layer — Application: HTTP, FTP, SMTP, DNS | Transport: TCP, UDP | Network: IP, ICMP, ARP | Data Link: Ethernet, MAC | Physical: cables, hubs. **IP addressing is at Network layer (L3)**. Switches work at L2, Routers at L3. The OSI model is theoretical; TCP/IP model is practical (4 layers)."
+    },
+    "ip addressing": {
+        "title": "IP Addressing, Subnetting & CIDR",
+        "subject": "CN",
+        "explanation": "IPv4: 32-bit address in dotted-decimal (e.g. 192.168.1.1). Classes: A (0-127), B (128-191), C (192-223). **Subnetting** divides a network into smaller sub-networks using a **subnet mask**. CIDR notation: 192.168.1.0/24 means 24 bits for network, 8 for hosts.",
+        "complexity": "Hosts per subnet = 2^(host bits) − 2 (subtract network & broadcast). /24 → 254 hosts. /25 → 126 hosts. /30 → 2 hosts (point-to-point links).",
+        "exam_tip": "Subnetting trick: write out the subnet mask in binary. Borrowed bits = extra subnet bits. Number of subnets = 2^(borrowed bits). Formula: Network Address = IP AND Subnet Mask. Broadcast = Network Address OR (NOT Subnet Mask). VLSM allows different subnet sizes within one network."
+    },
+
+    # ── DATABASE MANAGEMENT SYSTEMS ───────────────────────────────────────────
+    "normalization": {
+        "title": "Database Normalization (1NF → BCNF)",
+        "subject": "DBMS",
+        "explanation": "A technique to organize database tables to reduce **data redundancy** and eliminate anomalies (insert, update, delete). Each normal form builds on the previous.",
+        "complexity": "1NF: Atomic values, no repeating groups | 2NF: 1NF + No Partial Dependency (non-key attribute depends on full primary key) | 3NF: 2NF + No Transitive Dependency | BCNF: Every determinant is a candidate key",
+        "exam_tip": "Partial dependency only occurs with **composite primary keys**. To check 3NF: for every FD X→Y, either X is a superkey OR Y is a prime attribute. BCNF is stricter — X must always be a superkey. Decomposition must be lossless-join and dependency-preserving."
+    },
+    "sql joins": {
+        "title": "SQL Joins (INNER, OUTER, SELF, CROSS)",
+        "subject": "DBMS",
+        "explanation": "Joins combine rows from two or more tables. **INNER JOIN**: returns rows with matching values in both tables. **LEFT JOIN**: all rows from left + matched rows from right (NULL if no match). **RIGHT JOIN**: opposite. **FULL OUTER JOIN**: all rows from both. **SELF JOIN**: table joins with itself. **CROSS JOIN**: cartesian product.",
+        "complexity": "INNER JOIN result size ≤ min(|R|, |S|). CROSS JOIN result size = |R| × |S|.",
+        "exam_tip": "Write SQL queries with aliases: `SELECT e.name, d.dept FROM Employee e INNER JOIN Department d ON e.dept_id = d.id`. LEFT JOIN is most common in real-world use. For NULL handling in outer joins, use `IS NULL` not `= NULL`. Equijoin = join on equality; Natural join = equijoin on same-name columns."
+    },
+    "transactions": {
+        "title": "Database Transactions & ACID Properties",
+        "subject": "DBMS",
+        "explanation": "A transaction is a sequence of database operations treated as a single logical unit. **ACID**: Atomicity (all-or-nothing), Consistency (DB moves from one valid state to another), Isolation (concurrent transactions don't interfere), Durability (committed data persists even after crash).",
+        "complexity": "Concurrency issues: Dirty Read, Non-repeatable Read, Phantom Read. Isolation Levels: READ UNCOMMITTED → READ COMMITTED → REPEATABLE READ → SERIALIZABLE.",
+        "exam_tip": "Atomicity is ensured by **rollback/undo logs**. Durability by **redo logs/WAL (Write-Ahead Logging)**. Serializable is the strictest isolation level — prevents all anomalies but has lowest concurrency. Most DBs default to READ COMMITTED. Two-Phase Locking (2PL) ensures serializability: Growing Phase (acquire locks) then Shrinking Phase (release locks)."
+    },
+
+    # ── OBJECT-ORIENTED PROGRAMMING ───────────────────────────────────────────
     "polymorphism": {
         "title": "Polymorphism in OOP",
-        "explanation": "Ability of a message/method to be displayed in more than one form. Achieved via Compile-time (Method Overloading) and Runtime (Method Overriding via Virtual Functions).",
-        "complexity": "Types: Static vs Dynamic Binding",
-        "exam_tip": "In Java/C++, method overriding is runtime polymorphism achieved through dynamic method dispatch."
+        "subject": "OOP",
+        "explanation": "The ability of an entity to take multiple forms. **Compile-time (Static) Polymorphism**: Method Overloading — same method name, different parameters, resolved at compile time. **Runtime (Dynamic) Polymorphism**: Method Overriding — subclass overrides parent method, resolved at runtime via virtual function table (vtable).",
+        "complexity": "Static Binding: faster (resolved at compile time). Dynamic Binding: flexible (resolved at runtime via vtable pointer).",
+        "exam_tip": "In C++: use `virtual` keyword for runtime polymorphism. In Java: all non-static, non-final methods are virtual by default. Key: `Animal a = new Dog(); a.sound()` — calls Dog's sound() due to dynamic dispatch. Pure virtual function (`=0` in C++) makes class abstract."
     },
-    "normalization": {
-        "title": "Database Normalization (1NF, 2NF, 3NF, BCNF)",
-        "explanation": "Technique to organize database tables to reduce data redundancy and eliminate insert, update, and delete anomalies.",
-        "complexity": "1NF: Atomic values | 2NF: No partial dependency | 3NF: No transitive dependency",
-        "exam_tip": "2NF removes partial dependency on candidate keys; 3NF removes transitive dependencies."
+    "inheritance": {
+        "title": "Inheritance in OOP",
+        "subject": "OOP",
+        "explanation": "A mechanism where a derived class (child) acquires properties and behaviors of a base class (parent). Types: Single, Multiple (C++, not Java — use interfaces), Multilevel, Hierarchical, Hybrid. `IS-A` relationship.",
+        "complexity": "Code reuse without duplication. Method Resolution Order (MRO) in Python follows C3 linearization for multiple inheritance.",
+        "exam_tip": "Java doesn't support multiple class inheritance (diamond problem) — uses **interfaces** instead. C++ supports it but requires `virtual` base class to solve diamond problem. Constructor order: Parent constructor called first (Base → Derived). Destructor order: reverse (Derived → Base). Abstract class has at least one pure virtual/abstract method."
     },
-    "tcp vs udp": {
-        "title": "TCP vs UDP (Networking)",
-        "explanation": "TCP is connection-oriented, reliable with 3-way handshake and packet acknowledgments. UDP is connectionless, faster, with no acknowledgment (best for live gaming & streaming).",
-        "complexity": "TCP: Heavyweight/Reliable | UDP: Lightweight/Fast",
-        "exam_tip": "Remember: TCP uses SYN -> SYN-ACK -> ACK handshake before data transmission."
-    }
+    "encapsulation": {
+        "title": "Encapsulation & Abstraction in OOP",
+        "subject": "OOP",
+        "explanation": "**Encapsulation**: bundling data (attributes) and methods that operate on that data within a class, and restricting direct access using access modifiers (private, protected, public). Achieved via **getters/setters**. **Abstraction**: hiding implementation details, exposing only the interface — achieved via abstract classes and interfaces.",
+        "complexity": "Access control: private (class only) < protected (class + subclasses) < public (everyone). Package-private (default in Java): within same package.",
+        "exam_tip": "Encapsulation = data hiding. Abstraction = implementation hiding. They work together. A well-encapsulated class exposes only a minimal public API. Abstraction reduces complexity — user of a `List` doesn't need to know if it's ArrayList or LinkedList internally."
+    },
+
+    # ── COMPUTER ORGANIZATION & ARCHITECTURE ──────────────────────────────────
+    "cache memory": {
+        "title": "Cache Memory & Locality of Reference",
+        "subject": "COA",
+        "explanation": "A small, fast memory between the CPU and main RAM. Exploits **temporal locality** (recently accessed data likely accessed again) and **spatial locality** (nearby addresses likely accessed soon). Organized in levels: L1 (fastest, smallest, on-chip) > L2 > L3.",
+        "complexity": "Cache hit: data found in cache (fast). Cache miss: data fetched from RAM (slow). Hit rate typically 90–99%. Effective Access Time = hit-rate × cache-time + (1-hit-rate) × memory-time.",
+        "exam_tip": "Mapping techniques: **Direct Mapping** (simple, high conflict misses), **Fully Associative** (no conflict, expensive), **Set-Associative** (compromise, most common in practice). Cache replacement policies: LRU, FIFO, Random. Write policies: Write-Through (immediately to RAM, simpler) and Write-Back (only on eviction, faster but complex)."
+    },
+    "pipeline": {
+        "title": "CPU Pipelining & Hazards",
+        "subject": "COA",
+        "explanation": "Pipelining overlaps execution of multiple instructions by dividing instruction execution into stages (IF → ID → EX → MEM → WB). Like an assembly line — while one instruction is in EX stage, the next is in ID, and the one after is being Fetched.",
+        "complexity": "Ideal speedup = number of pipeline stages. Throughput = 1 instruction per clock cycle (after pipeline fills). CPI (Cycles Per Instruction) → approaches 1 with deep pipelining.",
+        "exam_tip": "Pipeline **hazards**: (1) **Structural** — resource conflict (two instructions need same unit). (2) **Data** — instruction depends on result of previous instruction (RAW, WAR, WAW). Solved by forwarding/bypassing or stalling. (3) **Control** — branch instructions cause uncertainty. Solved by branch prediction. Stalls (bubbles) reduce performance."
+    },
+
+    # ── THEORY OF COMPUTATION ─────────────────────────────────────────────────
+    "automata": {
+        "title": "Automata Theory: DFA, NFA & Regular Languages",
+        "subject": "TOC",
+        "explanation": "**DFA** (Deterministic Finite Automaton): for each state and input symbol, exactly one transition. **NFA** (Non-Deterministic FA): zero or more transitions per state/symbol. Both recognize exactly the **Regular Languages**. Every NFA can be converted to an equivalent DFA (subset construction, may exponentially increase states).",
+        "complexity": "DFA/NFA: O(N) to process string of length N. NFA→DFA conversion: up to 2^N DFA states from N NFA states.",
+        "exam_tip": "Regular Languages closed under: union, concatenation, star, complement, intersection. Non-regular languages (proven by **Pumping Lemma**): {a^n b^n}, {a^(n²)}, palindromes. Context-Free Languages (CFG/PDA) cover {a^n b^n}. Turing Machines recognize Recursively Enumerable languages. Chomsky hierarchy: Regular ⊂ CFL ⊂ CSL ⊂ RE."
+    },
+
+    # ── SOFTWARE ENGINEERING ──────────────────────────────────────────────────
+    "sdlc": {
+        "title": "Software Development Life Cycle (SDLC) Models",
+        "subject": "SE",
+        "explanation": "Structured process for planning, creating, testing, and delivering software. Models: **Waterfall** (sequential, rigid), **Agile** (iterative sprints, flexible), **Spiral** (risk-driven, for large projects), **V-Model** (testing at each stage), **RAD** (Rapid Application Development).",
+        "complexity": "Waterfall: simple but inflexible — changes expensive after requirements frozen. Agile: 2-week sprints, continuous feedback, handles change well. SCRUM (Agile framework): roles = Product Owner, Scrum Master, Dev Team.",
+        "exam_tip": "SDLC phases: Requirements → Design → Implementation → Testing → Deployment → Maintenance. Testing types: Unit (module), Integration (module+module), System (full system), Acceptance (UAT by client). **COCOMO model** for cost estimation. Agile values: Individuals & interactions > Processes & tools."
+    },
+
+    # ── DATA STRUCTURES (ADDITIONAL) ──────────────────────────────────────────
+    "array": {
+        "title": "Arrays & Strings — Foundation Data Structure",
+        "subject": "DSA",
+        "explanation": "An array stores elements of the **same type** in contiguous memory locations, accessed via zero-based index. Strings are character arrays. Key operations: traversal O(N), access O(1), insertion/deletion O(N) (shifting). 2D arrays use row-major order in C/Java.",
+        "complexity": "Access: O(1) | Search (unsorted): O(N) | Search (sorted + Binary Search): O(log N) | Insert/Delete (end): O(1) amortised | Insert/Delete (middle): O(N)",
+        "exam_tip": "Sliding window technique reduces O(N²) substring problems to O(N). Two-pointer approach solves sorted-array pair-sum in O(N). Common interview patterns: kadane's algorithm (max subarray sum O(N)), prefix sum array (range query O(1) after O(N) build). Always clarify whether the array is sorted before choosing a search algorithm."
+    },
+    "heap": {
+        "title": "Heap Data Structure & Priority Queue",
+        "subject": "DSA",
+        "explanation": "A **complete binary tree** satisfying the heap property. **Min-Heap**: parent ≤ children (root = minimum). **Max-Heap**: parent ≥ children (root = maximum). Stored as an array — parent of index i is at ⌊(i-1)/2⌋; children at 2i+1 and 2i+2.",
+        "complexity": "Insert (heapify-up): O(log N) | Delete-min/max (heapify-down): O(log N) | Build heap from array: O(N) — NOT O(N log N) | Peek min/max: O(1)",
+        "exam_tip": "Heap is the backbone of **Priority Queue** and **Heap Sort** (O(N log N) in-place). Build-heap is O(N) because most elements are near the bottom (do heapify-down from N/2 to 0). Top-K elements problem: use a Min-Heap of size K — O(N log K). Dijkstra's shortest path uses a Min-Heap. Java: `PriorityQueue`. Python: `heapq` (min-heap only — negate values for max)."
+    },
+    "greedy algorithm": {
+        "title": "Greedy Algorithms",
+        "subject": "DSA",
+        "explanation": "Makes the **locally optimal choice** at each step hoping to reach the global optimum. No backtracking. Works when the problem has **Greedy Choice Property** (local optimal → global optimal) and **Optimal Substructure**.",
+        "complexity": "Activity Selection: O(N log N) | Fractional Knapsack: O(N log N) | Huffman Coding: O(N log N) | Kruskal's MST: O(E log E) | Prim's MST: O(E log V)",
+        "exam_tip": "Greedy vs DP: Greedy makes one irreversible choice per step; DP explores all subproblems. Greedy fails for 0/1 Knapsack (use DP instead) but works for Fractional Knapsack. Classic greedy problems: **Activity Selection** (pick max non-overlapping intervals), **Huffman Encoding** (minimum prefix-free code), **Coin Change** (only works for canonical coin systems — fails for arbitrary denominations)."
+    },
+    "recursion": {
+        "title": "Recursion & Backtracking",
+        "subject": "DSA",
+        "explanation": "**Recursion**: a function calls itself with a smaller input until a **base case** is reached. Every recursive call goes onto the call stack. **Backtracking**: try a solution, and if it fails, undo (backtrack) and try the next option — essentially DFS on the solution space.",
+        "complexity": "Time: depends on recurrence. T(N) = 2T(N/2) + O(N) → O(N log N) (Merge Sort). T(N) = T(N-1) + O(1) → O(N) (Factorial). Space: O(depth of recursion) for the call stack.",
+        "exam_tip": "Solve recurrences with **Master Theorem**: T(N) = aT(N/b) + f(N). Three cases based on f(N) vs N^(log_b a). Backtracking classics: N-Queens, Sudoku solver, Rat in a Maze, Subset Sum. Always define the base case first — missing base case = infinite recursion = stack overflow. Tail recursion can be optimised by compilers into a loop."
+    },
+
+    # ── OPERATING SYSTEMS (ADDITIONAL) ────────────────────────────────────────
+    "file system": {
+        "title": "File Systems & I/O in OS",
+        "subject": "OS",
+        "explanation": "A file system organises data on storage as a hierarchy of directories and files. Key concepts: **inode** (stores metadata — permissions, size, pointers to data blocks), **FAT** (File Allocation Table — simple linked list of blocks), **inode-based** (Unix ext4 — direct, single-indirect, double-indirect block pointers).",
+        "complexity": "Disk access is 10⁵× slower than RAM. Disk scheduling algorithms minimise seek time: FCFS, SSTF (Shortest Seek Time First), SCAN (elevator), C-SCAN (circular), LOOK.",
+        "exam_tip": "**Inode structure**: 12 direct pointers + 1 single-indirect + 1 double-indirect + 1 triple-indirect. For block size B and pointer size P: max file size = 12B + (B/P)B + (B/P)²B + (B/P)³B. Disk scheduling: SSTF minimises seek but causes starvation. SCAN is the standard elevator algorithm — most commonly tested. File permissions in Unix: rwx = read(4) write(2) execute(1). `chmod 755` = rwxr-xr-x."
+    },
 }
+
+# ── Keyword aliases → map alternate phrasings to canonical keys ────────────────
+# NOTE: sorted longest-first at runtime so that longer phrases match before their
+# shorter substrings (e.g. "shortest path" before "short", "heap sort" before "heap").
+STUDY_ALIASES = {
+    # Graph / BFS / DFS
+    "shortest path": "graph", "bfs": "graph", "dfs": "graph", "dijkstra": "graph",
+    "bellman ford": "graph", "topological sort": "graph", "strongly connected": "graph",
+    # Sorting
+    "selection sort": "bubble sort", "insertion sort": "bubble sort", "sorting": "bubble sort",
+    "merge sort": "merge sort", "merge": "merge sort",
+    "quick sort": "quick sort", "quick": "quick sort",
+    "heap sort": "heap", "priority queue": "heap", "min heap": "heap", "max heap": "heap",
+    # Linked list
+    "doubly linked": "linked list", "singly linked": "linked list", "circular linked": "linked list",
+    "linked": "linked list",
+    # Hash
+    "hash table": "hashing", "hash map": "hashing", "hash function": "hashing",
+    "hash": "hashing",
+    # DP
+    "dynamic programming": "dynamic programming",
+    "memoization": "dynamic programming", "tabulation": "dynamic programming",
+    "knapsack": "dynamic programming", "lcs": "dynamic programming",
+    "longest common": "dynamic programming", "fibonacci": "dynamic programming",
+    "dp": "dynamic programming",
+    # Process scheduling
+    "cpu scheduling": "process scheduling", "round robin": "process scheduling",
+    "process scheduling": "process scheduling",
+    "fcfs": "process scheduling", "sjf": "process scheduling", "srtf": "process scheduling",
+    "process": "process scheduling",
+    # Paging / Virtual memory
+    "virtual memory": "paging", "page fault": "paging", "page table": "paging",
+    "tlb": "paging", "paging": "paging",
+    # Semaphore / Sync
+    "producer consumer": "semaphore", "dining philosopher": "semaphore",
+    "critical section": "semaphore", "synchronization": "semaphore",
+    "mutex": "semaphore",
+    # OSI / CN
+    "osi model": "osi model", "osi layer": "osi model", "network layer": "osi model",
+    "osi": "osi model",
+    # IP
+    "ip addressing": "ip addressing", "subnetting": "ip addressing", "cidr": "ip addressing",
+    "subnet": "ip addressing",
+    # SQL / DBMS
+    "inner join": "sql joins", "outer join": "sql joins", "left join": "sql joins",
+    "right join": "sql joins", "sql joins": "sql joins",
+    "join": "sql joins", "sql": "sql joins",
+    # Transactions
+    "acid properties": "transactions", "acid": "transactions",
+    "transaction": "transactions", "2pl": "transactions", "two phase": "transactions",
+    # OOP
+    "method overriding": "polymorphism", "method overloading": "polymorphism",
+    "runtime polymorphism": "polymorphism", "static polymorphism": "polymorphism",
+    "multiple inheritance": "inheritance", "extends": "inheritance",
+    "encapsulation": "encapsulation", "abstraction": "encapsulation",
+    # COA
+    "cache memory": "cache memory", "l1 cache": "cache memory", "l2 cache": "cache memory",
+    "locality of reference": "cache memory", "locality": "cache memory",
+    "cache": "cache memory",
+    "pipeline hazard": "pipeline", "pipelining": "pipeline", "stall": "pipeline",
+    # TOC
+    "finite automata": "automata", "regular language": "automata", "pumping lemma": "automata",
+    "dfa": "automata", "nfa": "automata", "turing": "automata",
+    # SE
+    "software model": "sdlc", "waterfall model": "sdlc", "agile methodology": "sdlc",
+    "agile": "sdlc", "waterfall": "sdlc", "scrum": "sdlc",
+    # New topics
+    "sliding window": "array", "two pointer": "array", "kadane": "array",
+    "string": "array", "2d array": "array",
+    "backtracking": "recursion", "n queens": "recursion", "base case": "recursion",
+    "master theorem": "recursion", "recurrence": "recursion",
+    "greedy": "greedy algorithm", "activity selection": "greedy algorithm",
+    "huffman": "greedy algorithm", "kruskal": "greedy algorithm", "prim": "greedy algorithm",
+    "fractional knapsack": "greedy algorithm",
+    "file system": "file system", "disk scheduling": "file system",
+    "inode": "file system", "fat": "file system", "sstf": "file system",
+}
+
+# ── Student Health Triage Knowledge Base ──────────────────────────────────────
+# Keys are lowercase trigger words. HEALTH_ALIASES maps synonyms to canonical keys.
 
 HEALTH_SYMPTOMS = {
     "fever": {
-        "condition": "Mild Viral Fever / Temperature",
-        "first_aid": "Paracetamol (PCM 500mg/650mg) after food if temperature > 99.5°F. Keep a wet cloth sponge on the forehead.",
-        "home_remedy": "Drink warm water, electrobion/electral ORS, and take full bed rest. Avoid cold/chilled beverages.",
-        "doctor_alert": "If fever persists beyond 48 hours or crosses 102°F with severe shivering, visit the College Medical Room immediately."
+        "condition": "Mild Viral Fever / High Temperature",
+        "severity": "Moderate",
+        "first_aid": "Paracetamol (PCM 500mg/650mg) after food if temperature > 99.5°F. Apply a wet cloth on forehead and wrists. Stay in a cool, ventilated room.",
+        "home_remedy": "Drink warm water with ORS (Electral/Glucon-D) every 2 hours. Complete bed rest. Avoid cold drinks, fans directly on body. Sip warm ginger-tulsi tea.",
+        "doctor_alert": "🚨 Rush to campus medical room if: fever > 102°F with shivering, fever persists beyond 48 hours, rash appears, or neck stiffness occurs (could indicate meningitis)."
     },
     "headache": {
-        "condition": "Tension Headache / Screen Eye Strain",
-        "first_aid": "Take a 20-minute screen break in a dark room. Mild balm (Amrutanjan/Vicks) on temples. If severe, Paracetamol 500mg.",
-        "home_remedy": "Drink 2 large glasses of water immediately (dehydration is the #1 student cause). Do gentle neck stretching.",
-        "doctor_alert": "If accompanied by vomiting or vision blurriness, visit a doctor right away."
+        "condition": "Tension Headache / Digital Eye Strain",
+        "severity": "Mild-Moderate",
+        "first_aid": "Immediate: 20-min screen break in a dim room. Apply Amrutanjan/Vicks balm on temples & forehead. If severe: Paracetamol 500mg with water (not empty stomach).",
+        "home_remedy": "Drink 2–3 large glasses of water immediately (dehydration is the #1 cause in students). Gentle neck & shoulder stretches. Cold/hot compress on neck. Peppermint oil roll-on on temples.",
+        "doctor_alert": "🚨 See a doctor if: sudden severe 'thunderclap' headache, headache with vomiting + light sensitivity (migraine or worse), blurred vision, or headache after a head injury."
     },
     "cold": {
-        "condition": "Common Cold & Sore Throat",
-        "first_aid": "Steam inhalation with water 2 times a day. Antihistamine like Cetirizine 10mg at bedtime if sneezing heavily.",
-        "home_remedy": "Warm salt water gargle 3 times a day for sore throat. Drink hot ginger-tulsi tea or warm honey water.",
-        "doctor_alert": "If chest congestion or breathing difficulty occurs, consult campus physician."
+        "condition": "Common Cold, Runny Nose & Sore Throat",
+        "severity": "Mild",
+        "first_aid": "Steam inhalation (plain hot water or with Vicks VapoRub) twice daily. Cetirizine 10mg at bedtime for heavy sneezing/runny nose. Throat lozenges (Strepsils) for soreness.",
+        "home_remedy": "Warm salt water gargle 3 times a day (½ tsp salt in 1 glass warm water). Hot ginger-tulsi-honey tea. Stay hydrated. Avoid cold water, ice cream, and AC directly on body.",
+        "doctor_alert": "🚨 Consult physician if: cold lasts > 10 days, severe ear pain, greenish/yellow nasal discharge (bacterial infection), or high fever develops alongside cold."
     },
     "cough": {
-        "condition": "Dry / Wet Cough & Throat Irritation",
-        "first_aid": "Strepsils/Koflet lozenge for throat irritation. Steam inhalation.",
-        "home_remedy": "Warm turmeric milk (Haldi doodh) before sleeping. 1 spoon honey with black pepper.",
-        "doctor_alert": "If cough lasts more than 1 week with blood in sputum, visit a doctor."
+        "condition": "Dry or Wet Cough & Throat Irritation",
+        "severity": "Mild-Moderate",
+        "first_aid": "Strepsils/Koflet lozenges for throat irritation. Steam inhalation 2×/day. For wet cough: Benadryl/Chericof syrup (expectorant) 10ml after meals. For dry cough: Honitus/Dabur honey-ginger syrup.",
+        "home_remedy": "Warm turmeric milk (Haldi doodh with a pinch of pepper and ghee) before sleeping. 1 tsp honey with a pinch of black pepper and ginger juice. Avoid cold beverages and dusty environments.",
+        "doctor_alert": "🚨 See a doctor if: cough persists > 2 weeks, blood in sputum, chest pain while coughing, or breathlessness accompanies the cough."
     },
     "stomach": {
-        "condition": "Stomach Ache / Acidity / Food Discomfort",
-        "first_aid": "Antacid gel (Digene / Gelusil 2 teaspoons) or Pantoprazole 40mg before breakfast if hyperacidity.",
-        "home_remedy": "Drink buttermilk (Chhachh) or coconut water. Eat simple plain Khichdi. Avoid spicy mess food.",
-        "doctor_alert": "If severe sharp pain in the lower right abdomen (appendix risk), rush to hospital immediately."
+        "condition": "Stomach Ache / Abdominal Cramps",
+        "severity": "Moderate",
+        "first_aid": "Identify location: Upper abdomen → acidity (take Gelusil/Eno). Lower abdomen cramps → Meftal Spas (antispasmodic) 1 tablet. Apply warm water bottle on abdomen. Sip warm water slowly.",
+        "home_remedy": "Drink coconut water or ORS for rehydration. Eat plain khichdi, curd-rice, or bananas — avoid spicy hostel mess food. Ajwain (carom seeds) in warm water relieves gas/cramps quickly.",
+        "doctor_alert": "🚨 Emergency: severe sudden pain in lower-right abdomen (appendicitis risk), blood in stool, vomiting blood, or fever + stomach pain together — go to hospital immediately."
     },
     "acidity": {
-        "condition": "Acid Reflux / Heartburn",
-        "first_aid": "Eno or Digene / Gelusil syrup 10ml. Avoid lying down flat immediately after eating.",
-        "home_remedy": "Cold milk (without sugar) provides instant relief. Sip fennel seed (Saunf) water.",
-        "doctor_alert": "If persistent burning pain radiates to jaw or left arm, seek emergency medical care."
+        "condition": "Acid Reflux / Heartburn / Gastritis",
+        "severity": "Mild-Moderate",
+        "first_aid": "Gelusil / Digene antacid gel 2 teaspoons after meals. Eno fruit salt in water for instant relief. Pantoprazole 40mg (PPI) before breakfast for persistent hyperacidity — available at campus dispensary.",
+        "home_remedy": "Cold milk (without sugar) gives instant relief by neutralizing acid. Sip jeera (cumin) water or fennel seed (saunf) water. Avoid lying flat for 2 hours after eating. Eat small, frequent meals.",
+        "doctor_alert": "🚨 See a doctor if: burning pain that radiates to jaw/left arm (cardiac symptom), difficulty swallowing, black tarry stools, or frequent unexplained vomiting."
     },
     "stress": {
-        "condition": "Exam Anxiety & Mental Fatigue",
-        "first_aid": "Guided 4-7-8 Breathing: Inhale 4s, Hold 7s, Exhale 8s. Take a 15-minute walk outside in fresh air.",
-        "home_remedy": "Listen to calming music, hydrate well, and remind yourself that exams don't define your destiny.",
-        "doctor_alert": "Reach out to College Student Counselor or helpline if feeling completely overwhelmed."
-    }
+        "condition": "Exam Anxiety, Mental Fatigue & Burnout",
+        "severity": "Moderate — Needs Attention",
+        "first_aid": "**4-7-8 Breathing**: Inhale for 4s → Hold for 7s → Exhale slowly for 8s. Repeat 4 cycles. This activates the parasympathetic nervous system instantly. Take a 15-minute walk outside — sunlight boosts serotonin.",
+        "home_remedy": "Ashwagandha (KSM-66) supplement reduces cortisol with consistent use. Chamomile tea before bed for better sleep. Avoid energy drinks — they worsen anxiety. Write down tomorrow's tasks to declutter the mind before sleeping.",
+        "doctor_alert": "🚨 Please reach out to: College Counselor (Student Wellness Center), iCall (9152987821 — free student helpline), or Vandrevala Foundation (1860-2662-345, 24/7 free). You are not alone. Exams do not define your worth."
+    },
+    "vomiting": {
+        "condition": "Nausea & Vomiting (Food Poisoning / Gastroenteritis)",
+        "severity": "Moderate",
+        "first_aid": "Stop eating solid food for 2–4 hours. Sip cold water or ice chips slowly. Ondansetron 4mg (Emeset/Zofer) — anti-nausea tablet available at campus dispensary — under tongue or swallowed with water.",
+        "home_remedy": "Rehydrate with ORS (Electral packet in 1L water) to prevent dehydration. Once vomiting stops: start with bland food — plain toast, banana, boiled rice. Ginger tea with honey reduces nausea naturally.",
+        "doctor_alert": "🚨 See a doctor if: vomiting lasts > 24 hours, blood in vomit, severe dehydration (dry mouth, no urination for 8h), high fever accompanying vomiting, or vomiting after a head injury."
+    },
+    "dehydration": {
+        "condition": "Dehydration (Common in hot weather & exams)",
+        "severity": "Mild-Severe depending on level",
+        "first_aid": "Drink ORS (Oral Rehydration Solution) — 1 Electral packet dissolved in 1 litre water. Sip continuously, do not gulp. Sports drinks (Gatorade/Glucon-D) are acceptable. Avoid plain water only — you need electrolytes.",
+        "home_remedy": "Coconut water is nature's ORS — rich in potassium and natural electrolytes. Diluted buttermilk with a pinch of salt and cumin. Eat water-rich fruits: watermelon, cucumber, oranges. Set phone reminders to drink water every 45 minutes.",
+        "doctor_alert": "🚨 Emergency signs: confusion or dizziness, no urination for > 8 hours, rapid heartbeat, sunken eyes, skin that doesn't spring back when pinched — these indicate severe dehydration, visit health center immediately."
+    },
+    "eye strain": {
+        "condition": "Digital Eye Strain / Computer Vision Syndrome",
+        "severity": "Mild",
+        "first_aid": "**20-20-20 Rule**: every 20 minutes, look at something 20 feet away for 20 seconds. Lubricating eye drops (Refresh Tears / Systane Ultra) — 1–2 drops per eye — available at any pharmacy. Reduce screen brightness and enable night mode.",
+        "home_remedy": "Splash cold water on closed eyes 3–4 times a day. Cucumber slices on eyes for 10 minutes. Rose water eye drops (Itone/Optique) soothe irritation naturally. Ensure adequate lighting while studying — reading in dim light strains eyes.",
+        "doctor_alert": "🚨 See an eye doctor if: persistent redness or yellow discharge (conjunctivitis), sudden vision blur or floaters, pain inside the eyeball, or sensitivity to light that doesn't resolve in 24 hours."
+    },
+    "back pain": {
+        "condition": "Lower Back Pain / Posture-Related Pain",
+        "severity": "Mild-Moderate",
+        "first_aid": "Apply warm compress (hot water bag) on the painful area for 15–20 minutes. Combiflam (Ibuprofen + Paracetamol) 1 tablet after food for moderate pain. Avoid sitting continuously — stand and walk every 30–45 minutes.",
+        "home_remedy": "**Knee-to-Chest Stretch**: lie on back, pull both knees to chest, hold 30s — relieves lower back tension instantly. **Cat-Cow Pose** (yoga). Sleep on a firm mattress, not a soft sofa. Improve desk posture — monitor at eye level, feet flat on floor.",
+        "doctor_alert": "🚨 See a doctor if: pain radiates down the leg (sciatica), numbness/tingling in legs, back pain after a fall/accident, or pain that wakes you from sleep and doesn't improve with rest."
+    },
+    "insomnia": {
+        "condition": "Insomnia / Sleep Deprivation (Pre-Exam Sleep Disorder)",
+        "severity": "Moderate — affects academic performance significantly",
+        "first_aid": "**Progressive Muscle Relaxation**: tense each muscle group for 5s, release — starting from toes to head. Melatonin 3mg (sleep onset supplement, non-addictive) — take 30 minutes before bed. Available at campus pharmacy.",
+        "home_remedy": "Warm milk with a pinch of nutmeg (jaiphal) before bed — contains tryptophan, a natural sleep aid. Chamomile tea. No screens 1 hour before sleep (blue light suppresses melatonin). Keep room cool (18–22°C is optimal for sleep). Same bedtime daily resets circadian rhythm.",
+        "doctor_alert": "🚨 Consult a doctor if: unable to sleep for > 3 consecutive nights, sleep paralysis episodes, extreme daytime sleepiness affecting studies, or suspected sleep apnea (loud snoring + gasping)."
+    },
+    "allergy": {
+        "condition": "Allergic Reaction (Skin / Nasal / Food Allergy)",
+        "severity": "Mild-Severe depending on type",
+        "first_aid": "For **nasal allergy** (sneezing, watery eyes): Cetirizine 10mg or Levocetirizine 5mg at night — available OTC. For **skin rash/hives**: Calamine lotion topically + Cetirizine orally. Avoid identified triggers. Cold compress on itchy skin.",
+        "home_remedy": "Local raw honey (1 tsp/day) may gradually reduce seasonal pollen allergies over weeks. Neti pot (saline nasal wash) clears allergens from nasal passages. Shower immediately after coming from outdoors during pollen season.",
+        "doctor_alert": "🚨 **EMERGENCY**: anaphylaxis signs = sudden throat tightening, difficulty breathing, swelling of lips/tongue, dizziness after eating something — this is life-threatening. Call college emergency or go to hospital IMMEDIATELY. May need epinephrine injection."
+    },
+    "sprain": {
+        "condition": "Ankle / Wrist Sprain (Sports / Lab Injury)",
+        "severity": "Mild-Moderate",
+        "first_aid": "**RICE Protocol**: **R**est (stop activity immediately), **I**ce (ice pack wrapped in cloth for 15–20 min, every 2 hours), **C**ompression (crepe bandage wrap — not too tight), **E**levation (keep limb elevated above heart level). Combiflam for pain/swelling.",
+        "home_remedy": "Turmeric paste (haldi + mustard oil) warm compress reduces inflammation. After 48–72 hours (no ice), switch to warm compress to promote healing. Gentle range-of-motion exercises after 2–3 days to prevent stiffness.",
+        "doctor_alert": "🚨 See a doctor if: unable to bear weight at all, severe swelling/bruising appearing quickly (possible fracture), deformity visible, or no improvement after 3–4 days of RICE treatment. X-ray may be needed to rule out fracture."
+    },
+    "diarrhea": {
+        "condition": "Diarrhea / Loose Motions (Gastroenteritis / Food Contamination)",
+        "severity": "Moderate — watch for dehydration",
+        "first_aid": "Stop solid food for 4–6 hours. Start ORS immediately — 1 Electral packet in 1L water, sip every 15 minutes. Loperamide (Eldoper/Imodium) 2mg tablet for acute loose motions — reduces frequency. Avoid dairy, raw food, and oily mess food.",
+        "home_remedy": "BRAT diet once appetite returns: **B**anana, **R**ice (plain), **A**pplesauce, **T**oast. Curd/probiotic yoghurt restores gut bacteria. Tender coconut water replenishes electrolytes naturally. Cumin-coriander water (jeera-dhaniya) soothes the gut. Avoid caffeine and spicy food for 48 hours.",
+        "doctor_alert": "🚨 See a doctor if: more than 10 loose motions in 24 hours, blood/mucus in stool, high fever + diarrhea (dysentery risk), or signs of severe dehydration (rapid pulse, dizziness, no urination > 6 hours). Oral rehydration must be aggressive — diarrhea can cause dangerous electrolyte loss within hours."
+    },
+    "muscle pain": {
+        "condition": "Muscle Soreness / Cramps (Post-Exercise or Prolonged Sitting)",
+        "severity": "Mild",
+        "first_aid": "Apply **Moov/Volini** topical spray or gel on the affected area for instant relief. For cramping muscle: stretch and hold the muscle in the opposite direction. Combiflam tablet for moderate pain. Warm bath/shower relaxes muscle tension.",
+        "home_remedy": "Magnesium deficiency is the most common cause of muscle cramps in students — eat bananas, spinach, nuts. Stay hydrated. **Epsom salt soak** (magnesium sulphate in warm water for 15 min). Light stretching and walking increases blood flow to muscles.",
+        "doctor_alert": "🚨 See a doctor if: muscle weakness with no apparent cause, cramps accompanied by swelling and redness (could be DVT — deep vein thrombosis), or severe chest/arm pain (cardiac)."
+    },
+    "toothache": {
+        "condition": "Toothache / Dental Pain",
+        "severity": "Mild-Severe",
+        "first_aid": "Ibuprofen (Combiflam) 400mg after food for pain relief — most effective for dental pain. Clove oil (eugenol) — apply 1–2 drops on a cotton ball directly to the painful tooth — natural anaesthetic. Rinse with warm salt water every 2 hours.",
+        "home_remedy": "Garlic clove paste on the tooth (allicin is antibacterial). Cold compress on the cheek outside reduces swelling. Avoid very hot, cold, or sweet food — use the opposite side of mouth to chew. OTC dental gel (Dentogel/Metrogyl) applied to gums reduces inflammation.",
+        "doctor_alert": "🚨 Visit a dentist urgently if: swelling spreading to jaw/neck (abscess can be life-threatening), fever with toothache (infection spreading), severe throbbing pain not relieved by painkillers, or a broken/cracked tooth with exposed nerve."
+    },
+}
+
+# ── Health keyword aliases → canonical keys ────────────────────────────────────
+# Sorted longest-first at runtime to prevent short substring aliases shadowing longer ones.
+HEALTH_ALIASES = {
+    # Fever
+    "high fever": "fever", "temperature": "fever", "pyrexia": "fever", "typhoid": "fever",
+    "viral fever": "fever",
+    # Headache
+    "migraine attack": "headache", "head pain": "headache", "migraine": "headache",
+    "tension headache": "headache", "tension": "headache",
+    # Cold
+    "sore throat": "cold", "runny nose": "cold", "throat pain": "cold",
+    "sneezing": "cold", "nasal": "cold",
+    # Cough
+    "dry cough": "cough", "wet cough": "cough", "throat": "cough",
+    # Stomach
+    "stomach pain": "stomach", "abdominal pain": "stomach", "stomach ache": "stomach",
+    "abdominal": "stomach", "tummy": "stomach", "cramps": "stomach",
+    "cant eat": "stomach", "no appetite": "stomach",
+    # Acidity
+    "acid reflux": "acidity", "heartburn": "acidity", "food poisoning": "vomiting",
+    "gastric": "acidity", "bloating": "acidity", "gas": "acidity", "acid": "acidity",
+    # Stress / Mental health
+    "exam stress": "stress", "exam fear": "stress", "exam anxiety": "stress",
+    "mental health": "stress", "burnout": "stress", "depression": "stress",
+    "anxiety": "stress", "panic": "stress",
+    # Vomiting
+    "food poisoning": "vomiting", "nausea": "vomiting", "vomit": "vomiting",
+    "puke": "vomiting",
+    # Diarrhea
+    "loose motion": "diarrhea", "loose motions": "diarrhea", "diarrhea": "diarrhea",
+    "diarrhoea": "diarrhea", "dysentery": "diarrhea", "watery stool": "diarrhea",
+    # Dehydration
+    "dehydrated": "dehydration", "dry mouth": "dehydration", "thirsty": "dehydration",
+    "not urinating": "dehydration",
+    # Eye strain
+    "computer vision": "eye strain", "eye strain": "eye strain", "red eye": "eye strain",
+    "screen time": "eye strain", "screen": "eye strain", "eyes": "eye strain",
+    "eye": "eye strain",
+    # Back pain
+    "lower back pain": "back pain", "lower back": "back pain", "back ache": "back pain",
+    "spine": "back pain", "posture": "back pain", "back": "back pain",
+    # Insomnia / Sleep
+    "cant sleep": "insomnia", "no sleep": "insomnia", "sleepless": "insomnia",
+    "insomnia": "insomnia", "sleep problem": "insomnia", "sleep": "insomnia",
+    # Allergy
+    "hives": "allergy", "itching": "allergy", "allergic": "allergy", "rash": "allergy",
+    "skin rash": "allergy",
+    # Sprain / Injury
+    "ankle sprain": "sprain", "wrist sprain": "sprain", "twisted ankle": "sprain",
+    "muscle pull": "muscle pain", "muscle cramp": "muscle pain", "cramp": "muscle pain",
+    "body ache": "muscle pain", "sore muscle": "muscle pain",
+    "twisted": "sprain", "ankle": "sprain", "wrist": "sprain", "injury": "sprain",
+    # Toothache
+    "tooth pain": "toothache", "dental": "toothache", "toothache": "toothache",
+    "tooth": "toothache", "gum": "toothache",
 }
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/api/admin/all_students', methods=['GET'])
+def get_all_students_admin():
+    """Returns full attendance + marks for every student — used by Faculty Management Table."""
+    data = load_data()
+    students = data.get('students', [])
+    subjects = data.get('subjects', [])
+    return jsonify({
+        "students": students,
+        "subjects": subjects
+    })
 
 @app.route('/api/student', methods=['GET'])
 def get_student():
@@ -343,6 +797,29 @@ def add_timetable():
     save_data(data)
     return jsonify({"success": True, "message": f"Lecture scheduled at {time} in {room}!", "lecture": new_lecture})
 
+@app.route('/api/admin/notice/add', methods=['POST'])
+def add_notice():
+    payload = request.json or {}
+    title = payload.get('title', '').strip()
+    content = payload.get('content', '').strip()
+    badge = payload.get('badge', 'Notice').strip()
+
+    if not title or not content:
+        return jsonify({"success": False, "message": "Title and content are required."}), 400
+
+    data = load_data()
+    import datetime
+    new_notice = {
+        "id": len(data.get('notices', [])) + 1,
+        "title": title,
+        "date": datetime.date.today().strftime("%d %b %Y"),
+        "badge": badge,
+        "content": content
+    }
+    data.setdefault('notices', []).insert(0, new_notice)
+    save_data(data)
+    return jsonify({"success": True, "message": f"Notice '{title}' posted!", "notice": new_notice})
+
 @app.route('/api/admin/opportunity/add', methods=['POST'])
 def add_opportunity():
     payload = request.json or {}
@@ -369,6 +846,37 @@ def add_opportunity():
     save_data(data)
     return jsonify({"success": True, "message": f"Opportunity '{title}' posted for students!", "opportunity": new_opp})
 
+# ── Chat helper functions (longest-alias-first matching) ─────────────────────
+
+def _resolve_health(msg_lower):
+    """Return list of unique matched symptom keys (multi-symptom support)."""
+    matched = []
+    seen = set()
+    # Sort aliases longest-first so "loose motions" beats "motion", "high fever" beats "fever"
+    for alias, canonical in sorted(HEALTH_ALIASES.items(), key=lambda x: -len(x[0])):
+        if alias in msg_lower and canonical not in seen:
+            if canonical in HEALTH_SYMPTOMS:
+                matched.append(canonical)
+                seen.add(canonical)
+    # Also scan direct keys for anything not yet caught
+    for key in HEALTH_SYMPTOMS:
+        if key in msg_lower and key not in seen:
+            matched.append(key)
+            seen.add(key)
+    return matched
+
+
+def _resolve_study(msg_lower):
+    """Return the single best-matching study topic (longest-alias-first)."""
+    for alias, canonical in sorted(STUDY_ALIASES.items(), key=lambda x: -len(x[0])):
+        if alias in msg_lower:
+            return canonical
+    for key in STUDY_KNOWLEDGE:
+        if key in msg_lower:
+            return key
+    return None
+
+
 # --- AI COPILOT CHATBOT ---
 
 @app.route('/api/chat', methods=['POST'])
@@ -376,75 +884,129 @@ def chat():
     payload = request.json or {}
     user_msg = payload.get('message', '').strip()
     msg_lower = user_msg.lower()
-    
+
     data = load_data()
     active_stu = get_active_student(data)
     student_name = active_stu.get('name', 'Student') if active_stu else 'Student'
-    
-    # 1. HEALTH & SYMPTOMS CHECKER (First Aid & Medicine)
-    for symptom_key, info in HEALTH_SYMPTOMS.items():
-        if symptom_key in msg_lower:
-            return jsonify({
-                "reply": f"🩺 **Campus Health AI — Symptom Triage**\n\n• **Identified Concern:** {info['condition']}\n\n💊 **First-Aid & Safe Medicine Guidance:**\n{info['first_aid']}\n\n🍵 **Home Remedies & Comfort:**\n{info['home_remedy']}\n\n🚨 **When to See a Doctor:**\n{info['doctor_alert']}\n\n*(Note: This is AI first-aid support. Please visit the Campus Clinic in Health Block Room 04 for prescription care.)*",
-                "action": None
-            })
 
-    # 2. ACADEMIC DOUBT SOLVER
-    for study_key, s_info in STUDY_KNOWLEDGE.items():
-        if study_key in msg_lower:
-            return jsonify({
-                "reply": f"📚 **AI Academic Tutor: {s_info['title']}**\n\n💡 **Core Concept:**\n{s_info['explanation']}\n\n⚡ **Complexity / Properties:**\n{s_info['complexity']}\n\n🎯 **Exam & Viva Pro-Tip:**\n{s_info['exam_tip']}",
-                "action": None
-            })
+    # ── 1. HEALTH & SYMPTOMS TRIAGE ─────────────────────────────────────────
+    matched_symptoms = _resolve_health(msg_lower)
+    if matched_symptoms:
+        sections = []
+        for sym_key in matched_symptoms[:3]:   # cap at 3 conditions per message
+            info = HEALTH_SYMPTOMS[sym_key]
+            sections.append(
+                f"---\n"
+                f"### 🩺 {info['condition']}\n"
+                f"**Severity:** {info['severity']}\n\n"
+                f"💊 **First-Aid & Safe Medicine:**\n{info['first_aid']}\n\n"
+                f"🍵 **Home Remedies:**\n{info['home_remedy']}\n\n"
+                f"{info['doctor_alert']}"
+            )
+        n = len(matched_symptoms)
+        header = (
+            f"🩺 **Campus Health AI — {n} Condition{'s' if n > 1 else ''} Detected**\n\n"
+            if n > 1
+            else "🩺 **Campus Health AI — Symptom Triage**\n\n"
+        )
+        footer = "\n\n---\n*AI first-aid guidance only — not a substitute for professional care. Visit Campus Clinic, Health Block Room 04.*"
+        return jsonify({"reply": header + "\n".join(sections) + footer, "action": "health"})
 
-    # 3. MARKS & RESULT QUERIES
+    # ── 2. ACADEMIC DOUBT SOLVER ─────────────────────────────────────────────
+    resolved_topic = _resolve_study(msg_lower)
+    if resolved_topic and resolved_topic in STUDY_KNOWLEDGE:
+        s_info = STUDY_KNOWLEDGE[resolved_topic]
+        subject_tag = s_info.get('subject', 'CS')
+        return jsonify({
+            "reply": (
+                f"📚 **AI Academic Tutor [{subject_tag}]**\n"
+                f"### {s_info['title']}\n\n"
+                f"---\n"
+                f"💡 **Core Concept:**\n{s_info['explanation']}\n\n"
+                f"⚡ **Complexity / Key Properties:**\n`{s_info['complexity']}`\n\n"
+                f"🎯 **Exam & Viva Pro-Tip:**\n{s_info['exam_tip']}"
+            ),
+            "action": "academic"
+        })
+
+    # ── 3. MARKS & RESULT QUERIES ────────────────────────────────────────────
     if any(k in msg_lower for k in ['mark', 'score', 'pass', 'fail', 'result', 'grade']):
         marks_map = active_stu.get('marks', {}) if active_stu else {}
         sub_list = data.get('subjects', [])
-        
-        reply_lines = [f"📋 **Academic Performance & Results for {student_name}:**\n"]
+        reply_lines = [f"📋 **Academic Performance & Results — {student_name}**\n"]
         for s in sub_list:
             m = marks_map.get(s['id'], {"score": "Not Declared", "total": 100, "status": "Pending"})
             badge = "🟢 Pass" if m['status'] == 'Pass' else ("🔴 Fail" if m['status'] == 'Fail' else "⚪ Pending")
-            reply_lines.append(f"• **{s['name']}** ({s['code']}): {m['score']}/{m['total']} [{badge}]")
-            
+            reply_lines.append(f"• **{s['name']}** `{s['code']}`: {m['score']}/{m['total']} — {badge}")
         return jsonify({"reply": "\n".join(reply_lines), "action": None})
 
-    # 4. HACKATHONS & JOBS
+    # ── 4. HACKATHONS & JOBS ─────────────────────────────────────────────────
     if any(k in msg_lower for k in ['hackathon', 'job', 'internship', 'placement', 'contest', 'opportunity']):
         opps = data.get('opportunities', [])
         if opps:
             opp_text = "🚀 **Active Hackathons & Job Opportunities:**\n\n"
             for o in opps[:3]:
-                opp_text += f"• **[{o['category']}] {o['title']}**\n  ⏰ Deadline: {o['deadline']}\n  🔗 Link: {o['link']}\n\n"
+                opp_text += f"• **[{o['category']}] {o['title']}**\n  ⏰ Deadline: {o['deadline']}\n  🔗 {o['link']}\n\n"
             return jsonify({"reply": opp_text, "action": None})
 
-    # 5. ATTENDANCE QUERIES
-    if any(k in msg_lower for k in ['attendance', 'bunk', 'shortage', 'present', 'absent']):
+    # ── 5. ATTENDANCE QUERIES ────────────────────────────────────────────────
+    if any(k in msg_lower for k in ['attendance', 'bunk', 'shortage', 'present', 'absent', 'skip', 'miss']):
         att_map = active_stu.get('attendance', {}) if active_stu else {}
         sub_list = data.get('subjects', [])
         target = active_stu.get('target_attendance', 75)
-        
-        reply_lines = [f"📊 **Attendance Status for {student_name}:**\n"]
+        reply_lines = [f"📊 **Attendance Report — {student_name}** (Target: {target}%)\n"]
+        has_shortage = False
         for s in sub_list:
-            a = att_map.get(s['id'], {"attended": 0, "total": 0, "percentage": 100.0, "status": "safe"})
-            status_icon = "⚠️ Shortage" if a['percentage'] < target else "✅ Safe"
-            reply_lines.append(f"• **{s['name']}**: {a['attended']}/{a['total']} ({a['percentage']}%) — {status_icon}")
-            
+            a = att_map.get(s['id'], {"attended": 0, "total": 0, "percentage": 100.0})
+            pct = a.get('percentage', 0)
+            att = a.get('attended', 0)
+            tot = a.get('total', 0)
+            if pct < target:
+                has_shortage = True
+                needed = calculate_classes_needed(att, tot, target)
+                reply_lines.append(f"• **{s['name']}**: {att}/{tot} ({pct}%) — ⚠️ **SHORTAGE** → Attend **{needed}** more class{'es' if needed != 1 else ''} to reach {target}%")
+            else:
+                bunks_left = calculate_max_bunks(att, tot, target)
+                reply_lines.append(f"• **{s['name']}**: {att}/{tot} ({pct}%) — ✅ Safe (can skip **{bunks_left}** more)")
+        reply_lines.append(
+            f"\n🚨 **Action Required:** Attend all flagged classes to avoid exam debarment." if has_shortage
+            else f"\n🎉 All subjects above {target}% — you're on track!"
+        )
         return jsonify({"reply": "\n".join(reply_lines), "action": None})
 
-    # 6. TIMETABLE & CLASS LOCATION QUERIES
-    if any(k in msg_lower for k in ['timetable', 'schedule', 'class', 'lecture', 'where', 'kahan', 'room', 'teacher']):
+    # ── 6. TIMETABLE & VENUE QUERIES ─────────────────────────────────────────
+    if any(k in msg_lower for k in ['timetable', 'schedule', 'class', 'lecture', 'where', 'kahan', 'room', 'venue', 'teacher', 'faculty']):
         tt = data.get('timetable', [])
         if tt:
-            tt_lines = ["📅 **Class & Lecture Locations for Today:**\n"]
+            tt_lines = ["📅 **Class Timetable & Venues for Today:**\n"]
             for idx, c in enumerate(tt, 1):
-                tt_lines.append(f"**{idx}. {c['time']}** — {c['subject']} ({c.get('type', 'Theory')})\n   📍 **Venue:** {c['room']}\n   👨‍🏫 **Faculty:** {c['faculty']}\n")
+                status_tag = {"ongoing": "🟢 Live Now", "completed": "✅ Done", "upcoming": "⏳ Upcoming"}.get(c.get('status', 'upcoming'), "⏳ Upcoming")
+                tt_lines.append(
+                    f"**{idx}. {c['subject']}** `{c.get('type','Theory')}` — {status_tag}\n"
+                    f"   ⏰ {c['time']} | 📍 **{c['room']}** | 👨‍🏫 {c['faculty']}\n"
+                )
             return jsonify({"reply": "\n".join(tt_lines), "action": None})
 
-    # 7. DEFAULT GREETING
+    # ── 7. DEFAULT HELP MESSAGE ──────────────────────────────────────────────
     return jsonify({
-        "reply": f"👋 **Hello {student_name}! I'm CampusGenie AI**, your 360° College Copilot.\n\nAsk me anything:\n• 📚 **Academic Doubts:** *'Explain binary search'* or *'What is deadlock in OS?'*\n• 🩺 **Health & Medicine:** *'Fever remedies'*, *'Headache relief'*, *'Stomach ache advice'*\n• 📋 **Results & Marks:** *'Show my marks'*, *'Am I pass in OS?'*\n• 🚀 **Opportunities:** *'Show latest hackathons and internships'*\n• 📅 **Class Venue:** *'Where is my next lecture?'*",
+        "reply": (
+            f"👋 **Hello {student_name}! I'm CampusGenie AI** — your 360° Smart Campus Copilot.\n\n"
+            f"---\n"
+            f"🎓 **Academic Doubt Solver** (30 CS topics across 8 subjects):\n"
+            f"  `DSA` — array, linked list, stack, queue, tree, heap, graph, hashing, sorting, DP, greedy, recursion\n"
+            f"  `OS` — deadlock, scheduling, paging, semaphore, file system\n"
+            f"  `DBMS` — normalization, SQL joins, transactions (ACID)\n"
+            f"  `OOP` — polymorphism, inheritance, encapsulation\n"
+            f"  `CN` — OSI model, TCP vs UDP, IP addressing\n"
+            f"  `COA` — cache memory, pipelining | `TOC` — automata | `SE` — SDLC\n\n"
+            f"---\n"
+            f"🩺 **Health Triage** (17 symptoms — first-aid + medicines + home remedies):\n"
+            f"  fever, headache, cold, cough, acidity, stress/anxiety, vomiting,\n"
+            f"  diarrhea, dehydration, eye strain, back pain, insomnia, allergy, sprain,\n"
+            f"  muscle pain, toothache, stomach pain\n\n"
+            f"---\n"
+            f"📋 *'Show my marks'* | 📊 *'Attendance shortage'* | 📅 *'Where is my class?'* | 🚀 *'Latest hackathons'*"
+        ),
         "action": None
     })
 
