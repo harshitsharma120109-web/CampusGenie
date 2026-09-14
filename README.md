@@ -1,7 +1,9 @@
 ﻿# 🎓 CampusGenie — 360° Smart Campus ERP & AI Student Copilot
 > **SkillUp Hackathon in collaboration with IBM SkillsBuild**  
 > **Track:** Track 1 — Student AI Track (EdTech + Productivity + Student Wellness)  
-> **Developed using:** IBM Bob AI IDE  
+> **developed using:** IBM Bob AI IDE
+> 
+> 🌐 **Live Web App:** [https://campusgenie-g9pi.onrender.com/](https://campusgenie-g9pi.onrender.com/)  
 > 
 > 📄 **Official Document on IBM Bob Usage:** [Read IBM_BOB_USAGE.md](./IBM_BOB_USAGE.md)
 
@@ -68,3 +70,4 @@ python app.py
 
 # 4. Open in browser: http://127.0.0.1:5000
 ```
+
