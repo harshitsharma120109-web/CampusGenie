@@ -1,4 +1,4 @@
-{
+﻿{
   "active_student_id": "22CS1084",
   "students": [
     {
@@ -8,31 +8,120 @@
       "branch": "Computer Science & Engineering",
       "semester": "5th Semester",
       "target_attendance": 75,
-      "subjects": []
+      "attendance": {
+        "os": { "attended": 22, "total": 31, "percentage": 70.96, "status": "warning" },
+        "dsa": { "attended": 29, "total": 35, "percentage": 82.85, "status": "safe" },
+        "dbms": { "attended": 25, "total": 30, "percentage": 83.33, "status": "safe" },
+        "cn": { "attended": 21, "total": 30, "percentage": 70.0, "status": "warning" }
+      },
+      "marks": {
+        "os": { "score": 78, "total": 100, "status": "Pass" },
+        "dsa": { "score": 85, "total": 100, "status": "Pass" },
+        "dbms": { "score": 72, "total": 100, "status": "Pass" },
+        "cn": { "score": 38, "total": 100, "status": "Fail" }
+      }
     },
     {
-      "id": "22CS1086",
-      "name": "Priya Sharma",
-      "roll_no": "22CS1086",
-      "branch": "Information Technology",
-      "semester": "5th Sem",
+      "id": "22CS1085",
+      "name": "Priya Patel",
+      "roll_no": "22CS1085",
+      "branch": "Computer Science & Engineering",
+      "semester": "5th Semester",
       "target_attendance": 75,
-      "subjects": []
+      "attendance": {
+        "os": { "attended": 28, "total": 31, "percentage": 90.32, "status": "safe" },
+        "dsa": { "attended": 32, "total": 35, "percentage": 91.42, "status": "safe" },
+        "dbms": { "attended": 27, "total": 30, "percentage": 90.0, "status": "safe" },
+        "cn": { "attended": 27, "total": 30, "percentage": 90.0, "status": "safe" }
+      },
+      "marks": {
+        "os": { "score": 91, "total": 100, "status": "Pass" },
+        "dsa": { "score": 94, "total": 100, "status": "Pass" },
+        "dbms": { "score": 88, "total": 100, "status": "Pass" },
+        "cn": { "score": 85, "total": 100, "status": "Pass" }
+      }
     }
   ],
-  "notices": [],
-  "timetable": [],
-  "health_tips": [
-    "Drink at least 500ml water every 2 hours of study.",
-    "20-20-20 Rule: Every 20 mins, look at something 20 feet away for 20 seconds.",
-    "Take a 5-minute deep breathing break to reduce cortisol and reset your focus.",
-    "Swap sugary energy drinks with almonds, fruits, or green tea for steady alertness."
+  "subjects": [
+    { "id": "os", "code": "CS-501", "name": "Operating Systems", "faculty": "Prof. R. K. Verma" },
+    { "id": "dsa", "code": "CS-502", "name": "Data Structures & Algorithms", "faculty": "Dr. Sunita Rao" },
+    { "id": "dbms", "code": "CS-503", "name": "Database Management Systems", "faculty": "Dr. Alok Gupta" },
+    { "id": "cn", "code": "CS-504", "name": "Computer Networks", "faculty": "Prof. Sneha Kapoor" }
   ],
-  "student": {
-    "name": "harsh",
-    "roll_no": "26300",
-    "branch": "CSE Gen B",
-    "semester": "1 sem"
-  },
-  "subjects": []
+  "timetable": [
+    {
+      "time": "09:00 AM - 10:00 AM",
+      "subject": "Operating Systems",
+      "code": "CS-501",
+      "room": "Room 302 (Lecture Block A)",
+      "faculty": "Prof. R. K. Verma",
+      "type": "Theory",
+      "status": "completed"
+    },
+    {
+      "time": "10:15 AM - 11:15 AM",
+      "subject": "Data Structures Lab",
+      "code": "CS-502P",
+      "room": "Computer Lab 2 (IT Block)",
+      "faculty": "Dr. Sunita Rao",
+      "type": "Practical",
+      "status": "ongoing"
+    },
+    {
+      "time": "11:30 AM - 12:30 PM",
+      "subject": "Computer Networks",
+      "code": "CS-504",
+      "room": "Room 205 (Lecture Block B)",
+      "faculty": "Prof. Sneha Kapoor",
+      "type": "Theory",
+      "status": "upcoming"
+    },
+    {
+      "time": "01:30 PM - 02:30 PM",
+      "subject": "Database Systems",
+      "code": "CS-503",
+      "room": "Room 108 (Ground Floor)",
+      "faculty": "Dr. Alok Gupta",
+      "type": "Theory",
+      "status": "upcoming"
+    }
+  ],
+  "opportunities": [
+    {
+      "id": 1,
+      "title": "IBM SkillUp National AI Hackathon 2026",
+      "category": "Hackathon",
+      "badge": "IBM Official",
+      "deadline": "20 Sept 2026",
+      "link": "https://skillsbuild.org",
+      "desc": "Build Generative AI projects with IBM Bob & watsonx. Cash prizes + IBM Certificate + Internship interview opportunities!"
+    },
+    {
+      "id": 2,
+      "title": "Google Summer Internship 2027 (Software Engineering)",
+      "category": "Internship",
+      "badge": "Pre-Final Year",
+      "deadline": "30 Sept 2026",
+      "link": "https://careers.google.com/students",
+      "desc": "10-12 week paid software engineering internship. Requires DSA & System Design foundations."
+    },
+    {
+      "id": 3,
+      "title": "TCS CodeVita Season 13 Coding Challenge",
+      "category": "Contest / Job",
+      "badge": "Placement",
+      "deadline": "05 Oct 2026",
+      "link": "https://www.tcscodevita.com",
+      "desc": "Global programming competition. Top performers get direct Interview Call Letters for TCS Digital & Innovator roles."
+    }
+  ],
+  "notices": [
+    {
+      "id": 1,
+      "title": "Semester Examination Form Submission",
+      "date": "Today",
+      "badge": "Urgent",
+      "content": "5th Semester exam form deadline is 25th September. Submit via ERP portal."
+    }
+  ]
 }
