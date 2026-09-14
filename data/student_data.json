@@ -1,18 +1,38 @@
 {
-  "student": {
-    "name": "Harshit Sharma",
-    "roll_no": "22CS1084",
-    "branch": "Computer Science",
-    "semester": "5th Sem",
-    "target_attendance": 75
-  },
+  "active_student_id": "22CS1084",
+  "students": [
+    {
+      "id": "22CS1084",
+      "name": "Harshit Sharma",
+      "roll_no": "22CS1084",
+      "branch": "Computer Science & Engineering",
+      "semester": "5th Semester",
+      "target_attendance": 75,
+      "subjects": []
+    },
+    {
+      "id": "22CS1086",
+      "name": "Priya Sharma",
+      "roll_no": "22CS1086",
+      "branch": "Information Technology",
+      "semester": "5th Sem",
+      "target_attendance": 75,
+      "subjects": []
+    }
+  ],
   "notices": [],
-  "subjects": [],
   "timetable": [],
   "health_tips": [
     "Drink at least 500ml water every 2 hours of study.",
     "20-20-20 Rule: Every 20 mins, look at something 20 feet away for 20 seconds.",
     "Take a 5-minute deep breathing break to reduce cortisol and reset your focus.",
     "Swap sugary energy drinks with almonds, fruits, or green tea for steady alertness."
-  ]
+  ],
+  "student": {
+    "name": "harsh",
+    "roll_no": "26300",
+    "branch": "CSE Gen B",
+    "semester": "1 sem"
+  },
+  "subjects": []
 }

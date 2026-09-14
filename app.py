@@ -24,6 +24,17 @@ def save_data(data):
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
+def get_active_student(data):
+    students = data.get('students', [])
+    active_id = data.get('active_student_id')
+    for s in students:
+        if s['id'] == active_id:
+            return s
+    if students:
+        data['active_student_id'] = students[0]['id']
+        return students[0]
+    return None
+
 def calculate_classes_needed(attended, total, target=75):
     req = target * total - 100 * attended
     if req <= 0:
@@ -100,7 +111,34 @@ def index():
 @app.route('/api/student', methods=['GET'])
 def get_student():
     data = load_data()
-    return jsonify(data)
+    active_stu = get_active_student(data)
+    
+    all_students = [
+        {"id": s["id"], "name": s["name"], "roll_no": s["roll_no"], "branch": s.get("branch", "")}
+        for s in data.get('students', [])
+    ]
+    
+    return jsonify({
+        "student": active_stu,
+        "all_students": all_students,
+        "subjects": active_stu.get('subjects', []) if active_stu else [],
+        "timetable": data.get('timetable', []),
+        "notices": data.get('notices', []),
+        "health_tips": data.get('health_tips', [])
+    })
+
+@app.route('/api/student/switch', methods=['POST'])
+def switch_student():
+    payload = request.json or {}
+    target_id = payload.get('student_id')
+    data = load_data()
+    
+    found = any(s['id'] == target_id for s in data.get('students', []))
+    if found:
+        data['active_student_id'] = target_id
+        save_data(data)
+        return jsonify({"success": True, "message": "Switched active student."})
+    return jsonify({"success": False, "message": "Student not found."}), 404
 
 @app.route('/api/attendance/mark', methods=['POST'])
 def mark_attendance():
@@ -109,25 +147,30 @@ def mark_attendance():
     status = payload.get('status', 'present').lower()
     
     data = load_data()
+    active_stu = get_active_student(data)
+    if not active_stu:
+        return jsonify({"success": False, "message": "No active student."}), 404
+        
     updated_sub = None
+    target_att = active_stu.get('target_attendance', 75)
     
-    for sub in data.get('subjects', []):
+    for sub in active_stu.get('subjects', []):
         if sub['id'] == sub_id:
             sub['total'] += 1
             if status == 'present':
                 sub['attended'] += 1
             sub['percentage'] = round((sub['attended'] / sub['total']) * 100, 2)
-            sub['status'] = 'safe' if sub['percentage'] >= data.get('student', {}).get('target_attendance', 75) else 'warning'
+            sub['status'] = 'safe' if sub['percentage'] >= target_att else 'warning'
             updated_sub = sub
             break
             
     if updated_sub:
-        tot_att = sum(s['attended'] for s in data.get('subjects', []))
-        tot_all = sum(s['total'] for s in data.get('subjects', []))
+        tot_att = sum(s['attended'] for s in active_stu.get('subjects', []))
+        tot_all = sum(s['total'] for s in active_stu.get('subjects', []))
         overall_pct = round((tot_att / tot_all) * 100, 2) if tot_all else 0
         save_data(data)
         
-        needed = calculate_classes_needed(updated_sub['attended'], updated_sub['total'])
+        needed = calculate_classes_needed(updated_sub['attended'], updated_sub['total'], target_att)
         return jsonify({
             "success": True,
             "subject": updated_sub,
@@ -139,28 +182,77 @@ def mark_attendance():
 
 # --- FACULTY / ADMIN PORTAL ENDPOINTS ---
 
+@app.route('/api/admin/student/add', methods=['POST'])
+def add_new_student():
+    payload = request.json or {}
+    name = payload.get('name', '').strip()
+    roll_no = payload.get('roll_no', '').strip()
+    branch = payload.get('branch', '').strip()
+    semester = payload.get('semester', '').strip()
+    
+    if not name or not roll_no:
+        return jsonify({"success": False, "message": "Student Name and Roll Number are required."}), 400
+        
+    data = load_data()
+    new_id = roll_no.replace(' ', '').upper()
+    
+    # Check if student with same roll number exists
+    for s in data.get('students', []):
+        if s['id'] == new_id:
+            return jsonify({"success": False, "message": f"Student with Roll No '{roll_no}' already exists."}), 400
+            
+    new_student = {
+        "id": new_id,
+        "name": name,
+        "roll_no": roll_no,
+        "branch": branch or "Computer Science",
+        "semester": semester or "1st Semester",
+        "target_attendance": 75,
+        "subjects": []
+    }
+    
+    data.setdefault('students', []).append(new_student)
+    data['active_student_id'] = new_id
+    save_data(data)
+    
+    return jsonify({"success": True, "message": f"Student '{name}' added successfully!", "student": new_student})
+
+@app.route('/api/admin/student/delete', methods=['POST'])
+def delete_student():
+    payload = request.json or {}
+    stu_id = payload.get('student_id')
+    data = load_data()
+    students = data.get('students', [])
+    
+    if len(students) <= 1:
+        return jsonify({"success": False, "message": "Cannot delete the only student in the system."}), 400
+        
+    data['students'] = [s for s in students if s['id'] != stu_id]
+    if data.get('active_student_id') == stu_id:
+        data['active_student_id'] = data['students'][0]['id']
+        
+    save_data(data)
+    return jsonify({"success": True, "message": "Student removed successfully."})
+
 @app.route('/api/admin/student/update', methods=['POST'])
 def update_student():
     payload = request.json or {}
     data = load_data()
-    
-    student = data.setdefault('student', {})
+    active_stu = get_active_student(data)
+    if not active_stu:
+        return jsonify({"success": False, "message": "No active student."}), 404
+        
     if 'name' in payload and payload['name'].strip():
-        student['name'] = payload['name'].strip()
+        active_stu['name'] = payload['name'].strip()
     if 'roll_no' in payload and payload['roll_no'].strip():
-        student['roll_no'] = payload['roll_no'].strip()
+        active_stu['roll_no'] = payload['roll_no'].strip()
     if 'branch' in payload and payload['branch'].strip():
-        student['branch'] = payload['branch'].strip()
+        active_stu['branch'] = payload['branch'].strip()
     if 'semester' in payload and payload['semester'].strip():
-        student['semester'] = payload['semester'].strip()
-    if 'target_attendance' in payload:
-        try:
-            student['target_attendance'] = int(payload['target_attendance'])
-        except Exception:
-            pass
+        active_stu['semester'] = payload['semester'].strip()
             
     save_data(data)
-    return jsonify({"success": True, "message": "Student profile updated!", "student": student})
+    return jsonify({"success": True, "message": "Student profile updated!", "student": active_stu})
 
 @app.route('/api/admin/subject/add', methods=['POST'])
 def add_subject():
@@ -175,9 +267,13 @@ def add_subject():
         return jsonify({"success": False, "message": "Subject Name and Code are required."}), 400
         
     data = load_data()
+    active_stu = get_active_student(data)
+    if not active_stu:
+        return jsonify({"success": False, "message": "Please add a student first."}), 400
+        
     sub_id = code.lower().replace('-', '').replace(' ', '')
     pct = round((attended / total * 100), 2) if total > 0 else 100.0
-    status = 'safe' if pct >= data.get('student', {}).get('target_attendance', 75) else 'warning'
+    status = 'safe' if pct >= active_stu.get('target_attendance', 75) else 'warning'
     
     new_sub = {
         "id": sub_id,
@@ -190,17 +286,19 @@ def add_subject():
         "status": status
     }
     
-    data.setdefault('subjects', []).append(new_sub)
+    active_stu.setdefault('subjects', []).append(new_sub)
     save_data(data)
-    return jsonify({"success": True, "message": f"Subject '{name}' added successfully!", "subject": new_sub})
+    return jsonify({"success": True, "message": f"Subject '{name}' added for {active_stu['name']}!", "subject": new_sub})
 
 @app.route('/api/admin/subject/delete', methods=['POST'])
 def delete_subject():
     payload = request.json or {}
     sub_id = payload.get('subject_id')
     data = load_data()
-    data['subjects'] = [s for s in data.get('subjects', []) if s['id'] != sub_id]
-    save_data(data)
+    active_stu = get_active_student(data)
+    if active_stu:
+        active_stu['subjects'] = [s for s in active_stu.get('subjects', []) if s['id'] != sub_id]
+        save_data(data)
     return jsonify({"success": True, "message": "Subject removed."})
 
 @app.route('/api/admin/timetable/add', methods=['POST'])
@@ -264,15 +362,19 @@ def add_notice():
 @app.route('/api/admin/reset', methods=['POST'])
 def reset_all_data():
     data = {
-        "student": {
-            "name": "Your Name",
-            "roll_no": "Roll Number",
-            "branch": "Your Branch",
-            "semester": "Semester",
-            "target_attendance": 75
-        },
+        "active_student_id": "DEFAULT",
+        "students": [
+            {
+                "id": "DEFAULT",
+                "name": "Harshit Sharma",
+                "roll_no": "Roll Number",
+                "branch": "Your Branch",
+                "semester": "Semester",
+                "target_attendance": 75,
+                "subjects": []
+            }
+        ],
         "notices": [],
-        "subjects": [],
         "timetable": [],
         "health_tips": [
             "Drink at least 500ml water every 2 hours of study.",
@@ -293,11 +395,12 @@ def chat():
     msg_lower = user_msg.lower()
     
     data = load_data()
-    subjects = data.get('subjects', [])
+    active_stu = get_active_student(data)
+    student_name = active_stu.get('name', 'Student') if active_stu else 'Student'
+    subjects = active_stu.get('subjects', []) if active_stu else []
     timetable = data.get('timetable', [])
     notices = data.get('notices', [])
-    target = data.get('student', {}).get('target_attendance', 75)
-    student_name = data.get('student', {}).get('name', 'Student')
+    target = active_stu.get('target_attendance', 75) if active_stu else 75
     
     # 1. HELPDESK INTENTS
     for key, text in HELPDESK_KNOWLEDGE.items():
@@ -320,7 +423,7 @@ def chat():
     if any(k in msg_lower for k in ['attendance', 'present', 'absent', 'shortage', 'percentage', 'bunk']):
         if not subjects:
             return jsonify({
-                "reply": "📊 **No subjects registered yet!**\n\nPlease switch to **'Faculty / Admin Mode'** above and add your college subjects first.",
+                "reply": f"📊 **No subjects registered for {student_name} yet!**\n\nPlease switch to **'Faculty / Admin Mode'** above to add subjects.",
                 "action": None
             })
             
@@ -343,7 +446,7 @@ def chat():
                 target_sub['status'] = 'safe' if target_sub['percentage'] >= target else 'warning'
                 save_data(data)
                 
-                needed = calculate_classes_needed(target_sub['attended'], target_sub['total'])
+                needed = calculate_classes_needed(target_sub['attended'], target_sub['total'], target)
                 alert_text = f"⚠️ Warning: Attendance is {target_sub['percentage']}%! You need to attend next {needed} classes consecutively to cross 75%." if target_sub['status'] == 'warning' else "✅ You are safely above the 75% threshold!"
                 
                 return jsonify({
@@ -353,7 +456,7 @@ def chat():
         
         for s in subjects:
             if s['id'] in msg_lower or s['name'].lower() in msg_lower:
-                needed = calculate_classes_needed(s['attended'], s['total'])
+                needed = calculate_classes_needed(s['attended'], s['total'], target)
                 status_icon = "⚠️" if s['percentage'] < target else "✅"
                 advice = f"You are below the 75% rule! Attend the next **{needed} classes** consecutively to clear the shortage." if s['percentage'] < target else "You are safe! You can afford to miss 1-2 classes if urgent."
                 return jsonify({
@@ -370,13 +473,13 @@ def chat():
         if warning_list:
             warning_msg = "\n\n🚨 **Subjects Requiring Immediate Attention (< 75%):**\n"
             for w in warning_list:
-                req = calculate_classes_needed(w['attended'], w['total'])
+                req = calculate_classes_needed(w['attended'], w['total'], target)
                 warning_msg += f"• **{w['name']}**: {w['percentage']}% (Need +{req} lectures)\n"
         else:
             warning_msg = "\n\n🎉 Great job! You are above 75% in all registered subjects!"
             
         return jsonify({
-            "reply": f"📊 **Your Overall Attendance Report**:\n\n• **Total Lectures:** {tot_att} / {tot_all}\n• **Overall Percentage:** **{overall}%** (Target: {target}%){warning_msg}\n\n*Tip: Say 'Mark <Subject> present' to log today's class!*",
+            "reply": f"📊 **{student_name}'s Overall Attendance Report**:\n\n• **Total Lectures:** {tot_att} / {tot_all}\n• **Overall Percentage:** **{overall}%** (Target: {target}%){warning_msg}\n\n*Tip: Say 'Mark <Subject> present' to log today's class!*",
             "action": None
         })
 
@@ -384,14 +487,14 @@ def chat():
     if any(k in msg_lower for k in ['timetable', 'schedule', 'class', 'lecture', 'room', 'next class']):
         if not timetable:
             return jsonify({
-                "reply": "📅 **No classes scheduled in timetable yet!**\n\nSwitch to **'Faculty / Admin Mode'** to add your daily lecture timings.",
+                "reply": "📅 **No classes scheduled in timetable yet!**\n\nSwitch to **'Faculty / Admin Mode'** to add daily lecture timings.",
                 "action": None
             })
             
         if 'next' in msg_lower:
             next_class = next((item for item in timetable if item['status'] in ['upcoming', 'ongoing']), timetable[0])
             return jsonify({
-                "reply": f"⏰ **Your Next Upcoming Class**:\n\n• **Subject:** {next_class['subject']} ({next_class['code']})\n• **Time:** {next_class['time']}\n• **Venue:** {next_class['room']}\n• **Faculty:** {next_class['faculty']}",
+                "reply": f"⏰ **Next Upcoming Class**:\n\n• **Subject:** {next_class['subject']} ({next_class['code']})\n• **Time:** {next_class['time']}\n• **Venue:** {next_class['room']}\n• **Faculty:** {next_class['faculty']}",
                 "action": None
             })
             

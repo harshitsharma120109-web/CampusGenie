@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampusGenie — All-in-One AI Student Copilot & Campus Portal</title>
+    <title>CampusGenie — Multi-Student AI Copilot & College ERP Portal</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome 6 -->
@@ -24,7 +24,7 @@
                 <div>
                     <div class="flex items-center space-x-2">
                         <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">CampusGenie</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">AI Copilot</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">Multi-Student AI</span>
                     </div>
                     <p class="text-[11px] text-slate-400 flex items-center gap-1">
                         <i class="fa-solid fa-microchip text-cyan-400"></i> Powered by IBM Bob • SkillUp Hackathon
@@ -32,8 +32,17 @@
                 </div>
             </div>
 
-            <!-- Portal Switcher & Actions -->
+            <!-- Student Switcher & Portal Mode Switcher -->
             <div class="flex items-center space-x-3">
+                <!-- Active Student Dropdown Selector -->
+                <div class="flex items-center space-x-1.5 bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700/60 text-xs">
+                    <i class="fa-solid fa-user-check text-emerald-400 text-xs"></i>
+                    <span class="text-slate-400 text-[11px] hidden md:inline">Student:</span>
+                    <select id="studentSelectDropdown" onchange="handleSwitchStudent(this.value)" class="bg-transparent text-slate-200 font-bold focus:outline-none cursor-pointer text-xs">
+                        <option value="" disabled>Loading students...</option>
+                    </select>
+                </div>
+
                 <!-- Mode Toggle (Student vs Faculty/Admin) -->
                 <div class="bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 flex items-center">
                     <button id="btnStudentMode" onclick="switchView('student')" class="px-3 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm transition-all">
@@ -45,7 +54,7 @@
                 </div>
 
                 <!-- Stress Buster Button -->
-                <button onclick="openBreathingModal()" class="hidden sm:flex px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-teal-500/20 to-emerald-500/20 hover:from-teal-500/30 hover:to-emerald-500/30 border border-emerald-500/30 text-emerald-300 text-xs font-semibold items-center space-x-1.5 transition-all shadow-sm">
+                <button onclick="openBreathingModal()" class="hidden sm:flex px-3 py-1.5 rounded-xl bg-gradient-to-r from-teal-500/20 to-emerald-500/20 hover:from-teal-500/30 hover:to-emerald-500/30 border border-emerald-500/30 text-emerald-300 text-xs font-semibold items-center space-x-1.5 transition-all shadow-sm">
                     <i class="fa-solid fa-heart-pulse text-emerald-400 animate-pulse"></i>
                     <span>Stress Buster</span>
                 </button>
@@ -63,13 +72,13 @@
                     <div>
                         <h2 class="text-lg font-extrabold text-white flex items-center gap-2">
                             <i class="fa-solid fa-sliders text-indigo-400"></i>
-                            Faculty & Administration Control Panel
+                            Faculty & Multi-Student Administration Panel
                         </h2>
-                        <p class="text-xs text-slate-400">Add your student details, subjects, timetable, and post notices directly from here.</p>
+                        <p class="text-xs text-slate-400">Add unlimited students, manage individual attendance, schedule timetable lectures, and broadcast notices.</p>
                     </div>
                     <div class="flex items-center space-x-2">
                         <button onclick="handleResetAllData()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold transition-all">
-                            <i class="fa-solid fa-trash-can mr-1"></i> Clear All Data
+                            <i class="fa-solid fa-trash-can mr-1"></i> Reset All Data
                         </button>
                     </div>
                 </div>
@@ -77,26 +86,29 @@
                 <!-- Admin Action Grid (4 Cards) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
                     
-                    <!-- 1. Edit Student Profile -->
+                    <!-- 1. Enroll New Student -->
                     <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-                        <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-id-card text-purple-400"></i> Student Profile
+                        <h3 class="text-xs font-bold text-slate-200 flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-user-plus text-emerald-400"></i> Enroll New Student
+                            </span>
+                            <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded font-mono">Unlimited</span>
                         </h3>
-                        <form onsubmit="handleAdminUpdateStudent(event)" class="space-y-2 text-xs">
-                            <input type="text" id="adminStudentName" placeholder="Your Name" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                            <input type="text" id="adminStudentRoll" placeholder="Roll Number" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                            <input type="text" id="adminStudentBranch" placeholder="Branch (e.g. CSE / IT)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                            <input type="text" id="adminStudentSem" placeholder="Semester (e.g. 5th Sem)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                            <button type="submit" class="w-full py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all">
-                                💾 Save Profile
+                        <form onsubmit="handleAdminAddStudent(event)" class="space-y-2 text-xs">
+                            <input type="text" id="newStudentName" placeholder="Student Full Name" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="newStudentRoll" placeholder="Roll No (e.g. 22CS1085)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="newStudentBranch" placeholder="Branch (e.g. CSE / IT / ECE)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="newStudentSem" placeholder="Semester (e.g. 5th Sem)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+                            <button type="submit" class="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all">
+                                + Enroll Student
                             </button>
                         </form>
                     </div>
 
-                    <!-- 2. Add Subject Card -->
+                    <!-- 2. Add Subject to Active Student -->
                     <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
                         <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-book-bookmark text-blue-400"></i> Add Subject
+                            <i class="fa-solid fa-book-bookmark text-blue-400"></i> Add Subject (for Active Student)
                         </h3>
                         <form onsubmit="handleAdminAddSubject(event)" class="space-y-2 text-xs">
                             <input type="text" id="adminSubName" placeholder="Subject Name (e.g. AI / OS)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
@@ -115,13 +127,13 @@
                     <!-- 3. Add Timetable Slot -->
                     <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
                         <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2">
-                            <i class="fa-regular fa-calendar-plus text-emerald-400"></i> Add Lecture
+                            <i class="fa-regular fa-calendar-plus text-indigo-400"></i> Add Lecture to Timetable
                         </h3>
                         <form onsubmit="handleAdminAddTimetable(event)" class="space-y-2 text-xs">
                             <input type="text" id="adminTtTime" placeholder="Timing (e.g. 10:00 AM - 11:00 AM)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
                             <input type="text" id="adminTtSub" placeholder="Subject (e.g. Data Structures)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
                             <input type="text" id="adminTtRoom" placeholder="Room (e.g. Room 204)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                            <button type="submit" class="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all">
+                            <button type="submit" class="w-full py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all">
                                 + Schedule Class
                             </button>
                         </form>
@@ -150,6 +162,28 @@
 
             <!-- LEFT COLUMN (Attendance & Timetable & Notices) -->
             <div class="lg:col-span-7 space-y-6">
+
+                <!-- Active Student Header Card -->
+                <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-sm font-extrabold text-white shadow-md shadow-indigo-500/20">
+                            <span id="studentAvatarInitials">ST</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h3 id="activeStudentNameDisplay" class="font-extrabold text-base text-slate-100">Student Name</h3>
+                                <span id="activeStudentRollDisplay" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono">Roll: --</span>
+                            </div>
+                            <p id="activeStudentInfoDisplay" class="text-xs text-slate-400 mt-0.5">CSE • Semester</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="handleDeleteCurrentStudent()" title="Delete This Student" class="px-2.5 py-1 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg text-xs font-semibold transition-all">
+                            <i class="fa-solid fa-user-xmark mr-1"></i> Delete Student
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Overall Attendance & Health Stats Strip -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -204,11 +238,11 @@
                             </div>
                             <h2 class="text-base font-bold text-slate-100">Subject-Wise Attendance</h2>
                         </div>
-                        <span class="text-xs text-slate-400">Mark <strong>+</strong> or <strong>-</strong> to update live</span>
+                        <span class="text-xs text-slate-400">Click <strong>+</strong> or <strong>-</strong> to mark live</span>
                     </div>
 
                     <div id="subjectsContainer" class="space-y-3">
-                        <!-- Empty / populated by JS -->
+                        <!-- Populated by JS -->
                     </div>
                 </div>
 
@@ -282,7 +316,7 @@
                             <div class="bg-slate-800/90 border border-slate-700/60 p-3.5 rounded-2xl rounded-tl-sm max-w-[85%] text-slate-200 leading-relaxed space-y-2 shadow-sm">
                                 <p class="font-semibold text-slate-100" id="chatWelcomeHeading">Welcome! 👋 I'm your AI Campus Copilot.</p>
                                 <p>You can ask me about your <strong>attendance, timetable, study doubts</strong>, or <strong>college helpdesk</strong>.</p>
-                                <p class="text-[11px] text-indigo-300 font-medium">Add your subjects from 'Faculty Mode' or test prompt chips below:</p>
+                                <p class="text-[11px] text-indigo-300 font-medium">Add students or subjects from 'Faculty Mode' or test prompt chips below:</p>
                             </div>
                         </div>
                     </div>

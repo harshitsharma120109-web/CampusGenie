@@ -1,4 +1,4 @@
-﻿let currentStudentData = null;
+﻿let currentData = null;
 let breathingInterval = null;
 
 // Initial Load
@@ -28,27 +28,66 @@ async function fetchStudentData() {
     try {
         const res = await fetch("/api/student");
         const data = await res.json();
-        currentStudentData = data;
+        currentData = data;
         renderDashboard(data);
     } catch (err) {
         console.error("Failed to load student data", err);
     }
 }
 
-// Render Dashboard
+// Handle Switching Student from Dropdown
+async function handleSwitchStudent(studentId) {
+    if (!studentId) return;
+    try {
+        const res = await fetch("/api/student/switch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ student_id: studentId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            fetchStudentData();
+        }
+    } catch (err) {
+        console.error("Failed to switch student:", err);
+    }
+}
+
+// Render Dashboard (Multi-Student aware)
 function renderDashboard(data) {
     if (!data) return;
 
     const student = data.student || {};
+    const allStudents = data.all_students || [];
 
-    // Populate Admin Inputs
-    if (document.getElementById("adminStudentName") && student.name) {
-        document.getElementById("adminStudentName").value = student.name;
-        document.getElementById("adminStudentRoll").value = student.roll_no || "";
-        document.getElementById("adminStudentBranch").value = student.branch || "";
-        document.getElementById("adminStudentSem").value = student.semester || "";
+    // Populate Student Switcher Dropdown in Header
+    const dropdown = document.getElementById("studentSelectDropdown");
+    if (dropdown) {
+        dropdown.innerHTML = "";
+        allStudents.forEach(s => {
+            const opt = document.createElement("option");
+            opt.value = s.id;
+            opt.innerText = `${s.name} (${s.roll_no})`;
+            if (s.id === student.id) opt.selected = true;
+            dropdown.appendChild(opt);
+        });
     }
 
+    // Active Student Details Card
+    const nameDisplay = document.getElementById("activeStudentNameDisplay");
+    const rollDisplay = document.getElementById("activeStudentRollDisplay");
+    const infoDisplay = document.getElementById("activeStudentInfoDisplay");
+    const avatarInitials = document.getElementById("studentAvatarInitials");
+
+    if (nameDisplay) nameDisplay.innerText = student.name || "No Student Selected";
+    if (rollDisplay) rollDisplay.innerText = `Roll: ${student.roll_no || '--'}`;
+    if (infoDisplay) infoDisplay.innerText = `${student.branch || 'Branch'} • ${student.semester || 'Semester'}`;
+    if (avatarInitials) {
+        const initials = (student.name || "ST").split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+        avatarInitials.innerText = initials;
+    }
+
+    // Welcome Header in Chatbot
     const welcomeHeading = document.getElementById("chatWelcomeHeading");
     if (welcomeHeading) {
         welcomeHeading.innerText = `Welcome ${student.name || 'Student'}! 👋 I'm your AI Copilot.`;
@@ -69,8 +108,8 @@ function renderDashboard(data) {
 
     if (subjects.length === 0) {
         overallBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400";
-        overallBadge.innerText = "No Data";
-        overallSummary.innerHTML = `Switch to <strong>Faculty / Admin Mode</strong> above to add your subjects.`;
+        overallBadge.innerText = "No Subjects";
+        overallSummary.innerHTML = `Switch to <strong>Faculty / Admin Mode</strong> above to add subjects.`;
     } else if (overallPct < target) {
         overallBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30";
         overallBadge.innerText = "Shortage Alert";
@@ -78,10 +117,10 @@ function renderDashboard(data) {
     } else {
         overallBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
         overallBadge.innerText = "Safe & Eligible";
-        overallSummary.innerHTML = `<span class="text-emerald-400 font-semibold">✅ Eligible:</span> You meet exam attendance criteria!`;
+        overallSummary.innerHTML = `<span class="text-emerald-400 font-semibold">✅ Eligible:</span> Meets exam attendance criteria!`;
     }
 
-    // Total Classes & Next Class Hint
+    // Scheduled Classes Count & Hint
     const timetable = data.timetable || [];
     const totalClassesCount = document.getElementById("totalClassesCount");
     const nextClassHint = document.getElementById("nextClassHint");
@@ -103,8 +142,8 @@ function renderDashboard(data) {
         subContainer.innerHTML = `
             <div class="p-6 text-center rounded-xl bg-slate-950/40 border border-dashed border-slate-800 text-slate-400 space-y-2">
                 <i class="fa-solid fa-book-open text-2xl text-slate-600"></i>
-                <p class="text-xs font-semibold text-slate-300">No subjects added yet!</p>
-                <p class="text-[11px] text-slate-500">Switch to <strong>'Faculty / Admin Mode'</strong> above to add your college subjects and start tracking attendance.</p>
+                <p class="text-xs font-semibold text-slate-300">No subjects registered for ${student.name || 'this student'}.</p>
+                <p class="text-[11px] text-slate-500">Click <strong>'Faculty / Admin Mode'</strong> above to add college subjects and start tracking attendance.</p>
             </div>
         `;
     } else {
@@ -160,7 +199,7 @@ function renderDashboard(data) {
         ttContainer.innerHTML = `
             <div class="p-5 text-center rounded-xl bg-slate-950/40 border border-dashed border-slate-800 text-slate-400 space-y-1">
                 <p class="text-xs font-semibold text-slate-300">No classes in timetable yet.</p>
-                <p class="text-[11px] text-slate-500">Add lecture timings from the Admin Mode.</p>
+                <p class="text-[11px] text-slate-500">Add lecture timings from Admin Mode.</p>
             </div>
         `;
     } else {
@@ -236,26 +275,52 @@ async function logAttendance(subId, status) {
 }
 
 // Admin / Faculty Handlers
-async function handleAdminUpdateStudent(e) {
+async function handleAdminAddStudent(e) {
     e.preventDefault();
-    const name = document.getElementById("adminStudentName").value.trim();
-    const roll_no = document.getElementById("adminStudentRoll").value.trim();
-    const branch = document.getElementById("adminStudentBranch").value.trim();
-    const semester = document.getElementById("adminStudentSem").value.trim();
+    const name = document.getElementById("newStudentName").value.trim();
+    const roll_no = document.getElementById("newStudentRoll").value.trim();
+    const branch = document.getElementById("newStudentBranch").value.trim();
+    const semester = document.getElementById("newStudentSem").value.trim();
 
     try {
-        const res = await fetch("/api/admin/student/update", {
+        const res = await fetch("/api/admin/student/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, roll_no, branch, semester })
         });
         const data = await res.json();
         if (data.success) {
-            alert("✅ Student profile updated!");
+            alert("✅ " + data.message);
+            e.target.reset();
             fetchStudentData();
+        } else {
+            alert("⚠️ " + data.message);
         }
     } catch (err) {
-        alert("Failed to update profile");
+        alert("Failed to add student");
+    }
+}
+
+async function handleDeleteCurrentStudent() {
+    if (!currentData || !currentData.student) return;
+    const stu = currentData.student;
+    if (!confirm(`Are you sure you want to delete student "${stu.name}" (${stu.roll_no})?`)) return;
+
+    try {
+        const res = await fetch("/api/admin/student/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ student_id: stu.id })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert("🗑️ Student removed.");
+            fetchStudentData();
+        } else {
+            alert("⚠️ " + data.message);
+        }
+    } catch (err) {
+        alert("Failed to delete student");
     }
 }
 
@@ -359,7 +424,7 @@ async function handleAdminAddNotice(e) {
 }
 
 async function handleResetAllData() {
-    if (!confirm("Are you sure you want to clear all data and start fresh?")) return;
+    if (!confirm("Are you sure you want to reset all data back to clean template?")) return;
     try {
         const res = await fetch("/api/admin/reset", { method: "POST" });
         const data = await res.json();
