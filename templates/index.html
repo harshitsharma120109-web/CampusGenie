@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusGenie — All-in-One AI Student Copilot</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-['Plus_Jakarta_Sans'] antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-xl sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                    <i class="fa-solid fa-graduation-cap text-white text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">CampusGenie</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">AI Copilot</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 flex items-center gap-1">
+                        <i class="fa-solid fa-microchip text-cyan-400"></i> Built with IBM Bob • SkillUp Hackathon
+                    </p>
+                </div>
+            </div>
+
+            <!-- Student Profile Badge -->
+            <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-3 px-3.5 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/60 shadow-inner">
+                    <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-xs font-bold text-white">
+                        RS
+                    </div>
+                    <div class="text-left text-xs">
+                        <p class="font-semibold text-slate-200" id="headerStudentName">Rahul Sharma</p>
+                        <p class="text-[10px] text-slate-400">5th Sem CSE • Roll: 22CS1084</p>
+                    </div>
+                </div>
+                <button onclick="openBreathingModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-teal-500/20 to-emerald-500/20 hover:from-teal-500/30 hover:to-emerald-500/30 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center space-x-2 transition-all shadow-sm">
+                    <i class="fa-solid fa-heart-pulse text-emerald-400 animate-pulse"></i>
+                    <span>Stress Buster</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- LEFT DASHBOARD COLUMN (Attendance & Timetable) -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- Overall Attendance & Health Stats Strip -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Stat 1: Overall Attendance -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800 shadow-xl relative overflow-hidden group">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-400">Overall Attendance</span>
+                            <span id="overallBadge" class="text-[10px] px-2 py-0.5 rounded-full font-bold">Checking...</span>
+                        </div>
+                        <div class="mt-3 flex items-baseline space-x-2">
+                            <span id="overallPercentage" class="text-3xl font-extrabold text-white">--%</span>
+                            <span class="text-xs text-slate-400 font-medium">/ 75% req.</span>
+                        </div>
+                        <p id="overallSummaryText" class="text-[11px] text-slate-400 mt-2">Loading attendance records...</p>
+                    </div>
+
+                    <!-- Stat 2: Today's Classes -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800 shadow-xl relative overflow-hidden group">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-all"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-400">Today's Schedule</span>
+                            <i class="fa-regular fa-clock text-blue-400 text-sm"></i>
+                        </div>
+                        <div class="mt-3 flex items-baseline space-x-2">
+                            <span id="totalClassesCount" class="text-3xl font-extrabold text-white">5</span>
+                            <span class="text-xs text-slate-400 font-medium">lectures</span>
+                        </div>
+                        <p class="text-[11px] text-blue-300 mt-2 font-medium flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block animate-ping"></span>
+                            Next: DS Lab (10:15 AM)
+                        </p>
+                    </div>
+
+                    <!-- Stat 3: Wellness & Focus -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800 shadow-xl relative overflow-hidden group">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-400">Wellness & Focus</span>
+                            <i class="fa-solid fa-leaf text-emerald-400 text-sm"></i>
+                        </div>
+                        <div class="mt-3 flex items-baseline space-x-2">
+                            <span class="text-3xl font-extrabold text-emerald-400">Optimal</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-2">💧 Drink 500ml water before 11 AM</p>
+                    </div>
+                </div>
+
+                <!-- Subject-Wise Attendance Tracker -->
+                <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-chart-pie"></i>
+                            </div>
+                            <h2 class="text-base font-bold text-slate-100">Subject-Wise Attendance</h2>
+                        </div>
+                        <span class="text-xs text-slate-400">Click <strong>+</strong> or <strong>-</strong> to quickly log attendance</span>
+                    </div>
+
+                    <!-- Subjects List -->
+                    <div id="subjectsContainer" class="space-y-3">
+                        <!-- Rendered dynamically by JS -->
+                        <div class="text-center py-6 text-xs text-slate-500">Loading subjects...</div>
+                    </div>
+                </div>
+
+                <!-- Today's Lecture Timetable -->
+                <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
+                                <i class="fa-regular fa-calendar-days"></i>
+                            </div>
+                            <h2 class="text-base font-bold text-slate-100">Today's Class Schedule</h2>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 font-medium">Monday (Odd Sem)</span>
+                    </div>
+
+                    <div id="timetableContainer" class="space-y-2.5">
+                        <!-- Rendered dynamically by JS -->
+                    </div>
+                </div>
+
+                <!-- Daily Health Advice Card -->
+                <div class="p-4 rounded-2xl bg-gradient-to-r from-teal-950/40 via-slate-900 to-slate-900 border border-teal-800/40 flex items-start space-x-3">
+                    <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-teal-300">Exam Stress & Study Health Tip</h3>
+                        <p id="healthTipText" class="text-xs text-slate-300 mt-1 leading-relaxed">
+                            "20-20-20 Rule: Every 20 minutes of screen reading, glance at an object 20 feet away for 20 seconds. It keeps eye muscles relaxed and prevents tension headaches!"
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN (AI Chatbot - Persistent Student Assistant) -->
+            <div class="lg:col-span-5">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[calc(100vh-6.5rem)] sticky top-20">
+                    
+                    <!-- Chat Header -->
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 rounded-t-2xl">
+                        <div class="flex items-center space-x-3">
+                            <div class="relative">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                                    <i class="fa-solid fa-robot text-base"></i>
+                                </div>
+                                <span class="w-3 h-3 rounded-full bg-emerald-500 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5"></span>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-100 flex items-center gap-1.5">
+                                    CampusGenie AI
+                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-normal">v1.0</span>
+                                </h3>
+                                <p class="text-[11px] text-slate-400">Attendance • Timetable • Doubts • Health</p>
+                            </div>
+                        </div>
+                        <button onclick="clearChat()" title="Clear Chat" class="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition-colors">
+                            <i class="fa-solid fa-rotate-right text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- Chat Messages Scroll Area -->
+                    <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
+                        <!-- Welcome message -->
+                        <div class="flex items-start space-x-2.5">
+                            <div class="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-[10px] shrink-0 mt-0.5">
+                                <i class="fa-solid fa-bolt"></i>
+                            </div>
+                            <div class="bg-slate-800/90 border border-slate-700/60 p-3.5 rounded-2xl rounded-tl-sm max-w-[85%] text-slate-200 leading-relaxed space-y-2 shadow-sm">
+                                <p class="font-semibold text-slate-100">Namaste Rahul! 👋 I'm your AI Campus Companion.</p>
+                                <p>I can track your <strong>attendance</strong>, update today's classes, explain <strong>study topics</strong>, and guide you through <strong>exam stress</strong>.</p>
+                                <p class="text-[11px] text-indigo-300 font-medium">Try tapping any quick prompt below or ask me anything!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Suggestion Chips -->
+                    <div class="px-4 py-2 bg-slate-950/50 border-t border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                        <button onclick="sendQuickPrompt('What is my attendance summary?')" class="chip">📊 Attendance</button>
+                        <button onclick="sendQuickPrompt('What is my next lecture?')" class="chip">⏰ Next Class</button>
+                        <button onclick="sendQuickPrompt('Explain binary search simply')" class="chip">📚 Binary Search</button>
+                        <button onclick="sendQuickPrompt('What is deadlock in OS?')" class="chip">💻 Deadlock</button>
+                        <button onclick="sendQuickPrompt('Exam stress relief tips')" class="chip">🧘 Stress Buster</button>
+                    </div>
+
+                    <!-- Chat Input Bar -->
+                    <form id="chatForm" onsubmit="handleChatSubmit(event)" class="p-3 border-t border-slate-800 bg-slate-900/90 rounded-b-2xl flex items-center space-x-2">
+                        <input 
+                            type="text" 
+                            id="chatInput" 
+                            placeholder="Ask about attendance, timetable, doubts, or wellness..." 
+                            class="flex-1 bg-slate-950/80 border border-slate-700/80 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl transition-all"
+                            autocomplete="off"
+                        >
+                        <button type="submit" id="sendBtn" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition-all shadow-md shadow-indigo-600/30 flex items-center justify-center">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Guided Breathing Modal (Stress Buster) -->
+    <div id="breathingModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl relative">
+            <button onclick="closeBreathingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-100 mb-1">4-7-8 Breathing Reset</h3>
+            <p class="text-xs text-slate-400 mb-6">Calm exam jitters and regain sharp focus in 1 minute.</p>
+            
+            <!-- Expanding/Contracting Breathing Circle -->
+            <div class="relative w-40 h-40 mx-auto mb-6 flex items-center justify-center">
+                <div id="breathingCircle" class="w-28 h-28 rounded-full bg-gradient-to-tr from-teal-500/40 to-cyan-500/40 border-2 border-teal-400/80 flex items-center justify-center shadow-lg shadow-teal-500/20 transition-all duration-1000">
+                    <span id="breathingActionText" class="text-sm font-bold text-teal-200">Inhale</span>
+                </div>
+            </div>
+
+            <div class="text-xs text-slate-300 space-y-1 mb-6">
+                <p>1. Inhale deeply through nose (4s)</p>
+                <p>2. Hold your breath gently (7s)</p>
+                <p>3. Exhale slowly through mouth (8s)</p>
+            </div>
+
+            <button onclick="closeBreathingModal()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all">
+                Done / Back to Dashboard
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
