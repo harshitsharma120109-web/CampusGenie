@@ -1,13 +1,14 @@
 ﻿import sys
-if sys.platform == 'win32':
-    try:
-        sys.stdout.reconfigure(encoding='utf-8-sig')
-    except Exception:
-        pass
-import json
 import os
+import json
 import re
 from flask import Flask, render_template, request, jsonify
+
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 
 app = Flask(__name__)
 
@@ -20,13 +21,10 @@ def load_data():
         return json.load(f)
 
 def save_data(data):
-    with open(DATA_FILE, 'w', encoding='utf-8-sig') as f:
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 def calculate_classes_needed(attended, total, target=75):
-    # (attended + x) / (total + x) >= target / 100
-    # 100*attended + 100x >= target*total + target*x
-    # (100 - target)*x >= target*total - 100*attended
     req = target * total - 100 * attended
     if req <= 0:
         return 0
@@ -86,6 +84,15 @@ STUDY_KNOWLEDGE_BASE = {
     }
 }
 
+HELPDESK_KNOWLEDGE = {
+    "bonafide": "📄 **Bonafide Certificate Procedure:**\n1. Go to College Admin Block (Room 102) or submit online at ERP portal under 'Student Requests'.\n2. Processing time: 2 working days.\n3. Fee: ₹50 at accounts section.",
+    "exam form": "📝 **Exam Form & Fee Information:**\n• Regular Exam Fee: ₹1,800 per semester.\n• Submission Portal: ERP -> Examination Tab -> 'Register Subjects'.\n• Deadline: Sept 25th (Zero Late Fee) | Sept 30th (₹500 Late Fee).",
+    "fee": "💳 **College Fee Payment:**\n• Fees can be paid via NetBanking, UPI, or Challan through the official ERP portal.\n• For installments or scholarship adjustments, visit Academic Block Account Section (Counter 3).",
+    "hostel": "🏠 **Hostel & Mess Schedule:**\n• Breakfast: 07:30 AM - 09:00 AM\n• Lunch: 12:30 PM - 02:00 PM\n• Dinner: 07:30 PM - 09:30 PM\n• Night In-Time: 09:30 PM (Biometric entry required).",
+    "library": "📖 **Central Library Rules:**\n• Timings: 08:30 AM - 09:00 PM (Monday to Saturday).\n• Book borrowing limit: 4 books for 14 days.\n• Late return fine: ₹2 per day per book.",
+    "scholarship": "🎓 **Scholarship Desk:**\n• National Scholarship Portal (NSP) & State Post-Matric schemes open till Oct 15th.\n• Verification desk: Scholarship Cell (Admin Block, 2nd Floor)."
+}
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -115,7 +122,6 @@ def mark_attendance():
             break
             
     if updated_sub:
-        # Calculate overall
         tot_att = sum(s['attended'] for s in data['subjects'])
         tot_all = sum(s['total'] for s in data['subjects'])
         overall_pct = round((tot_att / tot_all) * 100, 2) if tot_all else 0
@@ -131,6 +137,85 @@ def mark_attendance():
         })
     return jsonify({"success": False, "message": "Subject not found."}), 404
 
+# --- FACULTY / ADMIN PORTAL ENDPOINTS ---
+
+@app.route('/api/admin/subject/add', methods=['POST'])
+def add_subject():
+    payload = request.json or {}
+    name = payload.get('name', '').strip()
+    code = payload.get('code', '').strip()
+    faculty = payload.get('faculty', '').strip()
+    
+    if not name or not code:
+        return jsonify({"success": False, "message": "Subject Name and Code are required."}), 400
+        
+    data = load_data()
+    sub_id = code.lower().replace('-', '').replace(' ', '')
+    
+    new_sub = {
+        "id": sub_id,
+        "name": name,
+        "code": code,
+        "faculty": faculty or "Faculty Assigned",
+        "attended": 0,
+        "total": 0,
+        "percentage": 100.0,
+        "status": "safe"
+    }
+    
+    data.setdefault('subjects', []).append(new_sub)
+    save_data(data)
+    return jsonify({"success": True, "message": f"Subject '{name}' added successfully!", "subject": new_sub})
+
+@app.route('/api/admin/timetable/add', methods=['POST'])
+def add_timetable():
+    payload = request.json or {}
+    time = payload.get('time', '').strip()
+    subject = payload.get('subject', '').strip()
+    room = payload.get('room', '').strip()
+    faculty = payload.get('faculty', '').strip()
+    
+    if not time or not subject:
+        return jsonify({"success": False, "message": "Time and Subject are required."}), 400
+        
+    data = load_data()
+    new_lecture = {
+        "time": time,
+        "subject": subject,
+        "code": payload.get('code', 'CS-GEN'),
+        "room": room or "Lecture Hall",
+        "faculty": faculty or "Faculty",
+        "status": "upcoming"
+    }
+    
+    data.setdefault('timetable', []).append(new_lecture)
+    save_data(data)
+    return jsonify({"success": True, "message": f"Lecture '{subject}' scheduled at {time}!", "lecture": new_lecture})
+
+@app.route('/api/admin/notice/add', methods=['POST'])
+def add_notice():
+    payload = request.json or {}
+    title = payload.get('title', '').strip()
+    content = payload.get('content', '').strip()
+    badge = payload.get('badge', 'Notice')
+    
+    if not title or not content:
+        return jsonify({"success": False, "message": "Title and Content are required."}), 400
+        
+    data = load_data()
+    new_notice = {
+        "id": len(data.get('notices', [])) + 1,
+        "title": title,
+        "date": "Today",
+        "badge": badge,
+        "content": content
+    }
+    data.setdefault('notices', []).insert(0, new_notice)
+    save_data(data)
+    return jsonify({"success": True, "message": "Notice posted successfully!", "notice": new_notice})
+
+# --- CHATBOT / AI COPILOT ENDPOINT ---
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     payload = request.json or {}
@@ -140,11 +225,26 @@ def chat():
     data = load_data()
     subjects = data.get('subjects', [])
     timetable = data.get('timetable', [])
+    notices = data.get('notices', [])
     target = data.get('student', {}).get('target_attendance', 75)
     
-    # 1. ATTENDANCE INTENT
+    # 1. HELPDESK INTENTS
+    for key, text in HELPDESK_KNOWLEDGE.items():
+        if key in msg_lower:
+            return jsonify({
+                "reply": f"🏛️ **Campus Helpdesk Assistant:**\n\n{text}\n\n*Need more help? Visit Student Affairs in Admin Block Room 102.*",
+                "action": None
+            })
+
+    if any(k in msg_lower for k in ['notice', 'circular', 'announcement', 'event']):
+        if notices:
+            notice_text = "📢 **Latest College Notices & Announcements:**\n\n"
+            for n in notices[:3]:
+                notice_text += f"• **[{n['badge']}] {n['title']}** ({n['date']})\n  {n['content']}\n\n"
+            return jsonify({"reply": notice_text, "action": None})
+
+    # 2. ATTENDANCE INTENT
     if any(k in msg_lower for k in ['attendance', 'present', 'absent', 'shortage', 'percentage', 'bunk']):
-        # Check if marking attendance
         mark_present_match = re.search(r'mark\s+(.*?)\s+(present|absent)', msg_lower)
         if mark_present_match:
             sub_query = mark_present_match.group(1).strip()
@@ -165,14 +265,13 @@ def chat():
                 save_data(data)
                 
                 needed = calculate_classes_needed(target_sub['attended'], target_sub['total'])
-                alert_text = f"⚠️ Warning: Attendance is {target_sub['percentage']}%! You need to attend the next {needed} consecutive classes to reach 75%." if target_sub['status'] == 'warning' else "✅ You are safely above the 75% threshold!"
+                alert_text = f"⚠️ Warning: Attendance is {target_sub['percentage']}%! You need to attend next {needed} classes consecutively to cross 75%." if target_sub['status'] == 'warning' else "✅ You are safely above the 75% threshold!"
                 
                 return jsonify({
                     "reply": f"✅ **Marked {status.upper()}** for **{target_sub['name']}**!\n\n• **Updated Stats:** {target_sub['attended']}/{target_sub['total']} classes ({target_sub['percentage']}%)\n• {alert_text}",
                     "action": "refresh_data"
                 })
         
-        # Check specific subject attendance
         for s in subjects:
             if s['id'] in msg_lower or s['name'].lower() in msg_lower:
                 needed = calculate_classes_needed(s['attended'], s['total'])
@@ -183,7 +282,6 @@ def chat():
                     "action": None
                 })
                 
-        # Overall Attendance
         tot_att = sum(s['attended'] for s in subjects)
         tot_all = sum(s['total'] for s in subjects)
         overall = round((tot_att / tot_all) * 100, 2) if tot_all else 0
@@ -203,7 +301,7 @@ def chat():
             "action": None
         })
 
-    # 2. TIMETABLE INTENT
+    # 3. TIMETABLE INTENT
     if any(k in msg_lower for k in ['timetable', 'schedule', 'class', 'lecture', 'room', 'next class']):
         if 'next' in msg_lower:
             next_class = next((item for item in timetable if item['status'] in ['upcoming', 'ongoing']), timetable[0])
@@ -222,14 +320,14 @@ def chat():
             "action": None
         })
 
-    # 3. HEALTH & WELLNESS INTENT
+    # 4. HEALTH & WELLNESS INTENT
     if any(k in msg_lower for k in ['stress', 'health', 'tired', 'sleep', 'anxious', 'headache', 'diet', 'water', 'breathe', 'relax']):
         return jsonify({
-            "reply": "🧘 **Student Wellness & Stress Buster Check-In**:\n\n1. **4-7-8 Breathing Technique:** Inhale quietly through your nose for 4s, hold breath for 7s, exhale completely through mouth for 8s. Repeat 4 times.\n2. **Screen Eye Relief (20-20-20):** Shift your eyes to look at an object 20 feet away for 20 seconds.\n3. **Hydration:** A quick glass of water restores brain focus within 5 minutes.\n4. **Exam Stress Reality Check:** Remember that an exam tests what you know on paper today, not your true capability or self-worth. Take it one topic at a time!\n\n*Click the 'Start Breathing' button on the dashboard for a guided 1-minute meditation circle!*",
+            "reply": "🧘 **Student Wellness & Stress Buster Check-In**:\n\n1. **4-7-8 Breathing Technique:** Inhale quietly through your nose for 4s, hold breath for 7s, exhale completely through mouth for 8s. Repeat 4 times.\n2. **Screen Eye Relief (20-20-20):** Shift your eyes to look at an object 20 feet away for 20 seconds.\n3. **Hydration:** A quick glass of water restores brain focus within 5 minutes.\n4. **Exam Stress Reality Check:** Remember that an exam tests what you know on paper today, not your true capability or self-worth. Take it one topic at a time!\n\n*Click the 'Stress Buster' button to start guided meditation!*",
             "action": "open_breathing"
         })
 
-    # 4. STUDY BUDDY INTENT (Knowledge base or Smart Explainer)
+    # 5. STUDY BUDDY INTENT
     for key, info in STUDY_KNOWLEDGE_BASE.items():
         if key in msg_lower:
             points_text = "\n".join([f"• {p}" for p in info['points']])
@@ -238,19 +336,12 @@ def chat():
                 "action": None
             })
 
-    if any(k in msg_lower for k in ['study', 'explain', 'doubt', 'notes', 'exam tips', 'concept']):
-        return jsonify({
-            "reply": f"🤖 **Study Buddy at your service!**\n\nI can explain core engineering and computer science concepts in simple language with exam tips. Try asking me:\n\n• *'Explain binary search'*\n• *'What is deadlock in OS?'*\n• *'Explain polymorphism in simple words'*\n• *'Explain normalization 1NF, 2NF, 3NF'*\n• *'TCP vs UDP difference for exam'*",
-            "action": None
-        })
-
-    # 5. DEFAULT / GREETINGS / HELP
+    # 6. DEFAULT GREETINGS / HELP
     return jsonify({
-        "reply": "👋 **Hello Rahul! I'm CampusGenie**, your AI Student Copilot.\n\nHere is how I can assist you today:\n1. 📊 **Attendance Tracker:** Ask *'What is my attendance?'* or say *'Mark OS present'*.\n2. 📅 **Smart Timetable:** Ask *'What is my next class?'* or *'Show today's timetable'*.\n3. 📚 **Study Buddy:** Ask *'Explain binary search'* or *'Explain deadlock'*.\n4. 🧘 **Health & Wellness:** Ask *'Exam stress relief tips'* or *'Hydration check'*.\n\nWhat would you like to check right now?",
+        "reply": "👋 **Hello Rahul! I'm CampusGenie**, your AI Student Copilot.\n\nHere is how I can assist you today:\n1. 📊 **Attendance Tracker:** Ask *'What is my attendance?'* or say *'Mark OS present'*.\n2. 📅 **Smart Timetable:** Ask *'What is my next class?'* or *'Show today's timetable'*.\n3. 🏛️ **Campus Helpdesk:** Ask about *'Bonafide certificate'*, *'Exam form fee'*, or *'Hostel mess'*.\n4. 📚 **Study Buddy:** Ask *'Explain binary search'* or *'Explain deadlock'*.\n5. 🧘 **Health & Wellness:** Ask *'Exam stress relief tips'*.\n\nWhat would you like to check right now?",
         "action": None
     })
 
 if __name__ == '__main__':
-    print("🚀 CampusGenie server starting on http://127.0.0.1:5000 ...")
+    print("[+] CampusGenie server starting on http://127.0.0.1:5000 ...")
     app.run(debug=True, port=5000)
-

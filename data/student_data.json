@@ -1,4 +1,4 @@
-﻿{
+{
   "student": {
     "name": "Rahul Sharma",
     "roll_no": "22CS1084",
@@ -6,6 +6,22 @@
     "semester": "5th Semester",
     "target_attendance": 75
   },
+  "notices": [
+    {
+      "id": 1,
+      "title": "Semester Exam Form Deadline",
+      "date": "20 Sep 2026",
+      "badge": "Urgent",
+      "content": "Last date to submit 5th Semester exam form with zero late fee is Sept 25th."
+    },
+    {
+      "id": 2,
+      "title": "IBM Hackathon SkillUp Workshop",
+      "date": "16 Sep 2026",
+      "badge": "Event",
+      "content": "Hands-on workshop on IBM Bob and Generative AI at Seminar Hall 1."
+    }
+  ],
   "subjects": [
     {
       "id": "os",
@@ -55,6 +71,16 @@
       "attended": 27,
       "total": 31,
       "percentage": 87.09,
+      "status": "safe"
+    },
+    {
+      "id": "cs507",
+      "name": "Cyber Security",
+      "code": "CS-507",
+      "faculty": "Dr. Sharma",
+      "attended": 0,
+      "total": 0,
+      "percentage": 100.0,
       "status": "safe"
     }
   ],

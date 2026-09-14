@@ -6,6 +6,23 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchStudentData();
 });
 
+// View Switcher (Student vs Faculty/Admin)
+function switchView(mode) {
+    const adminSection = document.getElementById("facultyAdminSection");
+    const btnStudent = document.getElementById("btnStudentMode");
+    const btnAdmin = document.getElementById("btnAdminMode");
+
+    if (mode === 'admin') {
+        adminSection.classList.remove("hidden");
+        btnAdmin.className = "px-3 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        btnStudent.className = "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition-all";
+    } else {
+        adminSection.classList.add("hidden");
+        btnStudent.className = "px-3 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        btnAdmin.className = "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition-all";
+    }
+}
+
 // Fetch Student Data & Render
 async function fetchStudentData() {
     try {
@@ -18,14 +35,11 @@ async function fetchStudentData() {
     }
 }
 
-// Render Dashboard (Overall, Subjects, Timetable)
+// Render Dashboard (Overall, Subjects, Timetable, Notices)
 function renderDashboard(data) {
     if (!data || !data.student) return;
 
-    // Student profile
     const student = data.student;
-    const nameElem = document.getElementById("headerStudentName");
-    if (nameElem) nameElem.innerText = student.name;
 
     // Overall Attendance
     const subjects = data.subjects || [];
@@ -42,7 +56,7 @@ function renderDashboard(data) {
     if (overallPct < student.target_attendance) {
         overallBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30";
         overallBadge.innerText = "Shortage Alert";
-        overallSummary.innerHTML = `<span class="text-amber-400 font-semibold">⚠️ Attention:</span> You are ${ (student.target_attendance - overallPct).toFixed(1) }% below the mandatory 75% rule.`;
+        overallSummary.innerHTML = `<span class="text-amber-400 font-semibold">⚠️ Attention:</span> You are ${ (student.target_attendance - overallPct).toFixed(1) }% below the 75% rule.`;
     } else {
         overallBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
         overallBadge.innerText = "Safe & Eligible";
@@ -74,7 +88,6 @@ function renderDashboard(data) {
                     <span>•</span>
                     <span class="font-medium text-slate-300"><strong>${sub.attended}</strong> attended of <strong>${sub.total}</strong> (${sub.percentage}%)</span>
                 </div>
-                <!-- Progress Bar -->
                 <div class="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
                     <div class="bg-${statusColor}-500 h-1.5 rounded-full transition-all duration-500" style="width: ${Math.min(sub.percentage, 100)}%"></div>
                 </div>
@@ -123,6 +136,27 @@ function renderDashboard(data) {
         `;
         ttContainer.appendChild(row);
     });
+
+    // Render Notices
+    const noticesContainer = document.getElementById("noticesContainer");
+    if (noticesContainer) {
+        noticesContainer.innerHTML = "";
+        (data.notices || []).forEach(n => {
+            const item = document.createElement("div");
+            item.className = "p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-start space-x-3 text-xs";
+            item.innerHTML = `
+                <div class="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-200">${n.title}</span>
+                        <span class="text-[10px] px-2 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono">${n.date}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">${n.content}</p>
+                </div>
+            `;
+            noticesContainer.appendChild(item);
+        });
+    }
 }
 
 // Log Attendance (+ Present / - Absent)
@@ -135,12 +169,80 @@ async function logAttendance(subId, status) {
         });
         const result = await res.json();
         if (result.success) {
-            // Append note in chat
             appendBotMessage(`📝 **Quick Attendance Update:**\nMarked **${status.toUpperCase()}** for **${result.subject.name}**.\n• Current: ${result.subject.attended}/${result.subject.total} (${result.subject.percentage}%)\n• Overall: ${result.overall_percentage}%`);
             fetchStudentData();
         }
     } catch (err) {
         console.error("Error updating attendance:", err);
+    }
+}
+
+// Admin / Faculty Form Handlers
+async function handleAdminAddSubject(e) {
+    e.preventDefault();
+    const name = document.getElementById("adminSubName").value.trim();
+    const code = document.getElementById("adminSubCode").value.trim();
+    const faculty = document.getElementById("adminSubFaculty").value.trim();
+
+    try {
+        const res = await fetch("/api/admin/subject/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, code, faculty })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert("✅ " + data.message);
+            e.target.reset();
+            fetchStudentData();
+        }
+    } catch (err) {
+        alert("Failed to add subject");
+    }
+}
+
+async function handleAdminAddTimetable(e) {
+    e.preventDefault();
+    const time = document.getElementById("adminTtTime").value.trim();
+    const subject = document.getElementById("adminTtSub").value.trim();
+    const room = document.getElementById("adminTtRoom").value.trim();
+
+    try {
+        const res = await fetch("/api/admin/timetable/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ time, subject, room })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert("✅ " + data.message);
+            e.target.reset();
+            fetchStudentData();
+        }
+    } catch (err) {
+        alert("Failed to schedule lecture");
+    }
+}
+
+async function handleAdminAddNotice(e) {
+    e.preventDefault();
+    const title = document.getElementById("adminNoticeTitle").value.trim();
+    const content = document.getElementById("adminNoticeContent").value.trim();
+
+    try {
+        const res = await fetch("/api/admin/notice/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, content, badge: "Notice" })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert("📢 " + data.message);
+            e.target.reset();
+            fetchStudentData();
+        }
+    } catch (err) {
+        alert("Failed to post notice");
     }
 }
 
@@ -154,7 +256,6 @@ async function handleChatSubmit(e) {
     appendUserMessage(msg);
     input.value = "";
 
-    // Show typing indicator
     const typingId = showTypingIndicator();
 
     try {
@@ -174,7 +275,7 @@ async function handleChatSubmit(e) {
         }
     } catch (err) {
         removeTypingIndicator(typingId);
-        appendBotMessage("⚠️ Sorry, unable to connect to CampusGenie server. Please ensure `app.py` is running.");
+        appendBotMessage("⚠️ Unable to connect to CampusGenie server. Make sure `python app.py` is running.");
     }
 }
 
@@ -197,7 +298,6 @@ function appendBotMessage(markdownText) {
     const msgDiv = document.createElement("div");
     msgDiv.className = "flex items-start space-x-2.5";
     
-    // Parse basic markdown: bold **text**, bullet •, newlines
     let formatted = escapeHtml(markdownText)
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -242,7 +342,7 @@ function clearChat() {
             <div class="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-[10px] shrink-0 mt-0.5">
                 <i class="fa-solid fa-bolt"></i>
             </div>
-            <div class="chat-bot-bubble">Chat cleared! Ask me anything about attendance, timetable, or study topics.</div>
+            <div class="chat-bot-bubble">Chat cleared! Ask me anything about helpdesk, attendance, timetable, or doubts.</div>
         </div>
     `;
 }
@@ -269,17 +369,14 @@ function runBreathingCycle() {
     const circle = document.getElementById("breathingCircle");
     const text = document.getElementById("breathingActionText");
 
-    // Phase 1: Inhale 4s
     circle.className = "w-28 h-28 rounded-full border-2 border-teal-400 flex items-center justify-center shadow-xl breathe-inhale";
     text.innerText = "Inhale (4s)";
 
     breathingInterval = setTimeout(() => {
-        // Phase 2: Hold 7s
         circle.className = "w-28 h-28 rounded-full border-2 border-amber-400 flex items-center justify-center shadow-xl breathe-hold";
         text.innerText = "Hold (7s)";
 
         breathingInterval = setTimeout(() => {
-            // Phase 3: Exhale 8s
             circle.className = "w-28 h-28 rounded-full border-2 border-indigo-400 flex items-center justify-center shadow-xl breathe-exhale";
             text.innerText = "Exhale (8s)";
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampusGenie — All-in-One AI Student Copilot</title>
+    <title>CampusGenie — All-in-One AI Student Copilot & Campus Portal</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome 6 -->
@@ -27,23 +27,25 @@
                         <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">AI Copilot</span>
                     </div>
                     <p class="text-[11px] text-slate-400 flex items-center gap-1">
-                        <i class="fa-solid fa-microchip text-cyan-400"></i> Built with IBM Bob • SkillUp Hackathon
+                        <i class="fa-solid fa-microchip text-cyan-400"></i> Powered by IBM Bob • SkillUp Hackathon
                     </p>
                 </div>
             </div>
 
-            <!-- Student Profile Badge -->
-            <div class="flex items-center space-x-4">
-                <div class="hidden md:flex items-center space-x-3 px-3.5 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/60 shadow-inner">
-                    <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-xs font-bold text-white">
-                        RS
-                    </div>
-                    <div class="text-left text-xs">
-                        <p class="font-semibold text-slate-200" id="headerStudentName">Rahul Sharma</p>
-                        <p class="text-[10px] text-slate-400">5th Sem CSE • Roll: 22CS1084</p>
-                    </div>
+            <!-- Portal Switcher & Actions -->
+            <div class="flex items-center space-x-3">
+                <!-- Mode Toggle (Student vs Faculty/Admin) -->
+                <div class="bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 flex items-center">
+                    <button id="btnStudentMode" onclick="switchView('student')" class="px-3 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm transition-all">
+                        <i class="fa-solid fa-user-graduate mr-1"></i> Student View
+                    </button>
+                    <button id="btnAdminMode" onclick="switchView('admin')" class="px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition-all">
+                        <i class="fa-solid fa-user-tie mr-1"></i> Faculty / Admin Mode
+                    </button>
                 </div>
-                <button onclick="openBreathingModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-teal-500/20 to-emerald-500/20 hover:from-teal-500/30 hover:to-emerald-500/30 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center space-x-2 transition-all shadow-sm">
+
+                <!-- Stress Buster Button -->
+                <button onclick="openBreathingModal()" class="hidden sm:flex px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-teal-500/20 to-emerald-500/20 hover:from-teal-500/30 hover:to-emerald-500/30 border border-emerald-500/30 text-emerald-300 text-xs font-semibold items-center space-x-1.5 transition-all shadow-sm">
                     <i class="fa-solid fa-heart-pulse text-emerald-400 animate-pulse"></i>
                     <span>Stress Buster</span>
                 </button>
@@ -53,9 +55,78 @@
 
     <!-- Main Content Container -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- FACULTY / ADMIN EDITING VIEW (Hidden by default, toggled via header) -->
+        <div id="facultyAdminSection" class="hidden space-y-6 mb-6">
+            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/40 shadow-2xl">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-indigo-400"></i>
+                            Faculty & College Administration Portal
+                        </h2>
+                        <p class="text-xs text-slate-400">Add/edit college subjects, timetable lectures, broadcast official notices, and update attendance.</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                        Admin Access Active
+                    </span>
+                </div>
+
+                <!-- Admin Action Grid (3 Cards) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
+                    
+                    <!-- 1. Add Subject Card -->
+                    <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
+                        <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-book-bookmark text-blue-400"></i> Add New Subject / Class
+                        </h3>
+                        <form onsubmit="handleAdminAddSubject(event)" class="space-y-2.5 text-xs">
+                            <input type="text" id="adminSubName" placeholder="Subject Name (e.g. Cloud Computing)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="adminSubCode" placeholder="Subject Code (e.g. CS-506)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="adminSubFaculty" placeholder="Faculty Name (e.g. Dr. Amit Roy)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <button type="submit" class="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all">
+                                + Save Subject
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 2. Add Timetable Slot -->
+                    <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
+                        <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-regular fa-calendar-plus text-emerald-400"></i> Add Lecture to Timetable
+                        </h3>
+                        <form onsubmit="handleAdminAddTimetable(event)" class="space-y-2.5 text-xs">
+                            <input type="text" id="adminTtTime" placeholder="Timing (e.g. 03:45 PM - 04:45 PM)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="adminTtSub" placeholder="Subject (e.g. Cloud Computing Lab)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="adminTtRoom" placeholder="Room / Venue (e.g. Lab 4)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <button type="submit" class="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all">
+                                + Schedule Lecture
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 3. Broadcast Notice -->
+                    <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
+                        <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-bullhorn text-amber-400"></i> Broadcast College Notice
+                        </h3>
+                        <form onsubmit="handleAdminAddNotice(event)" class="space-y-2.5 text-xs">
+                            <input type="text" id="adminNoticeTitle" placeholder="Notice Title (e.g. Holiday on Friday)" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <textarea id="adminNoticeContent" placeholder="Announcement details..." rows="2" required class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"></textarea>
+                            <button type="submit" class="w-full py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold transition-all">
+                                📢 Post Announcement
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN STUDENT DASHBOARD & CHATBOT GRID -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            <!-- LEFT DASHBOARD COLUMN (Attendance & Timetable) -->
+            <!-- LEFT COLUMN (Attendance & Timetable & Notices) -->
             <div class="lg:col-span-7 space-y-6">
 
                 <!-- Overall Attendance & Health Stats Strip -->
@@ -114,12 +185,11 @@
                             </div>
                             <h2 class="text-base font-bold text-slate-100">Subject-Wise Attendance</h2>
                         </div>
-                        <span class="text-xs text-slate-400">Click <strong>+</strong> or <strong>-</strong> to quickly log attendance</span>
+                        <span class="text-xs text-slate-400">Faculty/Student: Click <strong>+</strong> or <strong>-</strong> to mark</span>
                     </div>
 
                     <!-- Subjects List -->
                     <div id="subjectsContainer" class="space-y-3">
-                        <!-- Rendered dynamically by JS -->
                         <div class="text-center py-6 text-xs text-slate-500">Loading subjects...</div>
                     </div>
                 </div>
@@ -141,22 +211,25 @@
                     </div>
                 </div>
 
-                <!-- Daily Health Advice Card -->
-                <div class="p-4 rounded-2xl bg-gradient-to-r from-teal-950/40 via-slate-900 to-slate-900 border border-teal-800/40 flex items-start space-x-3">
-                    <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="fa-solid fa-lightbulb"></i>
+                <!-- College Notice Board -->
+                <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-bullhorn"></i>
+                            </div>
+                            <h2 class="text-base font-bold text-slate-100">Official College Notice Board</h2>
+                        </div>
+                        <span class="text-[11px] text-slate-400">Live Updates</span>
                     </div>
-                    <div>
-                        <h3 class="text-xs font-bold text-teal-300">Exam Stress & Study Health Tip</h3>
-                        <p id="healthTipText" class="text-xs text-slate-300 mt-1 leading-relaxed">
-                            "20-20-20 Rule: Every 20 minutes of screen reading, glance at an object 20 feet away for 20 seconds. It keeps eye muscles relaxed and prevents tension headaches!"
-                        </p>
+                    <div id="noticesContainer" class="space-y-2.5">
+                        <!-- Rendered by JS -->
                     </div>
                 </div>
 
             </div>
 
-            <!-- RIGHT COLUMN (AI Chatbot - Persistent Student Assistant) -->
+            <!-- RIGHT COLUMN (AI Chatbot - Student Helpdesk & Copilot) -->
             <div class="lg:col-span-5">
                 <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[calc(100vh-6.5rem)] sticky top-20">
                     
@@ -171,10 +244,10 @@
                             </div>
                             <div>
                                 <h3 class="text-sm font-bold text-slate-100 flex items-center gap-1.5">
-                                    CampusGenie AI
-                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-normal">v1.0</span>
+                                    CampusGenie AI Helpdesk
+                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-normal">v2.0</span>
                                 </h3>
-                                <p class="text-[11px] text-slate-400">Attendance • Timetable • Doubts • Health</p>
+                                <p class="text-[11px] text-slate-400">Helpdesk • Attendance • Timetable • Doubts</p>
                             </div>
                         </div>
                         <button onclick="clearChat()" title="Clear Chat" class="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition-colors">
@@ -184,15 +257,14 @@
 
                     <!-- Chat Messages Scroll Area -->
                     <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
-                        <!-- Welcome message -->
                         <div class="flex items-start space-x-2.5">
                             <div class="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-[10px] shrink-0 mt-0.5">
                                 <i class="fa-solid fa-bolt"></i>
                             </div>
                             <div class="bg-slate-800/90 border border-slate-700/60 p-3.5 rounded-2xl rounded-tl-sm max-w-[85%] text-slate-200 leading-relaxed space-y-2 shadow-sm">
-                                <p class="font-semibold text-slate-100">Namaste Rahul! 👋 I'm your AI Campus Companion.</p>
-                                <p>I can track your <strong>attendance</strong>, update today's classes, explain <strong>study topics</strong>, and guide you through <strong>exam stress</strong>.</p>
-                                <p class="text-[11px] text-indigo-300 font-medium">Try tapping any quick prompt below or ask me anything!</p>
+                                <p class="font-semibold text-slate-100">Namaste! 👋 I'm your AI Campus Copilot & Student Helpdesk.</p>
+                                <p>Ask me about <strong>bonafide certificates, exam fees, attendance shortage, timetable</strong>, or <strong>study doubts</strong>!</p>
+                                <p class="text-[11px] text-indigo-300 font-medium">Click any chip below to test:</p>
                             </div>
                         </div>
                     </div>
@@ -200,10 +272,11 @@
                     <!-- Quick Suggestion Chips -->
                     <div class="px-4 py-2 bg-slate-950/50 border-t border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                         <button onclick="sendQuickPrompt('What is my attendance summary?')" class="chip">📊 Attendance</button>
+                        <button onclick="sendQuickPrompt('How to get bonafide certificate?')" class="chip">📄 Bonafide</button>
+                        <button onclick="sendQuickPrompt('What is the exam form fee and last date?')" class="chip">📝 Exam Form</button>
                         <button onclick="sendQuickPrompt('What is my next lecture?')" class="chip">⏰ Next Class</button>
-                        <button onclick="sendQuickPrompt('Explain binary search simply')" class="chip">📚 Binary Search</button>
-                        <button onclick="sendQuickPrompt('What is deadlock in OS?')" class="chip">💻 Deadlock</button>
-                        <button onclick="sendQuickPrompt('Exam stress relief tips')" class="chip">🧘 Stress Buster</button>
+                        <button onclick="sendQuickPrompt('Explain deadlock in OS?')" class="chip">💻 Deadlock</button>
+                        <button onclick="sendQuickPrompt('Exam stress relief tips')" class="chip">🧘 Stress Tips</button>
                     </div>
 
                     <!-- Chat Input Bar -->
@@ -211,7 +284,7 @@
                         <input 
                             type="text" 
                             id="chatInput" 
-                            placeholder="Ask about attendance, timetable, doubts, or wellness..." 
+                            placeholder="Ask helpdesk, attendance, doubts, or wellness..." 
                             class="flex-1 bg-slate-950/80 border border-slate-700/80 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl transition-all"
                             autocomplete="off"
                         >
@@ -234,7 +307,6 @@
             <h3 class="text-lg font-bold text-slate-100 mb-1">4-7-8 Breathing Reset</h3>
             <p class="text-xs text-slate-400 mb-6">Calm exam jitters and regain sharp focus in 1 minute.</p>
             
-            <!-- Expanding/Contracting Breathing Circle -->
             <div class="relative w-40 h-40 mx-auto mb-6 flex items-center justify-center">
                 <div id="breathingCircle" class="w-28 h-28 rounded-full bg-gradient-to-tr from-teal-500/40 to-cyan-500/40 border-2 border-teal-400/80 flex items-center justify-center shadow-lg shadow-teal-500/20 transition-all duration-1000">
                     <span id="breathingActionText" class="text-sm font-bold text-teal-200">Inhale</span>
