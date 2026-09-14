@@ -1,131 +1,14 @@
 {
   "student": {
-    "name": "Rahul Sharma",
+    "name": "Harshit Sharma",
     "roll_no": "22CS1084",
-    "branch": "Computer Science & Engineering",
-    "semester": "5th Semester",
+    "branch": "Computer Science",
+    "semester": "5th Sem",
     "target_attendance": 75
   },
-  "notices": [
-    {
-      "id": 1,
-      "title": "Semester Exam Form Deadline",
-      "date": "20 Sep 2026",
-      "badge": "Urgent",
-      "content": "Last date to submit 5th Semester exam form with zero late fee is Sept 25th."
-    },
-    {
-      "id": 2,
-      "title": "IBM Hackathon SkillUp Workshop",
-      "date": "16 Sep 2026",
-      "badge": "Event",
-      "content": "Hands-on workshop on IBM Bob and Generative AI at Seminar Hall 1."
-    }
-  ],
-  "subjects": [
-    {
-      "id": "os",
-      "name": "Operating Systems",
-      "code": "CS-501",
-      "faculty": "Prof. R. K. Verma",
-      "attended": 23,
-      "total": 32,
-      "percentage": 71.88,
-      "status": "warning"
-    },
-    {
-      "id": "dsa",
-      "name": "Data Structures & Algorithms",
-      "code": "CS-502",
-      "faculty": "Dr. Sunita Rao",
-      "attended": 29,
-      "total": 35,
-      "percentage": 82.85,
-      "status": "safe"
-    },
-    {
-      "id": "dbms",
-      "name": "Database Management Systems",
-      "code": "CS-503",
-      "faculty": "Dr. Alok Gupta",
-      "attended": 19,
-      "total": 27,
-      "percentage": 70.37,
-      "status": "warning"
-    },
-    {
-      "id": "cn",
-      "name": "Computer Networks",
-      "code": "CS-504",
-      "faculty": "Prof. Sneha Kapoor",
-      "attended": 26,
-      "total": 33,
-      "percentage": 78.78,
-      "status": "safe"
-    },
-    {
-      "id": "ai",
-      "name": "Artificial Intelligence & ML",
-      "code": "CS-505",
-      "faculty": "Prof. Vikram Joshi",
-      "attended": 27,
-      "total": 31,
-      "percentage": 87.09,
-      "status": "safe"
-    },
-    {
-      "id": "cs507",
-      "name": "Cyber Security",
-      "code": "CS-507",
-      "faculty": "Dr. Sharma",
-      "attended": 0,
-      "total": 0,
-      "percentage": 100.0,
-      "status": "safe"
-    }
-  ],
-  "timetable": [
-    {
-      "time": "09:00 AM - 10:00 AM",
-      "subject": "Operating Systems",
-      "code": "CS-501",
-      "room": "Lecture Hall 302",
-      "faculty": "Prof. R. K. Verma",
-      "status": "completed"
-    },
-    {
-      "time": "10:15 AM - 11:15 AM",
-      "subject": "Data Structures Lab",
-      "code": "CS-502P",
-      "room": "Computer Lab 2",
-      "faculty": "Dr. Sunita Rao",
-      "status": "ongoing"
-    },
-    {
-      "time": "11:30 AM - 12:30 PM",
-      "subject": "Computer Networks",
-      "code": "CS-504",
-      "room": "Lecture Hall 205",
-      "faculty": "Prof. Sneha Kapoor",
-      "status": "upcoming"
-    },
-    {
-      "time": "01:30 PM - 02:30 PM",
-      "subject": "Database Management Systems",
-      "code": "CS-503",
-      "room": "Lecture Hall 108",
-      "faculty": "Dr. Alok Gupta",
-      "status": "upcoming"
-    },
-    {
-      "time": "02:45 PM - 03:45 PM",
-      "subject": "AI & ML Workshop",
-      "code": "CS-505",
-      "room": "Seminar Hall 1",
-      "faculty": "Prof. Vikram Joshi",
-      "status": "upcoming"
-    }
-  ],
+  "notices": [],
+  "subjects": [],
+  "timetable": [],
   "health_tips": [
     "Drink at least 500ml water every 2 hours of study.",
     "20-20-20 Rule: Every 20 mins, look at something 20 feet away for 20 seconds.",

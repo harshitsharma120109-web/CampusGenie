@@ -35,127 +35,185 @@ async function fetchStudentData() {
     }
 }
 
-// Render Dashboard (Overall, Subjects, Timetable, Notices)
+// Render Dashboard
 function renderDashboard(data) {
-    if (!data || !data.student) return;
+    if (!data) return;
 
-    const student = data.student;
+    const student = data.student || {};
+
+    // Populate Admin Inputs
+    if (document.getElementById("adminStudentName") && student.name) {
+        document.getElementById("adminStudentName").value = student.name;
+        document.getElementById("adminStudentRoll").value = student.roll_no || "";
+        document.getElementById("adminStudentBranch").value = student.branch || "";
+        document.getElementById("adminStudentSem").value = student.semester || "";
+    }
+
+    const welcomeHeading = document.getElementById("chatWelcomeHeading");
+    if (welcomeHeading) {
+        welcomeHeading.innerText = `Welcome ${student.name || 'Student'}! 👋 I'm your AI Copilot.`;
+    }
 
     // Overall Attendance
     const subjects = data.subjects || [];
     const totAttended = subjects.reduce((sum, s) => sum + s.attended, 0);
     const totClasses = subjects.reduce((sum, s) => sum + s.total, 0);
     const overallPct = totClasses > 0 ? ((totAttended / totClasses) * 100).toFixed(1) : 0;
+    const target = student.target_attendance || 75;
 
     const overallPctElem = document.getElementById("overallPercentage");
     const overallBadge = document.getElementById("overallBadge");
     const overallSummary = document.getElementById("overallSummaryText");
 
-    overallPctElem.innerText = `${overallPct}%`;
+    overallPctElem.innerText = subjects.length > 0 ? `${overallPct}%` : "0%";
 
-    if (overallPct < student.target_attendance) {
+    if (subjects.length === 0) {
+        overallBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400";
+        overallBadge.innerText = "No Data";
+        overallSummary.innerHTML = `Switch to <strong>Faculty / Admin Mode</strong> above to add your subjects.`;
+    } else if (overallPct < target) {
         overallBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30";
         overallBadge.innerText = "Shortage Alert";
-        overallSummary.innerHTML = `<span class="text-amber-400 font-semibold">⚠️ Attention:</span> You are ${ (student.target_attendance - overallPct).toFixed(1) }% below the 75% rule.`;
+        overallSummary.innerHTML = `<span class="text-amber-400 font-semibold">⚠️ Attention:</span> You are ${ (target - overallPct).toFixed(1) }% below the 75% rule.`;
     } else {
         overallBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
         overallBadge.innerText = "Safe & Eligible";
-        overallSummary.innerHTML = `<span class="text-emerald-400 font-semibold">✅ Eligible:</span> You meet university exam attendance norms!`;
+        overallSummary.innerHTML = `<span class="text-emerald-400 font-semibold">✅ Eligible:</span> You meet exam attendance criteria!`;
+    }
+
+    // Total Classes & Next Class Hint
+    const timetable = data.timetable || [];
+    const totalClassesCount = document.getElementById("totalClassesCount");
+    const nextClassHint = document.getElementById("nextClassHint");
+
+    if (totalClassesCount) totalClassesCount.innerText = timetable.length;
+    if (nextClassHint) {
+        if (timetable.length > 0) {
+            nextClassHint.innerText = `Next: ${timetable[0].subject} (${timetable[0].time})`;
+        } else {
+            nextClassHint.innerText = "No classes scheduled yet";
+        }
     }
 
     // Render Subjects
     const subContainer = document.getElementById("subjectsContainer");
     subContainer.innerHTML = "";
 
-    subjects.forEach(sub => {
-        const isSafe = sub.percentage >= student.target_attendance;
-        const statusColor = isSafe ? "emerald" : "amber";
-        const statusText = isSafe ? "Safe" : "Warning (<75%)";
-
-        const card = document.createElement("div");
-        card.className = "p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3";
-        card.innerHTML = `
-            <div class="flex-1">
-                <div class="flex items-center space-x-2">
-                    <span class="font-bold text-xs text-slate-100">${sub.name}</span>
-                    <span class="text-[10px] text-slate-400 font-mono">(${sub.code})</span>
-                    <span class="text-[10px] px-2 py-0.2 rounded-full font-semibold bg-${statusColor}-500/20 text-${statusColor}-400 border border-${statusColor}-500/30">
-                        ${statusText}
-                    </span>
-                </div>
-                <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-3">
-                    <span>👨‍🏫 ${sub.faculty}</span>
-                    <span>•</span>
-                    <span class="font-medium text-slate-300"><strong>${sub.attended}</strong> attended of <strong>${sub.total}</strong> (${sub.percentage}%)</span>
-                </div>
-                <div class="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
-                    <div class="bg-${statusColor}-500 h-1.5 rounded-full transition-all duration-500" style="width: ${Math.min(sub.percentage, 100)}%"></div>
-                </div>
-            </div>
-
-            <!-- Quick Action Buttons -->
-            <div class="flex items-center space-x-2 shrink-0">
-                <button onclick="logAttendance('${sub.id}', 'present')" title="Mark Present" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center space-x-1 transition-all">
-                    <i class="fa-solid fa-plus text-[10px]"></i>
-                    <span>Present</span>
-                </button>
-                <button onclick="logAttendance('${sub.id}', 'absent')" title="Mark Absent" class="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center space-x-1 transition-all">
-                    <i class="fa-solid fa-minus text-[10px]"></i>
-                    <span>Absent</span>
-                </button>
+    if (subjects.length === 0) {
+        subContainer.innerHTML = `
+            <div class="p-6 text-center rounded-xl bg-slate-950/40 border border-dashed border-slate-800 text-slate-400 space-y-2">
+                <i class="fa-solid fa-book-open text-2xl text-slate-600"></i>
+                <p class="text-xs font-semibold text-slate-300">No subjects added yet!</p>
+                <p class="text-[11px] text-slate-500">Switch to <strong>'Faculty / Admin Mode'</strong> above to add your college subjects and start tracking attendance.</p>
             </div>
         `;
-        subContainer.appendChild(card);
-    });
+    } else {
+        subjects.forEach(sub => {
+            const isSafe = sub.percentage >= target;
+            const statusColor = isSafe ? "emerald" : "amber";
+            const statusText = isSafe ? "Safe" : "Warning (<75%)";
+
+            const card = document.createElement("div");
+            card.className = "p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+            card.innerHTML = `
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-xs text-slate-100">${sub.name}</span>
+                        <span class="text-[10px] text-slate-400 font-mono">(${sub.code})</span>
+                        <span class="text-[10px] px-2 py-0.2 rounded-full font-semibold bg-${statusColor}-500/20 text-${statusColor}-400 border border-${statusColor}-500/30">
+                            ${statusText}
+                        </span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-3">
+                        <span>👨‍🏫 ${sub.faculty}</span>
+                        <span>•</span>
+                        <span class="font-medium text-slate-300"><strong>${sub.attended}</strong> attended of <strong>${sub.total}</strong> (${sub.percentage}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
+                        <div class="bg-${statusColor}-500 h-1.5 rounded-full transition-all duration-500" style="width: ${Math.min(sub.percentage, 100)}%"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 shrink-0">
+                    <button onclick="logAttendance('${sub.id}', 'present')" title="Mark Present" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center space-x-1 transition-all">
+                        <i class="fa-solid fa-plus text-[10px]"></i>
+                        <span>Present</span>
+                    </button>
+                    <button onclick="logAttendance('${sub.id}', 'absent')" title="Mark Absent" class="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center space-x-1 transition-all">
+                        <i class="fa-solid fa-minus text-[10px]"></i>
+                        <span>Absent</span>
+                    </button>
+                    <button onclick="deleteSubject('${sub.id}')" title="Delete Subject" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            `;
+            subContainer.appendChild(card);
+        });
+    }
 
     // Render Timetable
     const ttContainer = document.getElementById("timetableContainer");
     ttContainer.innerHTML = "";
-    (data.timetable || []).forEach(item => {
-        let badgeHtml = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Upcoming</span>`;
-        let borderClass = "border-slate-800/80";
 
-        if (item.status === "ongoing") {
-            badgeHtml = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 animate-pulse font-semibold">Ongoing Now</span>`;
-            borderClass = "border-blue-500/40 bg-blue-950/20";
-        } else if (item.status === "completed") {
-            badgeHtml = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-500">Completed</span>`;
-        }
-
-        const row = document.createElement("div");
-        row.className = `p-3 rounded-xl bg-slate-950/50 border ${borderClass} flex items-center justify-between text-xs transition-all`;
-        row.innerHTML = `
-            <div class="flex items-center space-x-3">
-                <span class="font-mono text-indigo-400 font-semibold text-[11px] w-36">${item.time}</span>
-                <div>
-                    <p class="font-bold text-slate-200">${item.subject}</p>
-                    <p class="text-[10px] text-slate-400">📍 ${item.room} • ${item.faculty}</p>
-                </div>
+    if (timetable.length === 0) {
+        ttContainer.innerHTML = `
+            <div class="p-5 text-center rounded-xl bg-slate-950/40 border border-dashed border-slate-800 text-slate-400 space-y-1">
+                <p class="text-xs font-semibold text-slate-300">No classes in timetable yet.</p>
+                <p class="text-[11px] text-slate-500">Add lecture timings from the Admin Mode.</p>
             </div>
-            <div>${badgeHtml}</div>
         `;
-        ttContainer.appendChild(row);
-    });
+    } else {
+        timetable.forEach((item, idx) => {
+            const row = document.createElement("div");
+            row.className = `p-3 rounded-xl bg-slate-950/50 border border-slate-800/80 flex items-center justify-between text-xs transition-all`;
+            row.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <span class="font-mono text-indigo-400 font-semibold text-[11px] w-36">${item.time}</span>
+                    <div>
+                        <p class="font-bold text-slate-200">${item.subject}</p>
+                        <p class="text-[10px] text-slate-400">📍 ${item.room} • ${item.faculty}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Scheduled</span>
+                    <button onclick="deleteTimetable(${idx})" title="Remove lecture" class="text-slate-500 hover:text-rose-400 p-1">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+            `;
+            ttContainer.appendChild(row);
+        });
+    }
 
     // Render Notices
     const noticesContainer = document.getElementById("noticesContainer");
     if (noticesContainer) {
         noticesContainer.innerHTML = "";
-        (data.notices || []).forEach(n => {
-            const item = document.createElement("div");
-            item.className = "p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-start space-x-3 text-xs";
-            item.innerHTML = `
-                <div class="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
-                <div class="flex-1">
-                    <div class="flex items-center justify-between">
-                        <span class="font-bold text-slate-200">${n.title}</span>
-                        <span class="text-[10px] px-2 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono">${n.date}</span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-1">${n.content}</p>
+        const notices = data.notices || [];
+        if (notices.length === 0) {
+            noticesContainer.innerHTML = `
+                <div class="p-4 text-center rounded-xl bg-slate-950/40 border border-dashed border-slate-800 text-slate-500 text-xs">
+                    No active notices posted.
                 </div>
             `;
-            noticesContainer.appendChild(item);
-        });
+        } else {
+            notices.forEach(n => {
+                const item = document.createElement("div");
+                item.className = "p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-start space-x-3 text-xs";
+                item.innerHTML = `
+                    <div class="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-200">${n.title}</span>
+                            <span class="text-[10px] px-2 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono">${n.date}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">${n.content}</p>
+                    </div>
+                `;
+                noticesContainer.appendChild(item);
+            });
+        }
     }
 }
 
@@ -177,18 +235,43 @@ async function logAttendance(subId, status) {
     }
 }
 
-// Admin / Faculty Form Handlers
+// Admin / Faculty Handlers
+async function handleAdminUpdateStudent(e) {
+    e.preventDefault();
+    const name = document.getElementById("adminStudentName").value.trim();
+    const roll_no = document.getElementById("adminStudentRoll").value.trim();
+    const branch = document.getElementById("adminStudentBranch").value.trim();
+    const semester = document.getElementById("adminStudentSem").value.trim();
+
+    try {
+        const res = await fetch("/api/admin/student/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, roll_no, branch, semester })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert("✅ Student profile updated!");
+            fetchStudentData();
+        }
+    } catch (err) {
+        alert("Failed to update profile");
+    }
+}
+
 async function handleAdminAddSubject(e) {
     e.preventDefault();
     const name = document.getElementById("adminSubName").value.trim();
     const code = document.getElementById("adminSubCode").value.trim();
     const faculty = document.getElementById("adminSubFaculty").value.trim();
+    const attended = document.getElementById("adminSubAttended").value || 0;
+    const total = document.getElementById("adminSubTotal").value || 0;
 
     try {
         const res = await fetch("/api/admin/subject/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, code, faculty })
+            body: JSON.stringify({ name, code, faculty, attended, total })
         });
         const data = await res.json();
         if (data.success) {
@@ -198,6 +281,21 @@ async function handleAdminAddSubject(e) {
         }
     } catch (err) {
         alert("Failed to add subject");
+    }
+}
+
+async function deleteSubject(subId) {
+    if (!confirm("Are you sure you want to delete this subject?")) return;
+    try {
+        const res = await fetch("/api/admin/subject/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ subject_id: subId })
+        });
+        const data = await res.json();
+        if (data.success) fetchStudentData();
+    } catch (err) {
+        alert("Failed to delete");
     }
 }
 
@@ -224,6 +322,20 @@ async function handleAdminAddTimetable(e) {
     }
 }
 
+async function deleteTimetable(idx) {
+    try {
+        const res = await fetch("/api/admin/timetable/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ index: idx })
+        });
+        const data = await res.json();
+        if (data.success) fetchStudentData();
+    } catch (err) {
+        console.error("Failed to delete timetable item", err);
+    }
+}
+
 async function handleAdminAddNotice(e) {
     e.preventDefault();
     const title = document.getElementById("adminNoticeTitle").value.trim();
@@ -243,6 +355,20 @@ async function handleAdminAddNotice(e) {
         }
     } catch (err) {
         alert("Failed to post notice");
+    }
+}
+
+async function handleResetAllData() {
+    if (!confirm("Are you sure you want to clear all data and start fresh?")) return;
+    try {
+        const res = await fetch("/api/admin/reset", { method: "POST" });
+        const data = await res.json();
+        if (data.success) {
+            alert("🧹 All data cleared!");
+            fetchStudentData();
+        }
+    } catch (err) {
+        alert("Failed to reset");
     }
 }
 
