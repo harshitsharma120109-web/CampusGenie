@@ -1,7 +1,9 @@
-﻿import sys
+import sys
 import os
 import json
 import re
+import urllib.request
+import urllib.parse
 from flask import Flask, render_template, request, jsonify
 
 if sys.platform == 'win32':
@@ -877,6 +879,118 @@ def _resolve_study(msg_lower):
     return None
 
 
+# ── AI FRIEND LIVE WEB SEARCH ENGINE ───────────────────────────────────────
+
+def clean_for_search(q):
+    s = q.strip()
+    s = re.sub(r'^(bhai|yaar|bro|hey|hello|please|can you tell me|can you explain|tell me about|what is|who is|explain|mujhe batao|batao)\s+', '', s, flags=re.IGNORECASE)
+    s = re.sub(r'\s+(kya hai|kya hota hai|batao|bataiye|ke bare me|ke baare mein|kaise kare|kaise karein|in hindi|in english|bata do)$', '', s, flags=re.IGNORECASE)
+    return s.strip()
+
+def search_wikipedia(query):
+    try:
+        url = 'https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + urllib.parse.quote(query) + '&format=json&utf8=1'
+        req = urllib.request.Request(url, headers={'User-Agent': 'CampusGenieAI/1.0 (harshit@campusgenie.org)'})
+        with urllib.request.urlopen(req, timeout=5) as res:
+            data = json.loads(res.read().decode('utf-8'))
+            results = data.get('query', {}).get('search', [])
+            items = []
+            for r in results[:3]:
+                title = r.get('title', '')
+                snippet = re.sub(r'<[^>]+>', '', r.get('snippet', '')).strip()
+                link = f"https://en.wikipedia.org/wiki/{urllib.parse.quote(title.replace(' ', '_'))}"
+                items.append({'title': title, 'snippet': snippet, 'link': link})
+            return items
+    except Exception:
+        return []
+
+def search_ddg_html(query):
+    try:
+        url = 'https://html.duckduckgo.com/html/?q=' + urllib.parse.quote(query)
+        req = urllib.request.Request(
+            url, 
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9'
+            }
+        )
+        with urllib.request.urlopen(req, timeout=5) as res:
+            html = res.read().decode('utf-8', errors='ignore')
+            matches = re.findall(r'<a[^>]+class="result__snippet[^>]*>(.*?)</a>', html, re.DOTALL)
+            url_matches = re.findall(r'href="(?:https?:)?//duckduckgo\.com/l/\?uddg=([^"&]+)', html)
+            title_matches = re.findall(r'<a[^>]+class="result__title[^>]*>(.*?)</a>', html, re.DOTALL)
+            
+            items = []
+            for i in range(min(len(matches), len(url_matches), 3)):
+                snip = re.sub(r'<[^>]+>', '', matches[i]).strip()
+                raw_url = urllib.parse.unquote(url_matches[i])
+                title = re.sub(r'<[^>]+>', '', title_matches[i]).strip() if i < len(title_matches) else query
+                items.append({'title': title, 'snippet': snip, 'link': raw_url})
+            return items
+    except Exception:
+        return []
+
+def search_ddg_api(query):
+    try:
+        url = 'https://api.duckduckgo.com/?q=' + urllib.parse.quote(query) + '&format=json&no_html=1&skip_disambig=1'
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as res:
+            data = json.loads(res.read().decode('utf-8'))
+            abstract = data.get('AbstractText') or data.get('Abstract')
+            url = data.get('AbstractURL')
+            source = data.get('AbstractSource') or 'DuckDuckGo'
+            if abstract and url:
+                return [{'title': f"{source}: {query}", 'snippet': abstract, 'link': url}]
+            related = data.get('RelatedTopics', [])
+            items = []
+            for t in related[:3]:
+                if isinstance(t, dict) and 'Text' in t and 'FirstURL' in t:
+                    items.append({'title': t['Text'][:60] + '...', 'snippet': t['Text'], 'link': t['FirstURL']})
+            return items
+    except Exception:
+        return []
+
+def ai_friend_web_search(user_msg, student_name="Student"):
+    q = user_msg.strip()
+    search_q = clean_for_search(q)
+    if not search_q or len(search_q) < 2:
+        search_q = q
+
+    results = search_ddg_html(search_q)
+    if not results:
+        results = search_wikipedia(search_q)
+    if not results:
+        results = search_ddg_api(search_q)
+
+    if not results:
+        return (
+            f"🌐 **CampusGenie AI Friend**\n\n"
+            f"Arre {student_name}, maine web par **\"{search_q}\"** dhoondhne ki koshish ki, lekin direct live response connect nahi ho paya.\n\n"
+            f"💡 *Tip:* Thoda specific keyword likh kar poochiye (jaise: *'Python reverse list'*, *'Quantum computing basics'*, *'Latest AI updates'*), main turant live search karke direct link ke sath dunga!"
+        ), "web_search"
+
+    lines = [
+        f"🌐 **CampusGenie AI Friend — Live Web Intelligence**\n",
+        f"Dost, maine live internet par **\"{search_q}\"** search kiya! Ye rahi verified information:\n"
+    ]
+
+    for idx, r in enumerate(results[:3], 1):
+        clean_snip = r['snippet'].replace('\n', ' ').strip()
+        lines.append(f"**{idx}. {r['title']}**\n{clean_snip}\n")
+
+    lines.append("---\n🔗 **Verified Sources & Web Links:**")
+    seen = set()
+    for r in results[:4]:
+        link = r['link']
+        if link not in seen:
+            seen.add(link)
+            lines.append(f"• [{r['title']}]({link})")
+
+    lines.append("\n💡 *Live Internet Search Active • Click source link to explore further. Ask me anything else!*")
+    return "\n".join(lines), "web_search"
+
+
 # --- AI COPILOT CHATBOT ---
 
 @app.route('/api/chat', methods=['POST'])
@@ -889,7 +1003,22 @@ def chat():
     active_stu = get_active_student(data)
     student_name = active_stu.get('name', 'Student') if active_stu else 'Student'
 
-    # â”€â”€ 1. HEALTH & SYMPTOMS TRIAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── 0. CONVERSATIONAL AI FRIEND GREETINGS ──
+    greetings = ['hi', 'hello', 'hey', 'namaste', 'kaise ho', 'kya haal hai', 'who are you', 'tu kaun hai', 'tu kaisa hai', 'kya kar rahe ho', 'ai friend']
+    if any(msg_lower == g or msg_lower.startswith(g + ' ') for g in greetings):
+        return jsonify({
+            "reply": (
+                f"👋 **Namaste {student_name}! Main hoon aapka AI Friend & 360° Campus Companion!** 🤝\n\n"
+                f"Aap mujhse bejhijhak kuch bhi pooch sakte ho:\n"
+                f"• 🎓 **Campus & Academics:** Attendance shortage calculation, exam marks, timetables & CS doubts.\n"
+                f"• 🩺 **Hostel Health & Care:** Late-night fever, headache, cold, acidity par safe OTC first-aid medicine aur home remedies.\n"
+                f"• 🌐 **Live Web Intelligence:** Duniya ka koi bhi sawaal poocho (programming, current affairs, tech news, definitions, facts)—main live internet se dhoondhkar **verified source links** ke saath answer dunga!\n\n"
+                f"*Bataiye dost, aaj kya seekhna ya dhoondhna hai?*"
+            ),
+            "action": "friend"
+        })
+
+    # ── 1. HEALTH & SYMPTOMS TRIAGE ──
     matched_symptoms = _resolve_health(msg_lower)
     if matched_symptoms:
         sections = []
@@ -987,26 +1116,14 @@ def chat():
                 )
             return jsonify({"reply": "\n".join(tt_lines), "action": None})
 
-    # â”€â”€ 7. DEFAULT HELP MESSAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── 7. AI FRIEND LIVE WEB SEARCH ENGINE (FOR ANY OTHER QUESTION) ──
+    if user_msg:
+        web_reply, web_action = ai_friend_web_search(user_msg, student_name)
+        return jsonify({"reply": web_reply, "action": web_action})
+
+    # Default fallback if message is empty
     return jsonify({
-        "reply": (
-            f"ðŸ‘‹ **Hello {student_name}! I'm CampusGenie AI** â€” your 360Â° Smart Campus Copilot.\n\n"
-            f"---\n"
-            f"ðŸŽ“ **Academic Doubt Solver** (30 CS topics across 8 subjects):\n"
-            f"  `DSA` â€” array, linked list, stack, queue, tree, heap, graph, hashing, sorting, DP, greedy, recursion\n"
-            f"  `OS` â€” deadlock, scheduling, paging, semaphore, file system\n"
-            f"  `DBMS` â€” normalization, SQL joins, transactions (ACID)\n"
-            f"  `OOP` â€” polymorphism, inheritance, encapsulation\n"
-            f"  `CN` â€” OSI model, TCP vs UDP, IP addressing\n"
-            f"  `COA` â€” cache memory, pipelining | `TOC` â€” automata | `SE` â€” SDLC\n\n"
-            f"---\n"
-            f"ðŸ©º **Health Triage** (17 symptoms â€” first-aid + medicines + home remedies):\n"
-            f"  fever, headache, cold, cough, acidity, stress/anxiety, vomiting,\n"
-            f"  diarrhea, dehydration, eye strain, back pain, insomnia, allergy, sprain,\n"
-            f"  muscle pain, toothache, stomach pain\n\n"
-            f"---\n"
-            f"ðŸ“‹ *'Show my marks'* | ðŸ“Š *'Attendance shortage'* | ðŸ“… *'Where is my class?'* | ðŸš€ *'Latest hackathons'*"
-        ),
+        "reply": f"👋 **Hello {student_name}!** Poochiye koi bhi sawaal—academics, health, campus ERP, ya internet se koi bhi general knowledge/tech question!",
         "action": None
     })
 

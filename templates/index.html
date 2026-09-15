@@ -318,10 +318,10 @@
                             </div>
                             <div>
                                 <h3 class="text-sm font-bold text-slate-100 flex items-center gap-1.5">
-                                    CampusGenie 360° AI
-                                    <span class="text-[10px] px-1.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold">Live</span>
+                                    CampusGenie 360° AI & Web Friend
+                                    <span class="text-[10px] px-1.5 rounded bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30">🌐 Web AI Live</span>
                                 </h3>
-                                <p class="text-[11px] text-slate-400">Doubts • Health • Marks • Venues • Alerts</p>
+                                <p class="text-[11px] text-slate-400">Doubts • Health • Marks • 🌐 Live Web Search & Links</p>
                             </div>
                         </div>
                         <button onclick="clearChat()" title="Clear Chat" class="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition-colors">
@@ -332,19 +332,24 @@
                     <!-- Chat Message Area -->
                     <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
                         <div class="flex items-start space-x-2.5">
-                            <div class="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-[10px] shrink-0 mt-0.5">
-                                <i class="fa-solid fa-bolt"></i>
+                            <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white text-[10px] shrink-0 mt-0.5 shadow-md shadow-cyan-500/20">
+                                <i class="fa-solid fa-globe"></i>
                             </div>
                             <div class="bg-slate-800/90 border border-slate-700/60 p-3.5 rounded-2xl rounded-tl-sm max-w-[85%] text-slate-200 leading-relaxed space-y-2 shadow-sm">
-                                <p class="font-semibold text-slate-100">Namaste! 👋 I'm your AI Academic & Health Companion.</p>
-                                <p>Ask me to <strong>solve study doubts</strong>, check <strong>exam marks</strong>, get <strong>attendance alerts</strong>, or tell me any <strong>health symptom</strong> for first-aid advice!</p>
-                                <p class="text-[11px] text-indigo-300 font-medium">Tap a chip below to try instantly:</p>
+                                <p class="font-semibold text-slate-100">Namaste! 👋 I'm your AI Friend & 360° Campus Copilot.</p>
+                                <p>Ask me about <strong>study doubts</strong>, <strong>health first-aid</strong>, <strong>attendance shortage</strong>, or ask <strong>ANY general knowledge/coding question</strong>—I will search the live internet and provide answers with verified source links!</p>
+                                <p class="text-[11px] text-cyan-300 font-medium">Tap a chip below to try instantly:</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Quick Suggestion Chips -->
                     <div class="px-4 py-2 bg-slate-950/50 border-t border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                        <!-- AI Friend Live Web Search chips -->
+                        <button onclick="sendQuickPrompt('Kaise ho bhai? What can you do as my AI friend?')" class="chip !border-purple-500/40 !bg-purple-950/40 !text-purple-300">🤝 Chat with AI Friend</button>
+                        <button onclick="sendQuickPrompt('Explain Quantum Computing and how qubits work')" class="chip !border-cyan-500/40 !bg-cyan-950/40 !text-cyan-300">🌐 Quantum Computing</button>
+                        <button onclick="sendQuickPrompt('Who is the current CEO of Google and Microsoft?')" class="chip !border-cyan-500/40 !bg-cyan-950/40 !text-cyan-300">🌐 Tech Leaders</button>
+                        <button onclick="sendQuickPrompt('What is the difference between AI, Machine Learning, and Deep Learning?')" class="chip !border-cyan-500/40 !bg-cyan-950/40 !text-cyan-300">🌐 AI vs ML vs DL</button>
                         <!-- Academic chips -->
                         <button onclick="sendQuickPrompt('Explain merge sort algorithm with complexity')" class="chip">📚 Merge Sort</button>
                         <button onclick="sendQuickPrompt('What is dynamic programming? Explain with example')" class="chip">🧠 DP</button>
@@ -380,8 +385,8 @@
                         <input
                             type="text"
                             id="chatInput"
-                            placeholder="Ask doubts, health symptoms, marks, timetable..."
-                            class="flex-1 bg-slate-950/80 border border-slate-700/80 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl transition-all"
+                            placeholder="Ask doubts, health, campus ERP, or ANY question (searches live internet with links)..."
+                            class="flex-1 bg-slate-950/80 border border-slate-700/80 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl transition-all"
                             autocomplete="off"
                         >
                         <button type="submit" id="sendBtn" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition-all shadow-md shadow-indigo-600/30 flex items-center justify-center">

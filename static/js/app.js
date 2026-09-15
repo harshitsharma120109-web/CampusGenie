@@ -776,11 +776,15 @@ function appendBotMessage(markdownText, action) {
         ? "bg-rose-600"
         : action === "academic"
         ? "bg-indigo-600"
+        : (action === "web_search" || action === "friend")
+        ? "bg-gradient-to-tr from-cyan-500 to-blue-600 shadow-md shadow-cyan-500/25"
         : "bg-indigo-600";
     const avatarIcon = action === "health"
         ? "fa-heart-pulse"
         : action === "academic"
         ? "fa-book-open"
+        : (action === "web_search" || action === "friend")
+        ? "fa-globe"
         : "fa-robot";
 
     // Structured markdown renderer
@@ -871,11 +875,13 @@ function renderMarkdown(text) {
     return out.join('');
 }
 
-// ── Inline markdown: **bold**, *italic*, `code` ────────────────────────────
+// ── Inline markdown: **bold**, *italic*, `code`, [link](url) ──────────────
 function renderInline(text) {
     return escapeHtml(text)
         // inline `code` — must come BEFORE bold/italic to avoid double-escaping
         .replace(/`([^`]+)`/g, '<code class="bg-slate-950 text-cyan-300 font-mono rounded px-1 text-[10px]">$1</code>')
+        // [text](url) -> clickable hyperlink with external link icon
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline font-semibold inline-flex items-center gap-1 transition-colors">$1 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>')
         // **bold**
         .replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-100">$1</strong>')
         // *italic*

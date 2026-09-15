@@ -46,6 +46,11 @@ College students juggle multiple responsibilities every day—attending lectures
 - Add unlimited students and switch between student profiles with one click.
 - Enter student exam marks, schedule classes, and broadcast college notices.
 
+### 7. 🌐 24/7 AI Friend & Live Web Intelligence (with Source Links)
+- Acts as a friendly, intelligent companion answering ANY question beyond campus academics (general knowledge, coding, tech news, current affairs).
+- Live multi-source web search engine (DuckDuckGo + Wikipedia) extracts real-time snippets.
+- Provides direct, verified clickable citations and reference links (`[Source](url)`).
+
 ---
 
 ## 🛠️ Tech Stack
