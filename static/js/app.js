@@ -184,6 +184,23 @@ function renderDashboard(data) {
 
     // ── 5. FACULTY MANAGEMENT TABLE (if admin section visible) ──
     renderFacultyManagementTable(data);
+
+    // Presentation Screenshot View Hooks
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('view') === 'admin') {
+        switchView('admin');
+    } else if (urlParams.get('view') === 'timetable') {
+        setTimeout(() => {
+            window.scrollTo(0, 560);
+        }, 300);
+    } else if (urlParams.get('view') === 'chat') {
+        setTimeout(() => {
+            appendUserMessage("Explain QuickSort vs MergeSort with time complexity.");
+            appendBotMessage("### ⚡ QuickSort vs MergeSort Comparison\n\n- **MergeSort**: Divide-and-Conquer with guaranteed **O(n log n)** in all cases. Highly stable, optimal for linked lists and massive data.\n- **QuickSort**: Pivot partitioning with **O(n log n)** average, in-place **O(1)** auxiliary space. Faster in practice due to cache locality.\n\n```python\ndef quicksort(arr):\n    if len(arr) <= 1: return arr\n    pivot = arr[len(arr) // 2]\n    return quicksort([x for x in arr if x < pivot]) + [x for x in arr if x == pivot] + quicksort([x for x in arr if x > pivot])\n```", "academic");
+            appendUserMessage("I have severe headache, cold and mild fever.");
+            appendBotMessage("### 🩺 Health Triage & Safe First-Aid\n\n- **Immediate Advice**: Rest in a dark, quiet room and drink warm fluids / ORS.\n- **Safe OTC Relief**: Paracetamol (500mg) for fever and headache after food.\n- **Home Remedies**: Steam inhalation for nasal congestion, ginger-tulsi tea.\n- ⚠️ *Disclaimer: CampusGenie provides first-aid triage. For symptoms exceeding 48h, consult the Campus Medical Officer.*", "health");
+        }, 400);
+    }
 }
 
 // ── Render Subject Cards with Shortage Alert ────────────────────────────────
