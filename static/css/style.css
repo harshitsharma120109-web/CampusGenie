@@ -1,4 +1,4 @@
-﻿/* Custom Scrollbars */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
@@ -24,7 +24,7 @@
 
 /* Quick Suggestion Chips */
 .chip {
-    white-space: nowrap;
+    white-space: nowrap !important;
     font-size: 11px;
     font-weight: 600;
     padding: 0.35rem 0.75rem;
@@ -34,7 +34,9 @@
     border: 1px solid rgba(71, 85, 105, 0.5);
     transition: all 0.2s ease;
     cursor: pointer;
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
 }
 .chip:hover {
     background-color: rgba(99, 102, 241, 0.2);

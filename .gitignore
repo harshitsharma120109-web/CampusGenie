@@ -5,4 +5,5 @@ __pycache__/
 venv/
 .vscode/
 chrome_temp/
+chrome_debug/
 screenshot*.png

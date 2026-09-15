@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=20260915_4">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-['Plus_Jakarta_Sans'] antialiased selection:bg-indigo-500 selection:text-white">
 
@@ -344,12 +344,12 @@
                     </div>
 
                     <!-- Quick Suggestion Chips -->
-                    <div class="px-4 py-2 bg-slate-950/50 border-t border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                    <div class="px-4 py-2 bg-slate-950/50 border-t border-slate-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar" style="display:flex; flex-direction:row; flex-wrap:nowrap; overflow-x:auto;">
                         <!-- AI Friend Live Web Search chips -->
-                        <button onclick="sendQuickPrompt('Kaise ho bhai? What can you do as my AI friend?')" class="chip !border-purple-500/40 !bg-purple-950/40 !text-purple-300">🤝 Chat with AI Friend</button>
-                        <button onclick="sendQuickPrompt('Explain Quantum Computing and how qubits work')" class="chip !border-cyan-500/40 !bg-cyan-950/40 !text-cyan-300">🌐 Quantum Computing</button>
-                        <button onclick="sendQuickPrompt('Who is the current CEO of Google and Microsoft?')" class="chip !border-cyan-500/40 !bg-cyan-950/40 !text-cyan-300">🌐 Tech Leaders</button>
-                        <button onclick="sendQuickPrompt('What is the difference between AI, Machine Learning, and Deep Learning?')" class="chip !border-cyan-500/40 !bg-cyan-950/40 !text-cyan-300">🌐 AI vs ML vs DL</button>
+                        <button onclick="sendQuickPrompt('Kaise ho bhai? What can you do as my AI friend?')" class="chip" style="background: rgba(88, 28, 135, 0.4); border: 1px solid rgba(168, 85, 247, 0.5); color: #d8b4fe;">🤝 Chat with AI Friend</button>
+                        <button onclick="sendQuickPrompt('Explain Quantum Computing and how qubits work')" class="chip" style="background: rgba(8, 51, 68, 0.5); border: 1px solid rgba(6, 182, 212, 0.5); color: #67e8f9;">🌐 Quantum Computing</button>
+                        <button onclick="sendQuickPrompt('Who is the current CEO of Google and Microsoft?')" class="chip" style="background: rgba(8, 51, 68, 0.5); border: 1px solid rgba(6, 182, 212, 0.5); color: #67e8f9;">🌐 Tech Leaders</button>
+                        <button onclick="sendQuickPrompt('What is the difference between AI, Machine Learning, and Deep Learning?')" class="chip" style="background: rgba(8, 51, 68, 0.5); border: 1px solid rgba(6, 182, 212, 0.5); color: #67e8f9;">🌐 AI vs ML vs DL</button>
                         <!-- Academic chips -->
                         <button onclick="sendQuickPrompt('Explain merge sort algorithm with complexity')" class="chip">📚 Merge Sort</button>
                         <button onclick="sendQuickPrompt('What is dynamic programming? Explain with example')" class="chip">🧠 DP</button>
@@ -399,6 +399,6 @@
         </div>
     </main>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=20260915_4"></script>
 </body>
 </html>

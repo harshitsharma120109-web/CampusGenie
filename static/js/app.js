@@ -63,14 +63,21 @@ function switchView(mode) {
 }
 
 // ── Fetch Data ─────────────────────────────────────────────────────────────
-async function fetchStudentData() {
+async function fetchStudentData(retryCount = 4) {
     try {
         const res = await fetch("/api/student");
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         const data = await res.json();
         currentData = data;
         renderDashboard(data);
     } catch (err) {
         console.error("Failed to load student data", err);
+        if (retryCount > 0) {
+            console.log(`Retrying fetchStudentData in 1.5s... (${retryCount} attempts left)`);
+            setTimeout(() => fetchStudentData(retryCount - 1), 1500);
+        } else {
+            showToast("Connecting to server... please refresh if data does not appear.", "warning");
+        }
     }
 }
 
