@@ -12,19 +12,56 @@ if sys.platform == 'win32':
     except Exception:
         pass
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-DATA_FILE = os.path.join(os.path.dirname(__file__), 'data', 'student_data.json')
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
+
+DATA_FILE = os.path.join(BASE_DIR, 'data', 'student_data.json')
+TMP_DATA_FILE = os.path.join('/tmp', 'student_data.json')
+
+_in_memory_data = None
 
 def load_data():
+    global _in_memory_data
+    if _in_memory_data is not None:
+        return _in_memory_data
+    # Check /tmp first if on serverless like Vercel
+    if os.path.exists(TMP_DATA_FILE):
+        try:
+            with open(TMP_DATA_FILE, 'r', encoding='utf-8-sig') as f:
+                _in_memory_data = json.load(f)
+                return _in_memory_data
+        except Exception:
+            pass
     if not os.path.exists(DATA_FILE):
         return {}
-    with open(DATA_FILE, 'r', encoding='utf-8-sig') as f:
-        return json.load(f)
+    try:
+        with open(DATA_FILE, 'r', encoding='utf-8-sig') as f:
+            _in_memory_data = json.load(f)
+            return _in_memory_data
+    except Exception:
+        return {}
 
 def save_data(data):
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    global _in_memory_data
+    _in_memory_data = data
+    saved = False
+    try:
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        saved = True
+    except Exception:
+        pass
+    if not saved:
+        try:
+            with open(TMP_DATA_FILE, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+        except Exception:
+            pass
 
 def get_active_student(data):
     students = data.get('students', [])

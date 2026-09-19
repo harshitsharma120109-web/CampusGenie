@@ -1,0 +1,7 @@
+__pycache__
+chrome_debug
+chrome_temp
+*.bat
+*.pptx
+*.png
+create_presentation.py

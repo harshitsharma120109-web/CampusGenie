@@ -1,0 +1,88 @@
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(51, 65, 85, 0.8);
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.8);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Quick Suggestion Chips */
+.chip {
+    white-space: nowrap !important;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    background-color: rgba(30, 41, 59, 0.7);
+    color: #cbd5e1;
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+.chip:hover {
+    background-color: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+    border-color: rgba(99, 102, 241, 0.5);
+    transform: translateY(-1px);
+}
+
+/* Message Bubble formatting */
+.chat-bot-bubble {
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(71, 85, 105, 0.4);
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    border-top-left-radius: 0.2rem;
+    max-width: 88%;
+    color: #e2e8f0;
+    line-height: 1.5;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.chat-user-bubble {
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    border-top-right-radius: 0.2rem;
+    max-width: 85%;
+    color: #ffffff;
+    line-height: 1.5;
+    margin-left: auto;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+/* Breathing animation states */
+.breathe-inhale {
+    transform: scale(1.35);
+    transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.5), rgba(6, 182, 212, 0.2)) !important;
+}
+.breathe-hold {
+    transform: scale(1.35);
+    transition: none;
+    border-color: rgba(251, 191, 36, 0.8) !important;
+}
+.breathe-exhale {
+    transform: scale(0.9);
+    transition: transform 8s cubic-bezier(0.4, 0, 0.2, 1);
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.3), rgba(15, 23, 42, 0.2)) !important;
+}
