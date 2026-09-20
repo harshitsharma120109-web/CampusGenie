@@ -56,6 +56,18 @@
     color: #e2e8f0;
     line-height: 1.5;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    word-break: break-word;
+}
+
+.chat-bot-bubble strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.chat-bot-bubble a {
+    color: #38bdf8;
+    text-decoration: underline;
+    font-weight: 600;
 }
 
 .chat-user-bubble {
