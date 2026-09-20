@@ -86,3 +86,84 @@
     transition: transform 8s cubic-bezier(0.4, 0, 0.2, 1);
     background: radial-gradient(circle, rgba(99, 102, 241, 0.3), rgba(15, 23, 42, 0.2)) !important;
 }
+
+/* Teacher Attendance P / A Interactive Buttons */
+.btn-att-p {
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.8rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    background-color: rgba(15, 23, 42, 0.8);
+    color: #6ee7b7;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+.btn-att-p:hover {
+    background-color: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.6);
+}
+.btn-att-p.active {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #ffffff !important;
+    border-color: #34d399 !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+    transform: scale(1.05);
+}
+
+.btn-att-a {
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.8rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    background-color: rgba(15, 23, 42, 0.8);
+    color: #fda4af;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+.btn-att-a:hover {
+    background-color: rgba(244, 63, 94, 0.2);
+    border-color: rgba(244, 63, 94, 0.6);
+}
+.btn-att-a.active {
+    background: linear-gradient(135deg, #f43f5e, #e11d48) !important;
+    color: #ffffff !important;
+    border-color: #fb7185 !important;
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.45);
+    transform: scale(1.05);
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Print Styles for Admit Card */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #hallTicketContent, #hallTicketContent * {
+        visibility: visible;
+    }
+    #hallTicketContent {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+}

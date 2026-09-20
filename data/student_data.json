@@ -10,9 +10,9 @@
       "target_attendance": 75,
       "attendance": {
         "os": {
-          "attended": 38,
-          "total": 47,
-          "percentage": 80.85,
+          "attended": 41,
+          "total": 50,
+          "percentage": 82.0,
           "status": "safe"
         },
         "dsa": {
@@ -66,9 +66,9 @@
       "target_attendance": 75,
       "attendance": {
         "os": {
-          "attended": 28,
-          "total": 31,
-          "percentage": 90.32,
+          "attended": 29,
+          "total": 34,
+          "percentage": 85.29,
           "status": "safe"
         },
         "dsa": {

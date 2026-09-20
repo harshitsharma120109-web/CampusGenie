@@ -885,7 +885,448 @@ def add_opportunity():
     save_data(data)
     return jsonify({"success": True, "message": f"Opportunity '{title}' posted for students!", "opportunity": new_opp})
 
-# â”€â”€ Chat helper functions (longest-alias-first matching) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── ROLE-BASED AUTH & SESSION APIS ──────────────────────────────────────────
+
+@app.route('/api/auth/faculty_list', methods=['GET'])
+def get_faculty_list():
+    data = load_data()
+    subjects = data.get('subjects', [])
+    faculties = []
+    seen = set()
+    for s in subjects:
+        fac_name = s.get('faculty', 'Faculty')
+        if fac_name not in seen:
+            seen.add(fac_name)
+            faculties.append({
+                "name": fac_name,
+                "subject_id": s['id'],
+                "subject_name": s['name'],
+                "subject_code": s.get('code', '')
+            })
+    return jsonify({"faculties": faculties})
+
+@app.route('/api/auth/login', methods=['POST'])
+def auth_login():
+    payload = request.json or {}
+    role = payload.get('role', 'student').lower()
+    identifier = payload.get('identifier', '').strip()
+    data = load_data()
+
+    if role == 'student':
+        student = next((s for s in data.get('students', []) if s['roll_no'].lower() == identifier.lower() or s['id'].lower() == identifier.lower()), None)
+        if not student and data.get('students'):
+            student = data['students'][0]
+        if not student:
+            return jsonify({"success": False, "message": "Student record not found."}), 404
+        data['active_student_id'] = student['id']
+        save_data(data)
+        return jsonify({
+            "success": True,
+            "role": "student",
+            "user": {
+                "id": student['id'],
+                "name": student['name'],
+                "roll_no": student['roll_no'],
+                "branch": student.get('branch', 'CSE'),
+                "semester": student.get('semester', '5th Sem')
+            }
+        })
+
+    elif role == 'teacher':
+        subjects = data.get('subjects', [])
+        sub = next((s for s in subjects if s['id'].lower() == identifier.lower() or s.get('faculty', '').lower() == identifier.lower()), None)
+        if not sub and subjects:
+            sub = subjects[0]
+        return jsonify({
+            "success": True,
+            "role": "teacher",
+            "user": {
+                "name": sub.get('faculty', 'Prof. R. K. Verma'),
+                "subject_id": sub['id'],
+                "subject_name": sub['name'],
+                "subject_code": sub.get('code', '')
+            }
+        })
+
+    elif role == 'hod':
+        return jsonify({
+            "success": True,
+            "role": "hod",
+            "user": {
+                "name": "Dr. S. K. Bansal",
+                "title": "Head of Department (CSE)",
+                "department": "Computer Science & Engineering"
+            }
+        })
+
+    elif role == 'parent':
+        student = next((s for s in data.get('students', []) if s['roll_no'].lower() == identifier.lower() or s['id'].lower() == identifier.lower()), None)
+        if not student and data.get('students'):
+            student = data['students'][0]
+        if not student:
+            return jsonify({"success": False, "message": "Student roll number not found."}), 404
+        return jsonify({
+            "success": True,
+            "role": "parent",
+            "user": {
+                "name": f"Parent of {student['name']}",
+                "student_id": student['id'],
+                "student_name": student['name'],
+                "student_roll": student['roll_no']
+            }
+        })
+
+    return jsonify({"success": False, "message": "Invalid role specified."}), 400
+
+# ── TEACHER SUBJECT-WISE ATTENDANCE GRID APIS ───────────────────────────────
+
+@app.route('/api/teacher/students/by_subject', methods=['GET'])
+def get_teacher_students_by_subject():
+    sub_id = request.args.get('subject_id', '').strip().lower()
+    data = load_data()
+    students = data.get('students', [])
+    subjects = data.get('subjects', [])
+    
+    target_sub = next((s for s in subjects if s['id'].lower() == sub_id), None)
+    if not target_sub and subjects:
+        target_sub = subjects[0]
+        sub_id = target_sub['id']
+
+    result = []
+    for s in students:
+        att = s.get('attendance', {}).get(sub_id, {"attended": 0, "total": 0, "percentage": 100.0, "status": "safe"})
+        marks = s.get('marks', {}).get(sub_id, {"score": "-", "total": 100, "status": "Pending"})
+        result.append({
+            "id": s['id'],
+            "name": s['name'],
+            "roll_no": s['roll_no'],
+            "branch": s.get('branch', ''),
+            "attended": att.get('attended', 0),
+            "total": att.get('total', 0),
+            "percentage": att.get('percentage', 100.0),
+            "status": att.get('status', 'safe'),
+            "score": marks.get('score', '-'),
+            "total_marks": marks.get('total', 100),
+            "result": marks.get('status', 'Pending')
+        })
+
+    return jsonify({
+        "subject": target_sub,
+        "students": result,
+        "all_subjects": subjects
+    })
+
+@app.route('/api/teacher/attendance/submit', methods=['POST'])
+def teacher_submit_attendance():
+    payload = request.json or {}
+    sub_id = payload.get('subject_id', '').strip().lower()
+    records = payload.get('records', [])
+    
+    if not sub_id or not records:
+        return jsonify({"success": False, "message": "Subject ID and student records required."}), 400
+        
+    data = load_data()
+    students = data.get('students', [])
+    target_sub = next((s for s in data.get('subjects', []) if s['id'].lower() == sub_id.lower()), None)
+    sub_name = target_sub['name'] if target_sub else sub_id.upper()
+    
+    updated_count = 0
+    present_count = 0
+    absent_count = 0
+    
+    for rec in records:
+        stu_id = rec.get('student_id')
+        status = rec.get('status', 'present').lower()
+        stu = next((s for s in students if s['id'] == stu_id), None)
+        if not stu:
+            continue
+            
+        att_dict = stu.setdefault('attendance', {})
+        sub_att = att_dict.setdefault(sub_id, {"attended": 0, "total": 0, "percentage": 100.0, "status": "safe"})
+        
+        sub_att['total'] += 1
+        if status == 'present':
+            sub_att['attended'] += 1
+            present_count += 1
+        else:
+            absent_count += 1
+            
+        sub_att['percentage'] = round((sub_att['attended'] / sub_att['total']) * 100, 2)
+        target = stu.get('target_attendance', 75)
+        sub_att['status'] = 'safe' if sub_att['percentage'] >= target else 'warning'
+        updated_count += 1
+
+    save_data(data)
+    
+    return jsonify({
+        "success": True,
+        "message": f"Recorded attendance for {updated_count} students in {sub_name} ({present_count} Present, {absent_count} Absent)!",
+        "present_count": present_count,
+        "absent_count": absent_count,
+        "total_marked": updated_count
+    })
+
+# ── HOD MASTER CONTROL APIS ──────────────────────────────────────────────────
+
+@app.route('/api/hod/student/delete', methods=['POST'])
+def hod_delete_student():
+    payload = request.json or {}
+    stu_id = payload.get('student_id')
+    data = load_data()
+    orig_len = len(data.get('students', []))
+    data['students'] = [s for s in data.get('students', []) if s['id'] != stu_id]
+    if len(data['students']) < orig_len:
+        if data.get('active_student_id') == stu_id and data['students']:
+            data['active_student_id'] = data['students'][0]['id']
+        save_data(data)
+        return jsonify({"success": True, "message": "Student removed successfully from college records."})
+    return jsonify({"success": False, "message": "Student not found."}), 404
+
+@app.route('/api/hod/student/edit', methods=['POST'])
+def hod_edit_student():
+    payload = request.json or {}
+    stu_id = payload.get('student_id')
+    name = payload.get('name', '').strip()
+    roll_no = payload.get('roll_no', '').strip()
+    branch = payload.get('branch', '').strip()
+    semester = payload.get('semester', '').strip()
+    
+    data = load_data()
+    stu = next((s for s in data.get('students', []) if s['id'] == stu_id), None)
+    if not stu:
+        return jsonify({"success": False, "message": "Student not found."}), 404
+        
+    if name: stu['name'] = name
+    if roll_no: stu['roll_no'] = roll_no
+    if branch: stu['branch'] = branch
+    if semester: stu['semester'] = semester
+    save_data(data)
+    return jsonify({"success": True, "message": f"Updated profile for {stu['name']}!", "student": stu})
+
+@app.route('/api/hod/subject/delete', methods=['POST'])
+def hod_delete_subject():
+    payload = request.json or {}
+    sub_id = payload.get('subject_id')
+    data = load_data()
+    orig_len = len(data.get('subjects', []))
+    data['subjects'] = [s for s in data.get('subjects', []) if s['id'] != sub_id]
+    if len(data['subjects']) < orig_len:
+        save_data(data)
+        return jsonify({"success": True, "message": "Subject removed from college curriculum."})
+    return jsonify({"success": False, "message": "Subject not found."}), 404
+
+@app.route('/api/hod/defaulters', methods=['GET'])
+def hod_get_defaulters():
+    data = load_data()
+    students = data.get('students', [])
+    subjects = data.get('subjects', [])
+    sub_map = {s['id']: s['name'] for s in subjects}
+    
+    defaulters = []
+    for stu in students:
+        att_map = stu.get('attendance', {})
+        shortages = []
+        tot_att = 0
+        tot_cls = 0
+        for sub_id, att in att_map.items():
+            tot_att += att.get('attended', 0)
+            tot_cls += att.get('total', 0)
+            if att.get('percentage', 100) < stu.get('target_attendance', 75):
+                needed = calculate_classes_needed(att.get('attended', 0), att.get('total', 0), stu.get('target_attendance', 75))
+                shortages.append({
+                    "subject": sub_map.get(sub_id, sub_id.upper()),
+                    "percentage": att.get('percentage', 0),
+                    "attended": att.get('attended', 0),
+                    "total": att.get('total', 0),
+                    "classes_needed": needed
+                })
+        overall_pct = round((tot_att / tot_cls * 100), 2) if tot_cls > 0 else 100.0
+        if shortages or overall_pct < stu.get('target_attendance', 75):
+            defaulters.append({
+                "student_id": stu['id'],
+                "name": stu['name'],
+                "roll_no": stu['roll_no'],
+                "branch": stu.get('branch', ''),
+                "overall_pct": overall_pct,
+                "shortages": shortages
+            })
+    return jsonify({
+        "defaulters": defaulters,
+        "total_defaulters": len(defaulters),
+        "total_students": len(students)
+    })
+
+# ── PARENT PORTAL APIS ───────────────────────────────────────────────────────
+
+@app.route('/api/parent/student_lookup', methods=['GET'])
+def parent_student_lookup():
+    roll_no = request.args.get('roll_no', '').strip().lower()
+    data = load_data()
+    students = data.get('students', [])
+    subjects = data.get('subjects', [])
+    
+    stu = next((s for s in students if s['roll_no'].lower() == roll_no or s['id'].lower() == roll_no), None)
+    if not stu:
+        return jsonify({"success": False, "message": f"No student found with Roll Number '{roll_no}'."}), 404
+        
+    att_map = stu.get('attendance', {})
+    marks_map = stu.get('marks', {})
+    
+    subject_reports = []
+    tot_att = 0
+    tot_cls = 0
+    for s in subjects:
+        sub_id = s['id']
+        a = att_map.get(sub_id, {"attended": 0, "total": 0, "percentage": 100.0, "status": "safe"})
+        m = marks_map.get(sub_id, {"score": "-", "total": 100, "status": "Pending"})
+        tot_att += a.get('attended', 0)
+        tot_cls += a.get('total', 0)
+        subject_reports.append({
+            "subject_name": s['name'],
+            "code": s.get('code', ''),
+            "faculty": s.get('faculty', ''),
+            "attended": a.get('attended', 0),
+            "total": a.get('total', 0),
+            "percentage": a.get('percentage', 100.0),
+            "status": a.get('status', 'safe'),
+            "score": m.get('score', '-'),
+            "marks_status": m.get('status', 'Pending')
+        })
+        
+    overall_pct = round((tot_att / tot_cls * 100), 2) if tot_cls > 0 else 100.0
+    
+    return jsonify({
+        "success": True,
+        "student": {
+            "name": stu['name'],
+            "roll_no": stu['roll_no'],
+            "branch": stu.get('branch', 'CSE'),
+            "semester": stu.get('semester', '5th Sem'),
+            "overall_pct": overall_pct,
+            "status": "safe" if overall_pct >= 75 else "warning",
+            "proctor": "Dr. Sunita Rao (Faculty Advisor & Proctor - IT Block 204)"
+        },
+        "subjects": subject_reports
+    })
+
+# ── PLACEMENT HUB - RESUME ATS ANALYZER API ──────────────────────────────────
+
+@app.route('/api/placement/analyze_resume', methods=['POST'])
+def analyze_placement_resume():
+    payload = request.json or {}
+    text = payload.get('resume_text', '').lower()
+    
+    if not text:
+        return jsonify({"success": False, "message": "Resume text is required."}), 400
+        
+    core_skills = {
+        "python": "Python Programming",
+        "java": "Java / OOP",
+        "c++": "C++ / STL",
+        "dsa": "Data Structures & Algorithms",
+        "sql": "SQL / Relational DBs",
+        "dbms": "DBMS & Query Optimization",
+        "rest": "REST APIs",
+        "git": "Git Version Control",
+        "docker": "Docker Containerization",
+        "linux": "Linux CLI",
+        "react": "React Frontend",
+        "cloud": "Cloud Computing (AWS/IBM Cloud/GCP)",
+        "machine learning": "Machine Learning",
+        "system design": "System Design"
+    }
+    
+    matched = []
+    missing = []
+    for key, label in core_skills.items():
+        if key in text:
+            matched.append(label)
+        else:
+            missing.append(label)
+            
+    base_score = 48
+    score = min(98, base_score + int((len(matched) / len(core_skills)) * 50))
+    
+    data = load_data()
+    opportunities = data.get('opportunities', [])
+    eligible_jobs = []
+    for opp in opportunities:
+        eligible_jobs.append({
+            "title": opp.get('title'),
+            "category": opp.get('category'),
+            "deadline": opp.get('deadline'),
+            "link": opp.get('link'),
+            "fit_score": f"{min(99, score + 5)}% Match"
+        })
+        
+    return jsonify({
+        "success": True,
+        "score": score,
+        "grade": "Excellent Match" if score >= 85 else ("Good Match" if score >= 70 else "Needs Keyword Optimization"),
+        "matched_skills": matched,
+        "missing_keywords": missing[:5],
+        "recommendations": [
+            "Add quantifiable project impact (e.g. 'Improved query latency by 35%')",
+            f"Include missing high-value keywords: {', '.join(missing[:3]) if missing else 'Containerization'}",
+            "Highlight full-stack and cloud deployment experience with verified live URLs"
+        ],
+        "eligible_jobs": eligible_jobs
+    })
+
+# ── NOTIFICATIONS & ALERTS SYSTEM API ────────────────────────────────────────
+
+@app.route('/api/notifications', methods=['GET'])
+def get_notifications():
+    data = load_data()
+    active_stu = get_active_student(data)
+    notices = data.get('notices', [])
+    opps = data.get('opportunities', [])
+    
+    alerts = []
+    
+    # 1. Attendance Shortage Notification
+    if active_stu:
+        att_map = active_stu.get('attendance', {})
+        for sub_id, a in att_map.items():
+            if a.get('percentage', 100) < 75:
+                needed = calculate_classes_needed(a.get('attended', 0), a.get('total', 0), 75)
+                alerts.append({
+                    "id": f"att_{sub_id}",
+                    "type": "warning",
+                    "title": f"Shortage Alert ({sub_id.upper()})",
+                    "message": f"Your attendance in {sub_id.upper()} is {a.get('percentage')}% (< 75%). Attend {needed} more classes to avoid exam debarment.",
+                    "time": "Real-time Alert",
+                    "badge": "Action Required"
+                })
+                
+    # 2. Upcoming Exam Notice
+    for n in notices[:2]:
+        alerts.append({
+            "id": f"notice_{n.get('id', 1)}",
+            "type": "exam",
+            "title": n.get('title', 'Exam Notice'),
+            "message": n.get('content', ''),
+            "time": n.get('date', 'Today'),
+            "badge": n.get('badge', 'Notice')
+        })
+        
+    # 3. Hackathon/Job Opportunity
+    for o in opps[:1]:
+        alerts.append({
+            "id": f"opp_{o.get('id', 1)}",
+            "type": "opportunity",
+            "title": f"Placement: {o.get('title')}",
+            "message": f"Deadline: {o.get('deadline')}. Apply via verified portal link.",
+            "time": "New",
+            "badge": o.get('badge', 'Placement')
+        })
+        
+    return jsonify({
+        "notifications": alerts,
+        "unread_count": len(alerts)
+    })
+
+# ── Chat helper functions (longest-alias-first matching) ──────────────────────
 
 def _resolve_health(msg_lower):
     """Return list of unique matched symptom keys (multi-symptom support)."""
