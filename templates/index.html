@@ -11,6 +11,165 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-['Plus_Jakarta_Sans'] antialiased selection:bg-indigo-500 selection:text-white">
 
+    <!-- ==================== FULL-SCREEN LOGIN GATEWAY SCREEN ==================== -->
+    <div id="loginGatewayScreen" class="min-h-screen bg-slate-950 flex flex-col justify-between p-4 sm:p-8 relative overflow-hidden">
+        <!-- Ambient Glowing Background Orbs -->
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-1/2 -right-32 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-32 left-1/3 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Top Header of Gateway -->
+        <header class="max-w-7xl w-full mx-auto flex items-center justify-between z-10">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-cyan-400 flex items-center justify-center shadow-xl shadow-indigo-500/30 text-white text-xl">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-extrabold text-xl sm:text-2xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">CampusGenie</span>
+                        <span class="text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">IBM watsonx.ai</span>
+                    </div>
+                    <p class="text-[11px] sm:text-xs text-slate-400">360° Smart Campus ERP & AI Academic/Health Copilot</p>
+                </div>
+            </div>
+            <span class="hidden sm:flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-slate-300 shadow-md">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                IBM SkillsBuild Hackathon @ AKGEC
+            </span>
+        </header>
+
+        <!-- Main Hero & 4 Role Portals Container -->
+        <div class="max-w-5xl w-full mx-auto my-auto py-8 space-y-8 z-10">
+            
+            <!-- Hero Title -->
+            <div class="text-center space-y-3">
+                <span class="text-xs px-3.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold uppercase tracking-wider">
+                    🔐 Enterprise Role-Based Access Control (RBAC)
+                </span>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                    Select Your Role to Enter Portal
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
+                    Choose your designated campus portal below. Use the <strong>⚡ 1-Click Fast Login</strong> on any card for instant evaluation!
+                </p>
+            </div>
+
+            <!-- 4 Role Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- 1. STUDENT CARD -->
+                <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/60 shadow-xl transition-all flex flex-col justify-between space-y-4 group hover:-translate-y-1">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-user-graduate"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Academic Portal</span>
+                            <h3 class="text-base font-extrabold text-white mt-0.5">Student</h3>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Personalized attendance shortage math, timetable, Hall Ticket permit & watsonx Academic Copilot.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2 border-t border-slate-800">
+                        <button onclick="performGatewayLogin('student', '22CS1084')" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-1.5">
+                            ⚡ 1-Click: Harshit (Student)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. TEACHER CARD -->
+                <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/60 shadow-xl transition-all flex flex-col justify-between space-y-4 group hover:-translate-y-1">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-600/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Faculty Workspace</span>
+                            <h3 class="text-base font-extrabold text-white mt-0.5">Teacher</h3>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Pick assigned subjects, mark daily attendance with 1-Click <strong>[P] [A]</strong> toggles & finalize class registers.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2 border-t border-slate-800">
+                        <button onclick="performGatewayLogin('teacher', 'os')" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/20 transition-all flex items-center justify-center gap-1.5">
+                            ⚡ 1-Click: Prof. Verma (OS)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. HOD CARD -->
+                <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-purple-500/60 shadow-xl transition-all flex flex-col justify-between space-y-4 group hover:-translate-y-1">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/40 text-purple-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Department Admin</span>
+                            <h3 class="text-base font-extrabold text-white mt-0.5">HOD / Admin</h3>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Defaulter Radar (&lt; 75% attendance), Add/Edit/Delete curriculum subjects & student enrollment.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2 border-t border-slate-800">
+                        <button onclick="performGatewayLogin('hod', 'hod')" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all flex items-center justify-center gap-1.5">
+                            ⚡ 1-Click: Dr. Bansal (HOD)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. PARENT CARD -->
+                <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-teal-500/60 shadow-xl transition-all flex flex-col justify-between space-y-4 group hover:-translate-y-1">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-teal-600/20 border border-teal-500/40 text-teal-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-people-roof"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-teal-400 uppercase tracking-wider">Parent Monitoring</span>
+                            <h3 class="text-base font-extrabold text-white mt-0.5">Parent Portal</h3>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Enter child Roll Number to check live attendance health, internal exam scores & assigned Proctor contact.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2 border-t border-slate-800">
+                        <button onclick="performGatewayLogin('parent', '22CS1084')" class="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-1.5">
+                            ⚡ 1-Click: Parent of Harshit
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Manual Custom Roll Number / Credential Login Box -->
+            <div class="max-w-md mx-auto p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-3 text-xs">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="font-bold text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-key text-indigo-400"></i> Or Sign In with Custom Roll No / ID:
+                    </span>
+                    <span class="text-[10px] text-slate-500">Official Access</span>
+                </div>
+                <div class="flex rounded-lg bg-slate-950 p-1 border border-slate-800 text-xs">
+                    <button onclick="setGatewayLoginTab('student')" id="gwTabStudent" class="flex-1 py-1 rounded-md font-bold bg-indigo-600 text-white">Student</button>
+                    <button onclick="setGatewayLoginTab('teacher')" id="gwTabTeacher" class="flex-1 py-1 rounded-md font-bold text-slate-400">Teacher</button>
+                    <button onclick="setGatewayLoginTab('hod')" id="gwTabHod" class="flex-1 py-1 rounded-md font-bold text-slate-400">HOD</button>
+                    <button onclick="setGatewayLoginTab('parent')" id="gwTabParent" class="flex-1 py-1 rounded-md font-bold text-slate-400">Parent</button>
+                </div>
+                <form onsubmit="handleGatewayManualLogin(event)" class="space-y-2.5">
+                    <div>
+                        <label id="gwInputLabel" class="text-[11px] text-slate-400 block mb-1">Enter Student Roll Number:</label>
+                        <input type="text" id="gwIdentifierInput" placeholder="e.g. 22CS1084" value="22CS1084" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-extrabold transition-all shadow-md">
+                        Sign In to ERP
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Footer Bar of Gateway -->
+        <footer class="max-w-7xl w-full mx-auto text-center text-xs text-slate-500 py-2 border-t border-slate-800/60 z-10">
+            CampusGenie © 2026 • AKGEC Ghaziabad • Powered by IBM watsonx Granite 3.0-8B-Instruct
+        </footer>
+    </div>
+
+    <!-- ==================== MAIN ERP APP SHELL (PROTECTED) ==================== -->
+    <div id="mainAppShell" class="hidden min-h-screen flex flex-col">
     <!-- TOP NAVIGATION BAR -->
     <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
@@ -81,10 +240,10 @@
                     </div>
                 </div>
 
-                <!-- Switch Role / Logout Button -->
-                <button onclick="openLoginModal()" title="Switch Role / Login" class="px-2.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-indigo-600 border border-slate-700/60 text-slate-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1">
+                <!-- Logout Button -->
+                <button onclick="handleLogout()" title="Sign Out of Portal" class="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/40 border border-rose-500/40 text-rose-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-right-from-bracket"></i>
-                    <span class="hidden sm:inline">Login / Switch</span>
+                    <span class="hidden sm:inline">Logout</span>
                 </button>
 
             </div>
@@ -97,6 +256,7 @@
             <button onclick="switchRole('teacher')" class="px-2 py-1 font-bold text-slate-400"><i class="fa-solid fa-chalkboard-user mr-1"></i>Teacher</button>
             <button onclick="switchRole('hod')" class="px-2 py-1 font-bold text-slate-400"><i class="fa-solid fa-shield-halved mr-1"></i>HOD</button>
             <button onclick="switchRole('parent')" class="px-2 py-1 font-bold text-slate-400"><i class="fa-solid fa-people-roof mr-1"></i>Parent</button>
+            <button onclick="handleLogout()" class="px-2 py-1 font-bold text-rose-400"><i class="fa-solid fa-right-from-bracket mr-1"></i>Logout</button>
         </div>
     </header>
 
@@ -560,6 +720,7 @@
 
         </div>
     </main>
+    </div> <!-- END #mainAppShell -->
 
     <!-- ==================== ROLE LOGIN GATEWAY MODAL ==================== -->
     <div id="roleLoginModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">

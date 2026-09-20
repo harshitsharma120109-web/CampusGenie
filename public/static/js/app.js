@@ -43,8 +43,9 @@ function refreshAllViews() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Restore role and active subject from localStorage
-    const savedRole = localStorage.getItem("campusgenie_role");
+    // 1. Check if user is already authenticated
+    const isAuth = localStorage.getItem("campusgenie_authenticated") === "true";
+    const savedRole = localStorage.getItem("campusgenie_role") || "student";
     if (savedRole && ['student', 'teacher', 'hod', 'parent'].includes(savedRole)) {
         currentRole = savedRole;
     }
@@ -53,12 +54,24 @@ document.addEventListener("DOMContentLoaded", () => {
         activeTeacherSubjectId = savedSub;
     }
 
-    // 2. Immediately render cached data if available (zero flicker, zero revert)
+    // Restore saved user info if available
+    try {
+        const savedUser = localStorage.getItem("campusgenie_user");
+        if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch (e) {}
+
+    // 2. Load cached data from localStorage (zero flicker)
     const localData = getStoredData();
     if (localData && localData.raw_subjects && localData.raw_subjects.length) {
         currentData = localData;
         refreshAllViews();
-        switchRole(currentRole, false);
+    }
+
+    // 3. Direct to Login Gateway or Main App
+    if (isAuth) {
+        showMainApp(currentRole);
+    } else {
+        showLoginScreen();
     }
 
     fetchStudentData();
@@ -186,6 +199,106 @@ function updateTopBarUserBadge(role) {
     }
 }
 
+// ── Full-Screen Login Gateway & Authentication Controller ──────────────────
+let activeGatewayTab = 'student';
+
+function showLoginScreen() {
+    const gw = document.getElementById("loginGatewayScreen");
+    const shell = document.getElementById("mainAppShell");
+    if (gw) gw.classList.remove("hidden");
+    if (shell) shell.classList.add("hidden");
+}
+
+function showMainApp(role) {
+    const gw = document.getElementById("loginGatewayScreen");
+    const shell = document.getElementById("mainAppShell");
+    if (gw) gw.classList.add("hidden");
+    if (shell) shell.classList.remove("hidden");
+
+    if (role) {
+        switchRole(role, false);
+    }
+}
+
+function handleLogout() {
+    localStorage.removeItem("campusgenie_authenticated");
+    showLoginScreen();
+    showToast("Logged out successfully. Please select a role to sign in.", "info");
+}
+
+function setGatewayLoginTab(tab) {
+    activeGatewayTab = tab;
+    ['student', 'teacher', 'hod', 'parent'].forEach(t => {
+        const btn = document.getElementById(`gwTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (btn) {
+            if (t === tab) {
+                btn.className = "flex-1 py-1 rounded-md font-bold bg-indigo-600 text-white";
+            } else {
+                btn.className = "flex-1 py-1 rounded-md font-bold text-slate-400";
+            }
+        }
+    });
+
+    const label = document.getElementById("gwInputLabel");
+    const input = document.getElementById("gwIdentifierInput");
+    if (tab === 'student') {
+        if (label) label.innerText = "Enter Student Roll Number:";
+        if (input) { input.placeholder = "e.g. 22CS1084"; input.value = "22CS1084"; }
+    } else if (tab === 'teacher') {
+        if (label) label.innerText = "Enter Faculty Subject Code / Name:";
+        if (input) { input.placeholder = "e.g. os (Operating Systems)"; input.value = "os"; }
+    } else if (tab === 'hod') {
+        if (label) label.innerText = "Enter HOD Security Key / Name:";
+        if (input) { input.placeholder = "Dr. S. K. Bansal"; input.value = "Dr. S. K. Bansal"; }
+    } else if (tab === 'parent') {
+        if (label) label.innerText = "Enter Child's Roll Number:";
+        if (input) { input.placeholder = "e.g. 22CS1084"; input.value = "22CS1084"; }
+    }
+}
+
+async function performGatewayLogin(role, identifier) {
+    try {
+        const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ role, identifier })
+        });
+        const data = await res.json();
+        if (data.success) {
+            currentUser = data.user || {};
+            currentUser.role = role;
+            if (role === 'teacher' && data.user && data.user.subject_id) {
+                activeTeacherSubjectId = data.user.subject_id;
+                localStorage.setItem("campusgenie_active_subject", activeTeacherSubjectId);
+            }
+            localStorage.setItem("campusgenie_authenticated", "true");
+            localStorage.setItem("campusgenie_role", role);
+            localStorage.setItem("campusgenie_user", JSON.stringify(currentUser));
+
+            showMainApp(role);
+            showToast(`Welcome ${currentUser.name}! Signed in as ${role.toUpperCase()}.`, "success");
+        } else {
+            showToast(data.message || "Login failed.", "error");
+        }
+    } catch (err) {
+        console.error("Gateway login error:", err);
+        currentUser = {
+            name: role === 'teacher' ? 'Prof. R. K. Verma' : (role === 'hod' ? 'Dr. S. K. Bansal' : (role === 'parent' ? 'Parent of Harshit' : 'Harshit Sharma')),
+            role
+        };
+        localStorage.setItem("campusgenie_authenticated", "true");
+        localStorage.setItem("campusgenie_role", role);
+        showMainApp(role);
+        showToast(`Signed into ${role.toUpperCase()} workspace.`, "info");
+    }
+}
+
+async function handleGatewayManualLogin(event) {
+    event.preventDefault();
+    const identifier = document.getElementById("gwIdentifierInput").value.trim();
+    await performGatewayLogin(activeGatewayTab, identifier);
+}
+
 // ── Login Modal & Fast 1-Click Demo Login ──────────────────────────────────
 function openLoginModal() {
     const modal = document.getElementById("roleLoginModal");
@@ -239,7 +352,11 @@ async function quickDemoLogin(role, identifier) {
         if (data.success) {
             currentUser = data.user || {};
             currentUser.role = role;
+            localStorage.setItem("campusgenie_authenticated", "true");
+            localStorage.setItem("campusgenie_role", role);
+            localStorage.setItem("campusgenie_user", JSON.stringify(currentUser));
             closeLoginModal();
+            showMainApp(role);
             if (role === 'teacher' && data.user.subject_id) {
                 activeTeacherSubjectId = data.user.subject_id;
             }
