@@ -1,4 +1,4 @@
-﻿# IBM Bob Prompts Guide (For Hackathon Proof & Demonstration)
+# IBM Bob Prompts Guide (For Hackathon Proof & Demonstration)
 
 If judges or college mentors ask to see how you used **IBM Bob** during development, or if you want prompt history visible in IBM Bob's AI sidebar, simply copy and paste these exact prompts into IBM Bob's chat panel (`Ctrl + L` or click the Bob Chat icon on the right/left):
 
@@ -26,3 +26,18 @@ If judges or college mentors ask to see how you used **IBM Bob** during developm
 
 ### Prompt 5: Run & Test the Application
 > "How do I run the Flask backend for CampusGenie and verify the REST API endpoints for attendance, timetable, and chat?"
+
+---
+
+### Prompt 6: College Fees & Online Payment Desk
+> "Add a College Fees & Online Payment Desk to CampusGenie. Students should see their total fees, paid amount, and due balance. They should be able to pay via UPI or card with instant balance deduction and receive an official AKGEC receipt with print option."
+
+---
+
+### Prompt 7: AI-Proctored Online Tests & Assignment Hub
+> "Build an Assignments & Proctored Tests Hub where teachers/HOD can publish coursework. Students can download the question paper PDF or take the test online with live WebCam and Microphone AI surveillance monitoring to prevent tab switching or cheating."
+
+---
+
+### Prompt 8: Role Gateway & Roll Number + Password Authentication
+> "Design a full-screen Login Gateway where students, teachers, HOD, and parents log in. Require both Roll Number and Password for security, and add a working 'Forgot Password?' recovery modal so students can reset their credentials."

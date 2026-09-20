@@ -1,4 +1,4 @@
-﻿# 🤖 How IBM Bob Technology Was Used in CampusGenie
+# 🤖 How IBM Bob Technology Was Used in CampusGenie
 > **SkillUp Hackathon in collaboration with IBM SkillsBuild**  
 > **Track:** Track 1 — Student AI Track  
 > **Project:** CampusGenie — 360° AI Student Copilot & Smart Campus ERP  
@@ -59,6 +59,12 @@ To document the development workflow, the following prompts were executed in IBM
 
 3. **Academic Doubt & Health Triage Prompt:**
    > *"Implement an AI academic tutor that explains core Computer Science subjects with exam viva tips, alongside a student health triage system that analyzes symptoms like fever, headache, or acidity to recommend safe first-aid medicines and home remedies."*
+
+4. **College Fees & Instant E-Receipt Engine Prompt:**
+   > *"Implement a College Fees Payment Desk where students see their total fees, paid amount, and due balance. Connect it to an instant balance deduction handler and render an official AKGEC Fee Receipt with print capabilities."*
+
+5. **AI Proctored Online Tests Hub Prompt:**
+   > *"Build an assignments and proctored examination module. Allow downloading course worksheet PDFs and taking online tests with live WebCam and Microphone audio proctor surveillance."*
 
 ---
 
