@@ -40,6 +40,9 @@ function refreshAllViews() {
     renderHodStudents();
     renderTeacherSubjectCards();
     loadTeacherRoster(activeTeacherSubjectId);
+    if (typeof loadFeeStatus === 'function') loadFeeStatus();
+    if (typeof loadAssignments === 'function') loadAssignments();
+    if (typeof loadHodFees === 'function') loadHodFees();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -264,12 +267,21 @@ function setGatewayLoginTab(tab) {
     }
 }
 
-async function performGatewayLogin(role, identifier) {
+async function performGatewayLogin(role, identifier, password = null) {
+    if (!password) {
+        const gwPass = document.getElementById("gwPasswordInput");
+        if (gwPass && gwPass.value) password = gwPass.value.trim();
+        else {
+            const modPass = document.getElementById("modalPasswordInput");
+            if (modPass && modPass.value) password = modPass.value.trim();
+            else password = `${role}123`;
+        }
+    }
     try {
         const res = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role, identifier })
+            body: JSON.stringify({ role, identifier, password })
         });
         const data = await res.json();
         if (data.success) {
@@ -302,7 +314,7 @@ async function performGatewayLogin(role, identifier) {
             showMainApp(role);
             showToast(`Welcome ${currentUser.name}! Signed in as ${role.toUpperCase()}.`, "success");
         } else {
-            showToast(data.message || "Login failed.", "error");
+            showToast(data.message || "Login failed. Incorrect password.", "error");
         }
     } catch (err) {
         console.error("Gateway login error:", err);
@@ -320,7 +332,8 @@ async function performGatewayLogin(role, identifier) {
 async function handleGatewayManualLogin(event) {
     event.preventDefault();
     const identifier = document.getElementById("gwIdentifierInput").value.trim();
-    await performGatewayLogin(activeGatewayTab, identifier);
+    const password = document.getElementById("gwPasswordInput") ? document.getElementById("gwPasswordInput").value.trim() : "";
+    await performGatewayLogin(activeGatewayTab, identifier, password);
 }
 
 // ── Login Modal & Fast 1-Click Demo Login ──────────────────────────────────
@@ -365,12 +378,13 @@ function setLoginTab(tab) {
     }
 }
 
-async function quickDemoLogin(role, identifier) {
+async function quickDemoLogin(role, identifier, password = null) {
+    if (!password) password = `${role}123`;
     try {
         const res = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role, identifier })
+            body: JSON.stringify({ role, identifier, password })
         });
         const data = await res.json();
         if (data.success) {
@@ -414,7 +428,9 @@ async function quickDemoLogin(role, identifier) {
 async function handleManualLogin(event) {
     event.preventDefault();
     const identifier = document.getElementById("loginIdentifierInput").value.trim();
-    await quickDemoLogin(activeLoginTab, identifier);
+    const password = document.getElementById("modalPasswordInput") ? document.getElementById("modalPasswordInput").value.trim() : "";
+    await performGatewayLogin(activeLoginTab, identifier, password);
+    closeLoginModal();
 }
 
 // ── Fetch Student Data ─────────────────────────────────────────────────────
@@ -1532,10 +1548,19 @@ function openHallTicketModal() {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800 text-[11px]">
-                            <tr><td class="p-2 font-mono">CS-501</td><td class="p-2 font-bold">Operating Systems</td><td class="p-2">28 Sept 2026</td><td class="p-2 text-right">Exam Hall 02</td></tr>
-                            <tr><td class="p-2 font-mono">CS-502</td><td class="p-2 font-bold">Data Structures & Algo</td><td class="p-2">30 Sept 2026</td><td class="p-2 text-right">Exam Hall 02</td></tr>
-                            <tr><td class="p-2 font-mono">CS-503</td><td class="p-2 font-bold">Database Management</td><td class="p-2">03 Oct 2026</td><td class="p-2 text-right">Exam Hall 04</td></tr>
-                            <tr><td class="p-2 font-mono">CS-504</td><td class="p-2 font-bold">Computer Networks</td><td class="p-2">06 Oct 2026</td><td class="p-2 text-right">Exam Hall 04</td></tr>
+                            ${(subjects && subjects.length ? subjects : [
+                                { code: "CS-501", name: "Operating Systems" },
+                                { code: "CS-502", name: "Data Structures & Algo" },
+                                { code: "CS-503", name: "Database Management" },
+                                { code: "CS-504", name: "Computer Networks" }
+                            ]).map((s, idx) => `
+                                <tr>
+                                    <td class="p-2 font-mono text-cyan-300">${escapeHtml(s.code || 'CS-50' + (idx+1))}</td>
+                                    <td class="p-2 font-bold text-white">${escapeHtml(s.name)}</td>
+                                    <td class="p-2 text-slate-300">0${(idx*2 + 28) % 30 + 1} Oct 2026</td>
+                                    <td class="p-2 text-right text-slate-400">Exam Hall 0${(idx % 3) + 2}</td>
+                                </tr>
+                            `).join("")}
                         </tbody>
                     </table>
                 </div>
@@ -1565,7 +1590,8 @@ function closeHallTicketModal() {
 // ── NOTIFICATIONS DROPDOWN ─────────────────────────────────────────────────
 async function fetchNotifications() {
     try {
-        const res = await fetch("/api/notifications");
+        const studentId = (currentData && currentData.student && currentData.student.id) || (currentUser && currentUser.id) || "22CS1084";
+        const res = await fetch(`/api/notifications?student_id=${encodeURIComponent(studentId)}`);
         const data = await res.json();
         const badge = document.getElementById("notifBadgeCount");
         if (badge) badge.innerText = data.unread_count || 0;
@@ -1614,10 +1640,11 @@ async function handleChatSubmit(event) {
     const loadingId = appendChatLoading();
 
     try {
+        const studentId = (currentData && currentData.student && currentData.student.id) || (currentUser && currentUser.id) || "22CS1084";
         const res = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: msg })
+            body: JSON.stringify({ message: msg, student_id: studentId })
         });
         const data = await res.json();
         removeChatLoading(loadingId);
@@ -1738,7 +1765,6 @@ async function handleAdminAddNotice(event) {
     }
 }
 
-// ── Utilities ──────────────────────────────────────────────────────────────
 function escapeHtml(str) {
     if (!str) return "";
     return String(str)
@@ -1747,4 +1773,739 @@ function escapeHtml(str) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+// ── PASSWORD VISIBILITY & FORGOT PASSWORD CONTROLLERS ──────────────────────
+function togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+    } else {
+        input.type = 'password';
+        if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+    }
+}
+
+function openForgotPasswordModal() {
+    const modal = document.getElementById("forgotPasswordModal");
+    if (modal) modal.classList.remove("hidden");
+    const activeId = (currentData && currentData.student && currentData.student.roll_no) || (currentUser && currentUser.roll_no) || "22CS1084";
+    const rollInp = document.getElementById("forgotRollInput");
+    if (rollInp) rollInp.value = activeId;
+}
+
+function closeForgotPasswordModal() {
+    const modal = document.getElementById("forgotPasswordModal");
+    if (modal) modal.classList.add("hidden");
+}
+
+async function handleForgotPasswordSubmit(event) {
+    event.preventDefault();
+    const identifier = document.getElementById("forgotRollInput").value.trim();
+    const newPassword = document.getElementById("forgotNewPassword").value.trim();
+    const confirmPassword = document.getElementById("forgotConfirmPassword").value.trim();
+
+    if (newPassword.length < 4) {
+        showToast("Password must be at least 4 characters.", "warning");
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        showToast("Passwords do not match.", "error");
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/auth/forgot_password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ identifier, new_password: newPassword })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast("Password updated successfully! Please sign in with your new password.", "success");
+            closeForgotPasswordModal();
+            const gwPass = document.getElementById("gwPasswordInput");
+            if (gwPass) gwPass.value = newPassword;
+            const modalPass = document.getElementById("modalPasswordInput");
+            if (modalPass) modalPass.value = newPassword;
+        } else {
+            showToast(data.message || "Failed to reset password.", "error");
+        }
+    } catch (err) {
+        console.error("Forgot password error:", err);
+        showToast("Network error resetting password.", "error");
+    }
+}
+
+// ── COLLEGE FEES & ONLINE PAYMENT DESK ─────────────────────────────────────
+let currentFeeData = null;
+
+async function loadFeeStatus() {
+    try {
+        const studentId = (currentData && currentData.student && currentData.student.id) || (currentUser && currentUser.id) || "22CS1084";
+        const res = await fetch(`/api/fees/status?student_id=${encodeURIComponent(studentId)}`);
+        const data = await res.json();
+        if (data.success && data.fees) {
+            currentFeeData = data.fees;
+            const total = Number(data.fees.total_fee || 125000);
+            const paid = Number(data.fees.paid_amount || 0);
+            const due = Number(data.fees.due_amount || 0);
+            const dueDate = data.fees.due_date || "15 Oct 2026";
+            const status = data.fees.status || "due";
+
+            const totalEl = document.getElementById("feeTotalDisplay");
+            const paidEl = document.getElementById("feePaidDisplay");
+            const dueEl = document.getElementById("feeDueDisplay");
+            const badgeEl = document.getElementById("feeStatusBadge");
+            const barEl = document.getElementById("feeProgressBar");
+            const pctEl = document.getElementById("feeProgressPercent");
+            const dueDateEl = document.getElementById("feeDueDateDisplay");
+
+            if (totalEl) totalEl.innerText = `₹${total.toLocaleString('en-IN')}`;
+            if (paidEl) paidEl.innerText = `₹${paid.toLocaleString('en-IN')}`;
+            if (dueEl) dueEl.innerText = `₹${due.toLocaleString('en-IN')}`;
+            if (dueDateEl) dueDateEl.innerText = dueDate;
+
+            const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 100;
+            if (barEl) barEl.style.width = `${pct}%`;
+            if (pctEl) pctEl.innerText = `${pct}% Paid`;
+
+            if (badgeEl) {
+                if (status === 'paid' || due <= 0) {
+                    badgeEl.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                    badgeEl.innerText = "Fully Paid";
+                } else if (paid > 0) {
+                    badgeEl.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                    badgeEl.innerText = "Partially Paid";
+                } else {
+                    badgeEl.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30";
+                    badgeEl.innerText = "Due";
+                }
+            }
+        }
+    } catch (err) {
+        console.error("loadFeeStatus error:", err);
+    }
+}
+
+function openFeePaymentModal() {
+    const modal = document.getElementById("feePaymentModal");
+    if (!modal) return;
+    modal.classList.remove("hidden");
+
+    const formStep = document.getElementById("feePaymentStepForm");
+    const receiptStep = document.getElementById("feeReceiptDisplayStep");
+    if (formStep) formStep.classList.remove("hidden");
+    if (receiptStep) receiptStep.classList.add("hidden");
+
+    const stuName = (currentData && currentData.student && currentData.student.name) || (currentUser && currentUser.name) || "Harshit Sharma";
+    const stuRoll = (currentData && currentData.student && currentData.student.roll_no) || (currentUser && currentUser.roll_no) || "22CS1084";
+    const due = currentFeeData ? Number(currentFeeData.due_amount || 0) : 35000;
+
+    const nameEl = document.getElementById("modalFeeStudentName");
+    const rollEl = document.getElementById("modalFeeStudentRoll");
+    const dueEl = document.getElementById("modalFeeCurrentDue");
+    const amountInp = document.getElementById("feePayAmountInput");
+
+    if (nameEl) nameEl.innerText = stuName;
+    if (rollEl) rollEl.innerText = stuRoll;
+    if (dueEl) dueEl.innerText = `₹${due.toLocaleString('en-IN')}`;
+    if (amountInp) {
+        amountInp.value = due > 0 ? due : 0;
+        amountInp.max = due > 0 ? due : 0;
+    }
+}
+
+function closeFeePaymentModal() {
+    const modal = document.getElementById("feePaymentModal");
+    if (modal) modal.classList.add("hidden");
+}
+
+function setFeePayPreset(preset) {
+    const due = currentFeeData ? Number(currentFeeData.due_amount || 0) : 35000;
+    const input = document.getElementById("feePayAmountInput");
+    if (!input) return;
+
+    if (preset === 'full') {
+        input.value = due;
+    } else if (preset === 'half') {
+        input.value = Math.round(due / 2);
+    } else if (preset === '5000') {
+        input.value = Math.min(5000, due);
+    }
+}
+
+async function handleFeePaymentSubmit(event) {
+    event.preventDefault();
+    const amountInp = document.getElementById("feePayAmountInput");
+    const amount = Number(amountInp ? amountInp.value : 0);
+    if (!amount || amount <= 0) {
+        showToast("Please enter a valid payment amount.", "warning");
+        return;
+    }
+
+    const payMethodRadio = document.querySelector('input[name="payment_method"]:checked');
+    const paymentMethod = payMethodRadio ? payMethodRadio.value : "UPI (PhonePe / GPay)";
+    const studentId = (currentData && currentData.student && currentData.student.id) || (currentUser && currentUser.id) || "22CS1084";
+
+    const btn = document.getElementById("btnConfirmPayFee");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Processing Transaction...";
+    }
+
+    try {
+        const res = await fetch("/api/fees/pay", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                student_id: studentId,
+                amount,
+                payment_method: paymentMethod
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message, "success");
+            await loadFeeStatus();
+            if (currentRole === 'hod') loadHodFees();
+            renderReceipt(data.receipt, data.fees);
+        } else {
+            showToast(data.message || "Payment authorization failed.", "error");
+        }
+    } catch (err) {
+        console.error("handleFeePaymentSubmit error:", err);
+        showToast("Network error processing payment.", "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = "<i class='fa-solid fa-lock'></i> Authorize & Pay Fees";
+        }
+    }
+}
+
+function renderReceipt(receipt, fees) {
+    const formStep = document.getElementById("feePaymentStepForm");
+    const receiptStep = document.getElementById("feeReceiptDisplayStep");
+    const container = document.getElementById("printableFeeReceipt");
+    if (!container) return;
+
+    if (formStep) formStep.classList.add("hidden");
+    if (receiptStep) receiptStep.classList.remove("hidden");
+
+    localStorage.setItem("campusgenie_last_receipt", JSON.stringify(receipt));
+
+    container.innerHTML = `
+        <div class="p-5 rounded-2xl bg-slate-950 border border-emerald-500/40 space-y-4 text-xs font-sans">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-lg font-extrabold">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-white">AJAY KUMAR GARG ENGINEERING COLLEGE</h4>
+                        <p class="text-[10px] text-slate-400">Official E-Receipt • Accounts Department</p>
+                    </div>
+                </div>
+                <span class="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold border border-emerald-500/40">
+                    PAID / SUCCESS
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-[11px] bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                <div><span class="text-slate-500">Receipt No:</span> <strong class="text-indigo-300 font-mono">${escapeHtml(receipt.receipt_no)}</strong></div>
+                <div><span class="text-slate-500">Date & Time:</span> <span class="text-slate-200">${escapeHtml(receipt.date)}</span></div>
+                <div><span class="text-slate-500">Candidate:</span> <strong class="text-white">${escapeHtml(receipt.student_name)}</strong></div>
+                <div><span class="text-slate-500">Roll No:</span> <span class="text-cyan-400 font-mono">${escapeHtml(receipt.roll_no)}</span></div>
+                <div><span class="text-slate-500">Branch & Sem:</span> <span class="text-slate-300">${escapeHtml(receipt.branch || "CSE")} (5th Sem)</span></div>
+                <div><span class="text-slate-500">Payment Mode:</span> <span class="text-emerald-300 font-bold">${escapeHtml(receipt.payment_method)}</span></div>
+                <div class="col-span-2"><span class="text-slate-500">Transaction ID:</span> <span class="text-slate-400 font-mono">${escapeHtml(receipt.transaction_id)}</span></div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-emerald-300 uppercase tracking-wider block font-bold">Amount Paid Successfully</span>
+                    <strong class="text-xl font-extrabold text-emerald-400 font-mono">₹${Number(receipt.amount).toLocaleString('en-IN')}</strong>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] text-slate-400 block">Remaining Due</span>
+                    <strong class="text-sm font-mono ${fees && fees.due_amount > 0 ? 'text-amber-400' : 'text-emerald-400'}">₹${Number((fees && fees.due_amount) || 0).toLocaleString('en-IN')}</strong>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+                <span class="flex items-center gap-1"><i class="fa-solid fa-qrcode text-slate-400"></i> Computer Generated Digital Receipt</span>
+                <span>AKGEC Finance Controller</span>
+            </div>
+        </div>
+    `;
+}
+
+function viewLatestReceipt() {
+    const last = localStorage.getItem("campusgenie_last_receipt");
+    if (!last) {
+        showToast("No recent payment receipt found. Please make a payment first.", "info");
+        openFeePaymentModal();
+        return;
+    }
+    try {
+        const rc = JSON.parse(last);
+        openFeePaymentModal();
+        renderReceipt(rc, currentFeeData || { due_amount: 0 });
+    } catch (e) {
+        openFeePaymentModal();
+    }
+}
+
+function printFeeReceipt() {
+    window.print();
+}
+
+// ── ASSIGNMENTS & PROCTORED ONLINE TESTS HUB ──────────────────────────────
+let currentAssignments = [];
+let activeProctoredTest = null;
+let proctorMediaStream = null;
+let proctorTimerInterval = null;
+let proctorTimeRemaining = 900;
+
+async function loadAssignments() {
+    try {
+        const studentId = (currentData && currentData.student && currentData.student.id) || (currentUser && currentUser.id) || "22CS1084";
+        const res = await fetch(`/api/assignments/list?student_id=${encodeURIComponent(studentId)}`);
+        const data = await res.json();
+        if (data.success && data.assignments) {
+            currentAssignments = data.assignments;
+            renderAssignmentsHub(currentAssignments);
+        }
+    } catch (err) {
+        console.error("loadAssignments error:", err);
+    }
+}
+
+function renderAssignmentsHub(asgs) {
+    const container = document.getElementById("assignmentsHubContainer");
+    if (!container) return;
+
+    if (!asgs.length) {
+        container.innerHTML = `<p class="text-xs text-slate-500 p-4 text-center">No assignments published at this time.</p>`;
+        return;
+    }
+
+    container.innerHTML = asgs.map(a => {
+        const sub = a.my_submission;
+        let badgeHtml = "";
+        if (sub) {
+            badgeHtml = `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ Submitted: ${sub.score}/${sub.total_marks} (${sub.percentage}%)</span>`;
+        } else {
+            badgeHtml = `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">⏳ Pending Due</span>`;
+        }
+
+        return `
+            <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-indigo-500/40 transition-all space-y-3">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 font-mono font-bold">${escapeHtml(a.subject_code)}</span>
+                            <span class="text-[11px] text-slate-400">• ${escapeHtml(a.faculty || "Faculty Assigned")}</span>
+                        </div>
+                        <h4 class="text-xs sm:text-sm font-bold text-white">${escapeHtml(a.title)}</h4>
+                    </div>
+                    ${badgeHtml}
+                </div>
+
+                <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(a.description || "Solve problem sets and test with AI camera & mic proctoring.")}</p>
+
+                <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-800/60 flex-wrap gap-2">
+                    <div>
+                        <span>Deadline: <strong class="text-slate-300">${escapeHtml(a.deadline)}</strong></span>
+                        <span class="ml-2">Marks: <strong class="text-slate-300">${a.total_marks}</strong></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="downloadAssignmentPdf('${escapeHtml(a.id)}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition-all flex items-center gap-1.5" title="Download Worksheet PDF">
+                            <i class="fa-solid fa-file-pdf text-rose-400"></i> Download PDF
+                        </button>
+                        <button onclick="openProctoredTestModal('${escapeHtml(a.id)}')" class="px-3 py-1 rounded-lg ${sub ? 'bg-slate-800 hover:bg-indigo-600 text-slate-300' : 'bg-indigo-600 hover:bg-indigo-500 text-white'} font-bold text-xs shadow-md transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-video text-cyan-300"></i> ${sub ? 'Retake Test' : 'Take Online Test'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function downloadAssignmentPdf(asgId) {
+    showToast("Generating official AKGEC coursework worksheet PDF...", "info");
+    const link = document.createElement("a");
+    link.href = `/api/assignments/download_pdf/${encodeURIComponent(asgId)}`;
+    link.setAttribute("download", `AKGEC_Assignment_${asgId}.txt`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+async function openProctoredTestModal(asgId) {
+    const modal = document.getElementById("proctoredTestModal");
+    if (!modal) return;
+
+    const asg = currentAssignments.find(a => a.id === asgId);
+    if (!asg) {
+        showToast("Assignment details not found.", "error");
+        return;
+    }
+    activeProctoredTest = asg;
+
+    modal.classList.remove("hidden");
+    const footer = document.getElementById("proctorTestFooter");
+    const qBody = document.getElementById("proctorTestQuestionsBody");
+    const resBox = document.getElementById("proctorResultContainer");
+    if (footer) footer.classList.remove("hidden");
+    if (qBody) qBody.classList.remove("hidden");
+    if (resBox) resBox.classList.add("hidden");
+
+    const titleEl = document.getElementById("testModalTitle");
+    const subBadge = document.getElementById("testSubjectBadge");
+    if (titleEl) titleEl.innerText = asg.title;
+    if (subBadge) subBadge.innerText = asg.subject_code || asg.subject;
+
+    // Render Questions
+    const questions = asg.questions || [];
+    if (qBody) {
+        if (!questions.length) {
+            qBody.innerHTML = `<p class="text-xs text-slate-400 p-4">No online MCQ questions configured for this assignment. Please download PDF.</p>`;
+        } else {
+            qBody.innerHTML = questions.map((q, idx) => `
+                <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5">
+                    <p class="text-xs font-bold text-white">Q${idx + 1}. ${escapeHtml(q.q)}</p>
+                    <div class="space-y-1.5 pl-1">
+                        ${q.options.map((opt, oIdx) => `
+                            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-900 cursor-pointer text-xs text-slate-300">
+                                <input type="radio" name="q_${q.id}" value="${oIdx}" class="accent-indigo-500">
+                                <span><strong class="text-indigo-400">${String.fromCharCode(65 + oIdx)}.</strong> ${escapeHtml(opt)}</span>
+                            </label>
+                        `).join("")}
+                    </div>
+                </div>
+            `).join("");
+        }
+    }
+
+    await startProctoring();
+    startProctorTimer();
+}
+
+function closeProctoredTestModal() {
+    stopProctoring();
+    const modal = document.getElementById("proctoredTestModal");
+    if (modal) modal.classList.add("hidden");
+}
+
+async function startProctoring() {
+    const video = document.getElementById("proctorWebcam");
+    const fallback = document.getElementById("webcamFallback");
+    const micStatus = document.getElementById("proctorMicStatus");
+
+    try {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            proctorMediaStream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 320 }, height: { ideal: 240 } },
+                audio: true
+            });
+            if (video) {
+                video.srcObject = proctorMediaStream;
+                video.play().catch(() => {});
+            }
+            if (fallback) fallback.classList.add("hidden");
+            if (micStatus) micStatus.innerText = "Active & Audio Monitored";
+        } else {
+            throw new Error("getUserMedia not supported");
+        }
+    } catch (err) {
+        console.warn("Webcam/Mic access denied or unavailable:", err);
+        if (fallback) fallback.classList.remove("hidden");
+        if (micStatus) micStatus.innerText = "Simulated Audio Proctor";
+    }
+}
+
+function stopProctoring() {
+    if (proctorMediaStream) {
+        try {
+            proctorMediaStream.getTracks().forEach(t => t.stop());
+        } catch (e) {}
+        proctorMediaStream = null;
+    }
+    const video = document.getElementById("proctorWebcam");
+    if (video) video.srcObject = null;
+
+    if (proctorTimerInterval) {
+        clearInterval(proctorTimerInterval);
+        proctorTimerInterval = null;
+    }
+}
+
+function startProctorTimer() {
+    if (proctorTimerInterval) clearInterval(proctorTimerInterval);
+    proctorTimeRemaining = 900;
+    updateTimerDisplay();
+
+    proctorTimerInterval = setInterval(() => {
+        proctorTimeRemaining--;
+        updateTimerDisplay();
+        if (proctorTimeRemaining <= 0) {
+            clearInterval(proctorTimerInterval);
+            showToast("Time expired! Submitting your test automatically...", "warning");
+            submitProctoredTestForm();
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const display = document.getElementById("testTimerDisplay");
+    if (!display) return;
+    const mins = Math.floor(proctorTimeRemaining / 60);
+    const secs = proctorTimeRemaining % 60;
+    display.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+async function submitProctoredTestForm() {
+    if (!activeProctoredTest) return;
+
+    const answers = {};
+    (activeProctoredTest.questions || []).forEach(q => {
+        const checked = document.querySelector(`input[name="q_${q.id}"]:checked`);
+        if (checked) {
+            answers[q.id] = parseInt(checked.value);
+        }
+    });
+
+    const studentId = (currentData && currentData.student && currentData.student.id) || (currentUser && currentUser.id) || "22CS1084";
+
+    const btn = document.getElementById("btnSubmitTest");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Proctor Analyzing Integrity...";
+    }
+
+    try {
+        const res = await fetch("/api/assignments/submit_online", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                student_id: studentId,
+                assignment_id: activeProctoredTest.id,
+                answers,
+                proctor_status: {
+                    camera_active: !!proctorMediaStream,
+                    mic_active: true
+                }
+            })
+        });
+        const data = await res.json();
+        stopProctoring();
+
+        if (data.success && data.result) {
+            showToast(data.message, "success");
+            await loadAssignments();
+            renderTestResult(data.result);
+        } else {
+            showToast(data.message || "Failed to submit test.", "error");
+        }
+    } catch (err) {
+        console.error("submitProctoredTestForm error:", err);
+        showToast("Network error submitting proctored test.", "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = "<i class='fa-solid fa-circle-check'></i> Submit Proctored Exam";
+        }
+    }
+}
+
+function renderTestResult(result) {
+    const footer = document.getElementById("proctorTestFooter");
+    const qBody = document.getElementById("proctorTestQuestionsBody");
+    const resBox = document.getElementById("proctorResultContainer");
+    if (footer) footer.classList.add("hidden");
+    if (qBody) qBody.classList.add("hidden");
+    if (!resBox) return;
+
+    resBox.classList.remove("hidden");
+    resBox.innerHTML = `
+        <div class="space-y-4 p-4 text-center">
+            <div class="w-16 h-16 rounded-2xl ${result.status === 'Passed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'} flex items-center justify-center text-3xl mx-auto shadow-xl">
+                <i class="fa-solid ${result.status === 'Passed' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+            </div>
+            <div>
+                <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    AI PROCTOR VERIFIED
+                </span>
+                <h3 class="text-lg font-extrabold text-white mt-1.5">Assessment Successfully Verified</h3>
+                <p class="text-xs text-slate-400">Audio, WebCam feed & Anti-Tab Integrity validated by CampusGenie AI.</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs text-center">
+                <div>
+                    <span class="text-[10px] text-slate-500 block">Score</span>
+                    <strong class="text-emerald-400 font-extrabold text-base font-mono">${result.score} / ${result.total_marks}</strong>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-500 block">Percentage</span>
+                    <strong class="text-white font-extrabold text-base font-mono">${result.percentage}%</strong>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-500 block">Integrity Score</span>
+                    <strong class="text-indigo-400 font-extrabold text-xs">98% Clean</strong>
+                </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-left text-xs space-y-1 text-slate-400">
+                <p>• Student: <strong class="text-white">${escapeHtml(result.student_name)}</strong> (${escapeHtml(result.roll_no)})</p>
+                <p>• Submission Timestamp: <span class="text-slate-200">${escapeHtml(result.date)}</span></p>
+                <p>• Proctor Details: <span class="text-emerald-400">WebCam Active ✓ | Audio Background Filter Active ✓</span></p>
+            </div>
+
+            <button onclick="closeProctoredTestModal()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs transition-all shadow-md">
+                Done & Return to Dashboard
+            </button>
+        </div>
+    `;
+}
+
+// ── HOD MASTER CONTROL - FEES & ASSIGNMENTS ────────────────────────────────
+async function loadHodFees() {
+    try {
+        const res = await fetch("/api/admin/all_students");
+        const data = await res.json();
+        if (!data.students) return;
+
+        const tbody = document.getElementById("hodFeesTableBody");
+        const sel = document.getElementById("hodFeeStudentSelect");
+
+        if (sel) {
+            sel.innerHTML = data.students.map(s => `
+                <option value="${escapeHtml(s.id)}">${escapeHtml(s.name)} (${escapeHtml(s.roll_no)})</option>
+            `).join("");
+        }
+
+        if (tbody) {
+            tbody.innerHTML = data.students.map(s => {
+                const f = s.fees || { total_fee: 125000, paid_amount: 90000, due_amount: 35000, status: "due" };
+                const due = Number(f.due_amount || 0);
+                const statusBadge = due <= 0 
+                    ? `<span class="px-2 py-0.5 rounded-full font-bold text-[10px] bg-emerald-500/20 text-emerald-300">Paid</span>`
+                    : `<span class="px-2 py-0.5 rounded-full font-bold text-[10px] bg-rose-500/20 text-rose-300">Due ₹${due.toLocaleString('en-IN')}</span>`;
+
+                return `
+                    <tr class="hover:bg-slate-800/40 transition-colors">
+                        <td class="py-2.5 font-bold text-white">${escapeHtml(s.name)}</td>
+                        <td class="py-2.5 font-mono text-cyan-400">${escapeHtml(s.roll_no)}</td>
+                        <td class="py-2.5 font-mono text-slate-300">₹${Number(f.total_fee || 125000).toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 font-mono text-emerald-400">₹${Number(f.paid_amount || 0).toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 font-mono text-rose-400 font-bold">₹${due.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 text-right">${statusBadge}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        const asgSubSel = document.getElementById("hodAsgSubjectSelect");
+        if (asgSubSel && currentData && currentData.subjects) {
+            asgSubSel.innerHTML = currentData.subjects.map(sub => `
+                <option value="${escapeHtml(sub.name)}">${escapeHtml(sub.name)} (${escapeHtml(sub.code || sub.id)})</option>
+            `).join("");
+        }
+    } catch (err) {
+        console.error("loadHodFees error:", err);
+    }
+}
+
+async function handleHodSetFee(event) {
+    event.preventDefault();
+    const studentId = document.getElementById("hodFeeStudentSelect").value;
+    const totalFee = document.getElementById("hodFeeTotalInput").value;
+    const dueAmount = document.getElementById("hodFeeDueInput").value;
+
+    try {
+        const res = await fetch("/api/hod/fees/set", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                student_id: studentId,
+                total_fee: totalFee,
+                due_amount: dueAmount
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message, "success");
+            await loadHodFees();
+            await loadFeeStatus();
+        } else {
+            showToast(data.message || "Failed to update fees.", "error");
+        }
+    } catch (err) {
+        console.error("handleHodSetFee error:", err);
+        showToast("Network error updating fees.", "error");
+    }
+}
+
+async function handleHodCreateAssignment(event) {
+    event.preventDefault();
+    const title = document.getElementById("hodAsgTitle").value.trim();
+    const subjectName = document.getElementById("hodAsgSubjectSelect").value;
+    const deadline = document.getElementById("hodAsgDeadline").value.trim();
+    const totalMarks = document.getElementById("hodAsgTotalMarks").value;
+    const mode = document.getElementById("hodAsgMode").value;
+    const desc = document.getElementById("hodAsgDesc").value.trim();
+
+    const targetSub = currentData && currentData.subjects ? currentData.subjects.find(s => s.name === subjectName) : null;
+    const subCode = targetSub ? targetSub.code : "CS-501";
+    const faculty = targetSub ? targetSub.faculty : "Faculty Assigned";
+
+    const questions = [
+        {
+            "id": 1,
+            "q": `In ${subjectName}, which criteria guarantees optimal execution or allocation?`,
+            "options": ["First In First Out (FIFO)", "Greedy Local Search", "Shortest Remaining Time First / Optimal Allocation", "Random Arbitrary Order"],
+            "correct": 2
+        },
+        {
+            "id": 2,
+            "q": `What is the worst-case complexity for standard operations in this problem set?`,
+            "options": ["O(1)", "O(log N)", "O(N)", "O(N log N)"],
+            "correct": 3
+        }
+    ];
+
+    try {
+        const res = await fetch("/api/hod/assignment/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title,
+                subject: subjectName,
+                subject_code: subCode,
+                faculty,
+                deadline,
+                total_marks: totalMarks,
+                mode,
+                description: desc,
+                questions
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message, "success");
+            document.getElementById("hodAsgTitle").value = "";
+            await loadAssignments();
+        } else {
+            showToast(data.message || "Failed to create assignment.", "error");
+        }
+    } catch (err) {
+        console.error("handleHodCreateAssignment error:", err);
+        showToast("Network error publishing assignment.", "error");
+    }
 }

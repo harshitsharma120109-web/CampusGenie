@@ -10,9 +10,9 @@
       "target_attendance": 75,
       "attendance": {
         "os": {
-          "attended": 42,
-          "total": 51,
-          "percentage": 82.35,
+          "attended": 43,
+          "total": 52,
+          "percentage": 82.69,
           "status": "safe"
         },
         "dsa": {
@@ -55,6 +55,33 @@
           "total": 100,
           "status": "Fail"
         }
+      },
+      "password": "student123",
+      "fees": {
+        "total_fee": 125000.0,
+        "paid_amount": 90000.0,
+        "due_amount": 35000.0,
+        "status": "partial",
+        "due_date": "15 Oct 2026",
+        "transactions": [
+          {
+            "receipt_no": "AKGEC-FEE-90397",
+            "date": "20 Sep 2026",
+            "amount": 5000.0,
+            "mode": "Online UPI (GPay / PhonePe)",
+            "status": "Success",
+            "student_name": "Harshit Sharma",
+            "roll_no": "22CS1084",
+            "remaining_balance": 45000.0
+          },
+          {
+            "receipt_no": "AKGEC-FEE-8812",
+            "date": "10 Aug 2026",
+            "amount": 75000,
+            "mode": "UPI / NetBanking",
+            "status": "Success"
+          }
+        ]
       }
     },
     {
@@ -66,9 +93,9 @@
       "target_attendance": 75,
       "attendance": {
         "os": {
-          "attended": 30,
-          "total": 35,
-          "percentage": 85.71,
+          "attended": 31,
+          "total": 36,
+          "percentage": 86.11,
           "status": "safe"
         },
         "dsa": {
@@ -111,6 +138,23 @@
           "total": 100,
           "status": "Pass"
         }
+      },
+      "password": "student123",
+      "fees": {
+        "total_fee": 125000,
+        "paid_amount": 125000,
+        "due_amount": 0,
+        "status": "paid",
+        "due_date": "15 Oct 2026",
+        "transactions": [
+          {
+            "receipt_no": "AKGEC-FEE-8401",
+            "date": "05 Aug 2026",
+            "amount": 125000,
+            "mode": "NetBanking",
+            "status": "Success"
+          }
+        ]
       }
     },
     {
@@ -146,7 +190,24 @@
           "status": "safe"
         }
       },
-      "marks": {}
+      "marks": {},
+      "password": "student123",
+      "fees": {
+        "total_fee": 125000,
+        "paid_amount": 25000,
+        "due_amount": 100000,
+        "status": "overdue",
+        "due_date": "10 Sept 2026",
+        "transactions": [
+          {
+            "receipt_no": "AKGEC-FEE-8199",
+            "date": "15 Jul 2026",
+            "amount": 25000,
+            "mode": "Debit Card",
+            "status": "Success"
+          }
+        ]
+      }
     }
   ],
   "subjects": [
@@ -250,5 +311,148 @@
       "badge": "Urgent",
       "content": "5th Semester exam form deadline is 25th September. Submit via ERP portal."
     }
-  ]
+  ],
+  "assignments": [
+    {
+      "id": "asg-os-01",
+      "title": "OS Process Synchronization & Deadlock Semaphore Lab",
+      "subject": "Operating Systems",
+      "subject_code": "CS-501",
+      "faculty": "Prof. R. K. Verma",
+      "deadline": "25 Sept 2026",
+      "total_marks": 20,
+      "mode": "hybrid",
+      "pdf_filename": "AKGEC_CS501_OS_Assignment_1.pdf",
+      "description": "Complete process synchronization problems using counting and binary semaphores.",
+      "questions": [
+        {
+          "id": 1,
+          "q": "Which condition is NOT one of the four Coffman conditions necessary for deadlock to occur?",
+          "options": [
+            "Mutual Exclusion",
+            "Hold and Wait",
+            "Preemption Allowed",
+            "Circular Wait"
+          ],
+          "correct": 2
+        },
+        {
+          "id": 2,
+          "q": "In Banker's Algorithm, which matrix represents the remaining resources each process needs?",
+          "options": [
+            "Allocation Matrix",
+            "Need Matrix (Max - Allocation)",
+            "Available Vector",
+            "Work Matrix"
+          ],
+          "correct": 1
+        },
+        {
+          "id": 3,
+          "q": "What atomic operations are permitted on semaphores to prevent race conditions?",
+          "options": [
+            "wait() [P] and signal() [V]",
+            "lock() and unlock()",
+            "start() and terminate()",
+            "push() and pop()"
+          ],
+          "correct": 0
+        },
+        {
+          "id": 4,
+          "q": "What is the primary cause of thrashing in virtual memory systems?",
+          "options": [
+            "Too much CPU cache",
+            "Excessive page faulting requiring high disk I/O",
+            "Network socket latency",
+            "High RAM capacity"
+          ],
+          "correct": 1
+        }
+      ],
+      "submissions": {
+        "22CS1084": {
+          "student_id": "22CS1084",
+          "student_name": "Harshit Sharma",
+          "roll_no": "22CS1084",
+          "date": "20 Sep 2026, 09:26 PM",
+          "score": 5,
+          "total_marks": 20,
+          "percentage": 25.0,
+          "status": "Needs Improvement",
+          "proctor_verified": true,
+          "proctor_details": {
+            "camera_monitored": true,
+            "mic_monitored": true,
+            "integrity_score": "98% (No Suspicious Eye/Audio Activity Detected)"
+          }
+        }
+      }
+    },
+    {
+      "id": "asg-dsa-01",
+      "title": "DSA Graph Theory & Dynamic Programming Assessment",
+      "subject": "Data Structures & Algorithms",
+      "subject_code": "CS-502",
+      "faculty": "Dr. Sunita Rao",
+      "deadline": "28 Sept 2026",
+      "total_marks": 20,
+      "mode": "hybrid",
+      "pdf_filename": "AKGEC_CS502_DSA_Assignment_2.pdf",
+      "description": "Shortest path algorithms (Dijkstra, Bellman-Ford) and 0/1 Knapsack dynamic programming.",
+      "questions": [
+        {
+          "id": 1,
+          "q": "What is the time complexity of Dijkstra's algorithm implemented with a Min-Heap / Priority Queue?",
+          "options": [
+            "O(V^2)",
+            "O((V + E) log V)",
+            "O(V * E)",
+            "O(E^2)"
+          ],
+          "correct": 1
+        },
+        {
+          "id": 2,
+          "q": "Which algorithm is capable of detecting negative weight cycles in a directed graph?",
+          "options": [
+            "Dijkstra's Algorithm",
+            "Prim's Algorithm",
+            "Bellman-Ford Algorithm",
+            "Kruskal's Algorithm"
+          ],
+          "correct": 2
+        },
+        {
+          "id": 3,
+          "q": "In the 0/1 Knapsack problem with N items and capacity W, what is the DP state space complexity?",
+          "options": [
+            "O(N * W)",
+            "O(2^N)",
+            "O(N + W)",
+            "O(N log W)"
+          ],
+          "correct": 0
+        },
+        {
+          "id": 4,
+          "q": "Which data structure is utilized in Kruskal's Minimum Spanning Tree algorithm for cycle detection?",
+          "options": [
+            "AVL Tree",
+            "Disjoint Set Union (DSU / Union-Find)",
+            "Binary Search Tree",
+            "Segment Tree"
+          ],
+          "correct": 1
+        }
+      ],
+      "submissions": {}
+    }
+  ],
+  "teacher_attendance_sessions": {
+    "os_2026-09-20": {
+      "22CS1084": "present",
+      "22CS1085": "present"
+    }
+  }
 }

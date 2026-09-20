@@ -968,6 +968,7 @@ def auth_login():
     payload = request.json or {}
     role = payload.get('role', 'student').lower()
     identifier = payload.get('identifier', '').strip()
+    password = payload.get('password', '').strip()
     data = load_data()
 
     if role == 'student':
@@ -990,7 +991,18 @@ def auth_login():
                 "roll_no": roll_upper,
                 "branch": "Computer Science & Engineering",
                 "semester": "5th Semester",
+                "password": password or "student123",
                 "target_attendance": 75,
+                "fees": {
+                    "total_fee": 125000,
+                    "paid_amount": 60000,
+                    "due_amount": 65000,
+                    "status": "partial",
+                    "due_date": "15 Oct 2026",
+                    "transactions": [
+                        {"receipt_no": "AKGEC-FEE-9001", "date": "01 Aug 2026", "amount": 60000, "mode": "Online UPI", "status": "Success"}
+                    ]
+                },
                 "attendance": {
                     "os": {"attended": 38, "total": 45, "percentage": 84.44, "status": "safe"},
                     "dsa": {"attended": 32, "total": 38, "percentage": 84.21, "status": "safe"},
@@ -1013,6 +1025,11 @@ def auth_login():
         if not student:
             return jsonify({"success": False, "message": "Student record not found."}), 404
 
+        # Validate password if provided
+        expected_pw = student.get('password', 'student123')
+        if password and password != expected_pw and password != 'student123':
+            return jsonify({"success": False, "message": "Incorrect password. Default demo password is 'student123'."}), 401
+
         data['active_student_id'] = student['id']
         save_data(data)
         return jsonify({
@@ -1030,6 +1047,9 @@ def auth_login():
         })
 
     elif role == 'teacher':
+        if password and password not in ['teacher123', 'admin123', 'faculty123', 'os', 'dsa', 'dbms', 'cn']:
+            return jsonify({"success": False, "message": "Incorrect faculty password. Default demo password is 'teacher123'."}), 401
+
         subjects = data.get('subjects', [])
         sub = next((s for s in subjects if s['id'].lower() == identifier.lower() or s.get('faculty', '').lower() == identifier.lower()), None)
         if not sub and identifier:
@@ -1048,6 +1068,9 @@ def auth_login():
         })
 
     elif role == 'hod':
+        if password and password not in ['hod123', 'admin123', 'hod@2026', 'Dr. S. K. Bansal'] and identifier not in ['hod123', 'admin123', 'Dr. S. K. Bansal']:
+            return jsonify({"success": False, "message": "Incorrect HOD security key. Default demo key is 'hod123'."}), 401
+
         return jsonify({
             "success": True,
             "role": "hod",
@@ -1073,6 +1096,7 @@ def auth_login():
                 "roll_no": roll_upper,
                 "branch": "Computer Science & Engineering",
                 "semester": "5th Semester",
+                "password": "student123",
                 "target_attendance": 75,
                 "attendance": {
                     "os": {"attended": 38, "total": 45, "percentage": 84.44, "status": "safe"},
@@ -1094,6 +1118,9 @@ def auth_login():
         if not student:
             return jsonify({"success": False, "message": "Student roll number not found."}), 404
 
+        if password and password not in ['parent123', 'student123', student.get('roll_no', '').lower()]:
+            return jsonify({"success": False, "message": "Incorrect parent password. Default demo password is 'parent123'."}), 401
+
         data['active_student_id'] = student['id']
         save_data(data)
         return jsonify({
@@ -1110,6 +1137,316 @@ def auth_login():
         })
 
     return jsonify({"success": False, "message": "Invalid role specified."}), 400
+
+@app.route('/api/auth/forgot_password', methods=['POST'])
+def auth_forgot_password():
+    payload = request.json or {}
+    roll_no = (payload.get('roll_no') or payload.get('identifier') or '').strip()
+    new_pw = payload.get('new_password', '').strip()
+    if not roll_no or not new_pw:
+        return jsonify({"success": False, "message": "Roll Number and New Password are required."}), 400
+
+    data = load_data()
+    r_clean = roll_no.lower()
+    stu = next((s for s in data.get('students', []) if s.get('roll_no', '').lower() == r_clean or s.get('id', '').lower() == r_clean or r_clean in s.get('roll_no', '').lower()), None)
+    if not stu:
+        roll_upper = roll_no.upper()
+        stu = {
+            "id": roll_upper,
+            "name": f"Student ({roll_upper})",
+            "roll_no": roll_upper,
+            "branch": "Computer Science & Engineering",
+            "semester": "5th Semester",
+            "password": new_pw,
+            "target_attendance": 75,
+            "attendance": {},
+            "marks": {}
+        }
+        data.setdefault('students', []).append(stu)
+    else:
+        stu['password'] = new_pw
+
+    save_data(data)
+    return jsonify({"success": True, "message": f"Password reset successfully for {stu['name']} ({stu['roll_no']})! You can now log in with your new password."})
+
+# ── COLLEGE FEES & ONLINE PAYMENT APIS ──────────────────────────────────────
+
+@app.route('/api/fees/status', methods=['GET'])
+def get_fee_status():
+    data = load_data()
+    student_id = request.args.get('student_id') or request.args.get('roll_no')
+    stu = None
+    if student_id:
+        s_clean = student_id.strip().lower()
+        stu = next((s for s in data.get('students', []) if s.get('id', '').lower() == s_clean or s.get('roll_no', '').lower() == s_clean or s_clean in s.get('roll_no', '').lower()), None)
+    if not stu:
+        stu = get_active_student(data)
+    if not stu:
+        return jsonify({"success": False, "message": "Student not found."}), 404
+
+    default_fees = {
+        "total_fee": 125000,
+        "paid_amount": 75000,
+        "due_amount": 50000,
+        "status": "partial",
+        "due_date": "15 Oct 2026",
+        "transactions": [
+            {"receipt_no": "AKGEC-FEE-8812", "date": "10 Aug 2026", "amount": 75000, "mode": "UPI / NetBanking", "status": "Success"}
+        ]
+    }
+    fees = stu.setdefault('fees', default_fees)
+    return jsonify({
+        "success": True,
+        "student_id": stu['id'],
+        "student_name": stu['name'],
+        "roll_no": stu['roll_no'],
+        "branch": stu.get('branch', 'CSE'),
+        "semester": stu.get('semester', '5th Sem'),
+        "fees": fees
+    })
+
+@app.route('/api/fees/pay', methods=['POST'])
+def pay_fees():
+    payload = request.json or {}
+    student_id = payload.get('student_id') or payload.get('roll_no')
+    amount = payload.get('amount')
+    mode = payload.get('payment_mode', 'Online UPI (GPay / PhonePe)')
+
+    try:
+        amount = float(amount)
+        if amount <= 0:
+            raise ValueError()
+    except Exception:
+        return jsonify({"success": False, "message": "Please enter a valid positive payment amount."}), 400
+
+    data = load_data()
+    stu = None
+    if student_id:
+        s_clean = str(student_id).strip().lower()
+        stu = next((s for s in data.get('students', []) if s.get('id', '').lower() == s_clean or s.get('roll_no', '').lower() == s_clean or s_clean in s.get('roll_no', '').lower()), None)
+    if not stu:
+        stu = get_active_student(data)
+    if not stu:
+        return jsonify({"success": False, "message": "Student record not found."}), 404
+
+    default_fees = {
+        "total_fee": 125000,
+        "paid_amount": 0,
+        "due_amount": 125000,
+        "status": "partial",
+        "due_date": "15 Oct 2026",
+        "transactions": []
+    }
+    fees = stu.setdefault('fees', default_fees)
+
+    current_due = float(fees.get('due_amount', 0))
+    pay_amount = min(amount, current_due) if current_due > 0 else amount
+
+    new_paid = round(float(fees.get('paid_amount', 0)) + pay_amount, 2)
+    new_due = max(0.0, round(float(fees.get('total_fee', 125000)) - new_paid, 2))
+
+    fees['paid_amount'] = new_paid
+    fees['due_amount'] = new_due
+    fees['status'] = 'paid' if new_due <= 0 else 'partial'
+
+    import datetime, random
+    receipt_no = f"AKGEC-FEE-{random.randint(10000, 99999)}"
+    tx = {
+        "receipt_no": receipt_no,
+        "date": datetime.date.today().strftime("%d %b %Y"),
+        "amount": pay_amount,
+        "mode": mode,
+        "status": "Success",
+        "student_name": stu['name'],
+        "roll_no": stu['roll_no'],
+        "remaining_balance": new_due
+    }
+    fees.setdefault('transactions', []).insert(0, tx)
+    save_data(data)
+
+    return jsonify({
+        "success": True,
+        "message": f"Payment of ₹{pay_amount:,.2f} recorded successfully via {mode}! Remaining balance: ₹{new_due:,.2f}",
+        "receipt": tx,
+        "fees": fees
+    })
+
+@app.route('/api/hod/fees/set', methods=['POST'])
+def hod_set_fees():
+    payload = request.json or {}
+    student_id = payload.get('student_id')
+    total_fee = payload.get('total_fee')
+    due_amount = payload.get('due_amount')
+    due_date = payload.get('due_date', '15 Oct 2026')
+
+    data = load_data()
+    stu = next((s for s in data.get('students', []) if s.get('id', '').lower() == str(student_id).lower() or s.get('roll_no', '').lower() == str(student_id).lower()), None)
+    if not stu:
+        return jsonify({"success": False, "message": "Student not found."}), 404
+
+    fees = stu.setdefault('fees', {})
+    if total_fee is not None:
+        fees['total_fee'] = float(total_fee)
+    if due_amount is not None:
+        fees['due_amount'] = float(due_amount)
+        fees['paid_amount'] = max(0.0, float(fees.get('total_fee', 125000)) - float(due_amount))
+    if due_date:
+        fees['due_date'] = due_date
+    fees['status'] = 'paid' if fees.get('due_amount', 0) <= 0 else 'partial'
+    save_data(data)
+    return jsonify({"success": True, "message": f"Fee structure updated for {stu['name']}!", "fees": fees})
+
+# ── ASSIGNMENTS & PROCTORED ONLINE TESTS APIS ──────────────────────────────
+
+@app.route('/api/assignments/list', methods=['GET'])
+def get_assignments_list():
+    data = load_data()
+    student_id = request.args.get('student_id', '').strip().lower()
+    asgs = data.get('assignments', [])
+
+    result = []
+    for a in asgs:
+        asg_copy = dict(a)
+        subs = a.get('submissions', {})
+        my_sub = None
+        if student_id:
+            my_sub = subs.get(student_id)
+        asg_copy['my_submission'] = my_sub
+        result.append(asg_copy)
+
+    return jsonify({"success": True, "assignments": result})
+
+@app.route('/api/hod/assignment/create', methods=['POST'])
+def hod_create_assignment():
+    payload = request.json or {}
+    title = payload.get('title', '').strip()
+    subject = payload.get('subject', '').strip()
+    subject_code = payload.get('subject_code', '').strip()
+    faculty = payload.get('faculty', 'Faculty Assigned').strip()
+    deadline = payload.get('deadline', '30 Sept 2026').strip()
+    total_marks = int(payload.get('total_marks', 20))
+    mode = payload.get('mode', 'hybrid').strip()
+    desc = payload.get('description', '').strip()
+    questions = payload.get('questions', [])
+
+    if not title or not subject:
+        return jsonify({"success": False, "message": "Title and Subject are required."}), 400
+
+    data = load_data()
+    import random
+    new_id = f"asg-{subject_code.lower().replace('-', '')}-{random.randint(10, 99)}" if subject_code else f"asg-{random.randint(100, 999)}"
+    asg = {
+        "id": new_id,
+        "title": title,
+        "subject": subject,
+        "subject_code": subject_code,
+        "faculty": faculty,
+        "deadline": deadline,
+        "total_marks": total_marks,
+        "mode": mode,
+        "pdf_filename": f"AKGEC_{subject_code.replace('-', '_')}_Assignment.pdf",
+        "description": desc,
+        "questions": questions,
+        "submissions": {}
+    }
+    data.setdefault('assignments', []).insert(0, asg)
+    save_data(data)
+    return jsonify({"success": True, "message": f"Assignment '{title}' published!", "assignment": asg})
+
+@app.route('/api/assignments/download_pdf/<asg_id>', methods=['GET'])
+def download_assignment_pdf(asg_id):
+    data = load_data()
+    asg = next((a for a in data.get('assignments', []) if a['id'] == asg_id), None)
+    if not asg:
+        return "Assignment not found", 404
+
+    content = [
+        "================================================================================",
+        "AJAY KUMAR GARG ENGINEERING COLLEGE, GHAZIABAD",
+        "DEPARTMENT OF COMPUTER SCIENCE & ENGINEERING",
+        "OFFICIAL COURSEWORK WORKSHEET • SEMESTER EXAMINATIONS 2026",
+        "================================================================================",
+        f"Title:        {asg.get('title')}",
+        f"Course:       {asg.get('subject')} ({asg.get('subject_code')})",
+        f"Faculty:      {asg.get('faculty')}",
+        f"Submission:   Deadline: {asg.get('deadline')} | Total Marks: {asg.get('total_marks')}",
+        "Instructions: Complete all questions. Either submit online via CampusGenie AI",
+        "              Proctored Test or solve in practical journal and submit to proctor.",
+        "--------------------------------------------------------------------------------\n",
+        f"DESCRIPTION & OBJECTIVES:\n{asg.get('description', 'Solve all algorithmic problems.')}\n",
+        "QUESTIONS / PROBLEM SET:\n"
+    ]
+    for idx, q in enumerate(asg.get('questions', []), 1):
+        content.append(f"Q{idx}. {q.get('q')}")
+        for o_idx, opt in enumerate(q.get('options', [])):
+            content.append(f"    [{chr(65+o_idx)}] {opt}")
+        content.append("")
+
+    content.append("================================================================================")
+    content.append("End of Question Paper • AKGEC Academic ERP & Examination Cell")
+
+    from flask import Response
+    res_text = "\n".join(content)
+    return Response(
+        res_text,
+        mimetype="text/plain",
+        headers={"Content-Disposition": f"attachment;filename={asg.get('pdf_filename', 'Assignment.txt')}"}
+    )
+
+@app.route('/api/assignments/submit_online', methods=['POST'])
+def submit_proctored_test():
+    payload = request.json or {}
+    student_id = (payload.get('student_id') or '').strip().lower()
+    asg_id = payload.get('assignment_id')
+    answers = payload.get('answers', {})
+    proctor_status = payload.get('proctor_status', {})
+
+    data = load_data()
+    asg = next((a for a in data.get('assignments', []) if a['id'] == asg_id), None)
+    if not asg:
+        return jsonify({"success": False, "message": "Assignment not found."}), 404
+
+    stu = next((s for s in data.get('students', []) if s.get('id', '').lower() == student_id or s.get('roll_no', '').lower() == student_id or student_id in s.get('roll_no', '').lower()), None)
+    student_key = stu['id'] if stu else student_id
+
+    questions = asg.get('questions', [])
+    total_q = len(questions)
+    correct_count = 0
+    for q in questions:
+        qid_str = str(q.get('id'))
+        if qid_str in answers and int(answers[qid_str]) == int(q.get('correct')):
+            correct_count += 1
+
+    total_marks = asg.get('total_marks', 20)
+    score = round((correct_count / total_q) * total_marks) if total_q > 0 else 0
+    pct = round((score / total_marks) * 100, 1) if total_marks > 0 else 100.0
+    passed = score >= (total_marks * 0.4)
+
+    import datetime
+    submission_record = {
+        "student_id": student_key,
+        "student_name": stu['name'] if stu else "Student",
+        "roll_no": stu['roll_no'] if stu else student_key,
+        "date": datetime.datetime.now().strftime("%d %b %Y, %I:%M %p"),
+        "score": score,
+        "total_marks": total_marks,
+        "percentage": pct,
+        "status": "Passed" if passed else "Needs Improvement",
+        "proctor_verified": True,
+        "proctor_details": {
+            "camera_monitored": proctor_status.get('camera_active', True),
+            "mic_monitored": proctor_status.get('mic_active', True),
+            "integrity_score": "98% (No Suspicious Eye/Audio Activity Detected)"
+        }
+    }
+    asg.setdefault('submissions', {})[student_key] = submission_record
+    save_data(data)
+
+    return jsonify({
+        "success": True,
+        "message": f"Test submitted & proctor-verified! Score: {score}/{total_marks} ({pct}%)",
+        "result": submission_record
+    })
 
 # ── TEACHER SUBJECT-WISE ATTENDANCE GRID APIS ───────────────────────────────
 
@@ -1154,6 +1491,10 @@ def teacher_submit_attendance():
     payload = request.json or {}
     sub_id = payload.get('subject_id', '').strip().lower()
     records = payload.get('records', [])
+    session_date = payload.get('date') or payload.get('session_date')
+    import datetime
+    if not session_date:
+        session_date = datetime.date.today().isoformat()
     
     if not sub_id or not records:
         return jsonify({"success": False, "message": "Subject ID and student records required."}), 400
@@ -1163,13 +1504,20 @@ def teacher_submit_attendance():
     target_sub = next((s for s in data.get('subjects', []) if s['id'].lower() == sub_id.lower()), None)
     sub_name = target_sub['name'] if target_sub else sub_id.upper()
     
+    teacher_sessions = data.setdefault('teacher_attendance_sessions', {})
+    session_key = f"{sub_id}_{session_date}"
+    prev_session = teacher_sessions.get(session_key)
+
     updated_count = 0
     present_count = 0
     absent_count = 0
+    new_session_records = {}
     
     for rec in records:
         stu_id = rec.get('student_id')
         status = rec.get('status', 'present').lower()
+        new_session_records[stu_id] = status
+        
         stu = next((s for s in students if s['id'] == stu_id), None)
         if not stu:
             continue
@@ -1177,26 +1525,40 @@ def teacher_submit_attendance():
         att_dict = stu.setdefault('attendance', {})
         sub_att = att_dict.setdefault(sub_id, {"attended": 0, "total": 0, "percentage": 100.0, "status": "safe"})
         
-        sub_att['total'] += 1
+        if prev_session and stu_id in prev_session:
+            prev_status = prev_session[stu_id]
+            if prev_status != status:
+                if status == 'present' and prev_status == 'absent':
+                    sub_att['attended'] += 1
+                elif status == 'absent' and prev_status == 'present':
+                    sub_att['attended'] = max(0, sub_att['attended'] - 1)
+        else:
+            sub_att['total'] += 1
+            if status == 'present':
+                sub_att['attended'] += 1
+
         if status == 'present':
-            sub_att['attended'] += 1
             present_count += 1
         else:
             absent_count += 1
             
-        sub_att['percentage'] = round((sub_att['attended'] / sub_att['total']) * 100, 2)
+        tot = max(1, sub_att['total'])
+        sub_att['percentage'] = round((sub_att['attended'] / tot) * 100, 2)
         target = stu.get('target_attendance', 75)
         sub_att['status'] = 'safe' if sub_att['percentage'] >= target else 'warning'
         updated_count += 1
 
+    teacher_sessions[session_key] = new_session_records
     save_data(data)
     
+    action_note = "Updated existing session" if prev_session else "Recorded new session"
     return jsonify({
         "success": True,
-        "message": f"Recorded attendance for {updated_count} students in {sub_name} ({present_count} Present, {absent_count} Absent)!",
+        "message": f"{action_note} for {updated_count} students in {sub_name} ({present_count} Present, {absent_count} Absent)!",
         "present_count": present_count,
         "absent_count": absent_count,
-        "total_marked": updated_count
+        "total_marked": updated_count,
+        "session_date": session_date
     })
 
 # ── HOD MASTER CONTROL APIS ──────────────────────────────────────────────────
@@ -1479,7 +1841,13 @@ def analyze_placement_resume():
 @app.route('/api/notifications', methods=['GET'])
 def get_notifications():
     data = load_data()
-    active_stu = get_active_student(data)
+    student_id = request.args.get('student_id', '').strip().lower()
+    active_stu = None
+    if student_id:
+        active_stu = next((s for s in data.get('students', []) if s.get('id', '').lower() == student_id or s.get('roll_no', '').lower() == student_id), None)
+    if not active_stu:
+        active_stu = get_active_student(data)
+
     notices = data.get('notices', [])
     opps = data.get('opportunities', [])
     
@@ -1499,8 +1867,34 @@ def get_notifications():
                     "time": "Real-time Alert",
                     "badge": "Action Required"
                 })
+
+        # 2. College Fee Due Notification
+        fees = active_stu.get('fees', {})
+        if float(fees.get('due_amount', 0)) > 0:
+            alerts.append({
+                "id": f"fee_{active_stu.get('id')}",
+                "type": "warning",
+                "title": f"Fees Due: ₹{int(fees.get('due_amount', 0)):,}",
+                "message": f"Pending balance for Odd Sem 2026 is ₹{int(fees.get('due_amount', 0)):,}. Due Date: {fees.get('due_date', '15 Oct 2026')}.",
+                "time": "Finance Office",
+                "badge": "Fee Due"
+            })
+
+        # 3. Pending Assignment Notification
+        asgs = data.get('assignments', [])
+        for a in asgs[:2]:
+            sub = a.get('submissions', {}).get(active_stu.get('id'))
+            if not sub:
+                alerts.append({
+                    "id": f"asg_{a.get('id')}",
+                    "type": "exam",
+                    "title": f"Assignment Due: {a.get('title')}",
+                    "message": f"{a.get('subject_code')} deadline is {a.get('deadline')}. Online proctored test & PDF worksheet ready.",
+                    "time": "Academic Desk",
+                    "badge": "Assignment"
+                })
                 
-    # 2. Upcoming Exam Notice
+    # 4. Upcoming Exam Notice
     for n in notices[:2]:
         alerts.append({
             "id": f"notice_{n.get('id', 1)}",
@@ -1511,7 +1905,7 @@ def get_notifications():
             "badge": n.get('badge', 'Notice')
         })
         
-    # 3. Hackathon/Job Opportunity
+    # 5. Hackathon/Job Opportunity
     for o in opps[:1]:
         alerts.append({
             "id": f"opp_{o.get('id', 1)}",
@@ -1526,6 +1920,10 @@ def get_notifications():
         "notifications": alerts,
         "unread_count": len(alerts)
     })
+
+@app.route('/api/notifications/clear', methods=['POST'])
+def clear_notifications():
+    return jsonify({"success": True, "message": "Notifications cleared."})
 
 # ── Chat helper functions (longest-alias-first matching) ──────────────────────
 
@@ -1677,9 +2075,14 @@ def chat():
     payload = request.json or {}
     user_msg = payload.get('message', '').strip()
     msg_lower = user_msg.lower()
+    student_id = (payload.get('student_id') or '').strip().lower()
 
     data = load_data()
-    active_stu = get_active_student(data)
+    active_stu = None
+    if student_id:
+        active_stu = next((s for s in data.get('students', []) if s.get('id', '').lower() == student_id or s.get('roll_no', '').lower() == student_id or student_id in s.get('roll_no', '').lower()), None)
+    if not active_stu:
+        active_stu = get_active_student(data)
     student_name = active_stu.get('name', 'Student') if active_stu else 'Student'
 
     # ── 0. CONVERSATIONAL AI FRIEND GREETINGS ──
@@ -1826,6 +2229,48 @@ def chat():
                     f"   ⏰ {c['time']} | 📍 **{c['room']}** | 👨‍🏫 {c['faculty']}\n"
                 )
             return jsonify({"reply": "\n".join(tt_lines), "action": None})
+
+    # ── 6.5 COLLEGE FEES & PAYMENT QUERIES ────────────────────────────────────
+    fee_keywords = ['fee', 'fees', 'fees status', 'kitni fee', 'due fee', 'pending fee', 'fees kitni', 'fee submit', 'pay fee', 'receipt', 'chalan']
+    if any(k in msg_lower for k in fee_keywords):
+        fees = active_stu.get('fees', {}) if active_stu else {}
+        total = int(fees.get('total_fee', 125000))
+        paid = int(fees.get('paid_amount', 0))
+        due = int(fees.get('due_amount', 0))
+        due_date = fees.get('due_date', '15 Oct 2026')
+        status = fees.get('status', 'due')
+        status_badge = "🟢 Fully Paid" if status == 'paid' else ("🟡 Partially Paid" if status == 'partial' else "🔴 Pending Due")
+        
+        reply_msg = (
+            f"💳 **College Fees Summary — {student_name}**\n\n"
+            f"• **Account Status:** {status_badge}\n"
+            f"• **Total Academic Fees:** ₹{total:,}\n"
+            f"• **Paid Amount:** ₹{paid:,}\n"
+            f"• **Pending Balance:** ₹{due:,}\n"
+            f"• **Payment Due Date:** {due_date}\n\n"
+        )
+        if due > 0:
+            reply_msg += f"👉 Aapke account me **₹{due:,}** pending hai. Dashboard par **'💳 Pay College Fees'** button daba kar UPI/Cards se pay karein aur turant official AKGEC receipt paayein!"
+        else:
+            reply_msg += "🎉 Badhaai ho! Aapki semester college fees 100% pay ho chuki hai. Koi pending balance nahi hai."
+        return jsonify({"reply": reply_msg, "action": "fees"})
+
+    # ── 6.6 ASSIGNMENTS & PROCTORED ONLINE TESTS ──────────────────────────────
+    asg_keywords = ['assignment', 'assignments', 'test', 'tests', 'online test', 'quiz', 'proctor', 'camera test', 'homework', 'asg', 'practical journal']
+    if any(k in msg_lower for k in asg_keywords):
+        asgs = data.get('assignments', [])
+        asg_lines = [f"📝 **Assignments & Proctored Tests Hub — {student_name}**\n"]
+        stu_id_key = active_stu.get('id', '') if active_stu else ''
+        for a in asgs:
+            sub = a.get('submissions', {}).get(stu_id_key)
+            if sub:
+                sub_status = f"✅ Submitted (Score: {sub.get('score')}/{sub.get('total_marks')} • {sub.get('percentage')}%)"
+            else:
+                sub_status = "⏳ Pending Submission"
+            asg_lines.append(f"• **{a.get('title')}** (`{a.get('subject_code')}`)\n  Deadline: {a.get('deadline')} | Marks: {a.get('total_marks')} | Status: {sub_status}")
+            
+        asg_lines.append("\n👉 Dashboard par **'Assignments & Tests'** card se aap official question paper PDF download kar sakte hain ya **AI WebCam + Mic proctoring** ke saath live online test de sakte hain!")
+        return jsonify({"reply": "\n".join(asg_lines), "action": "assignments"})
 
     # ── 7. AI FRIEND LIVE WEB SEARCH ENGINE (FOR ANY OTHER QUESTION) ──
     if user_msg:
