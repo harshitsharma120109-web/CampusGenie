@@ -623,6 +623,37 @@
         </div>
     </div>
 
+    <!-- ==================== EDIT SUBJECT MODAL (HOD) ==================== -->
+    <div id="editSubjectModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3 relative">
+            <button onclick="closeEditSubjectModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+            <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-pen-to-square text-cyan-400"></i> Edit Subject Details
+            </h3>
+            <p class="text-[11px] text-slate-400">Update subject title, course code, or assigned faculty.</p>
+            <form onsubmit="handleHodSaveEditSubject(event)" class="space-y-2.5 text-xs">
+                <input type="hidden" id="editSubjectId">
+                <div>
+                    <label class="text-[11px] text-slate-400 block mb-1">Subject Name:</label>
+                    <input type="text" id="editSubjectName" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                </div>
+                <div>
+                    <label class="text-[11px] text-slate-400 block mb-1">Course Code:</label>
+                    <input type="text" id="editSubjectCode" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                </div>
+                <div>
+                    <label class="text-[11px] text-slate-400 block mb-1">Assigned Faculty:</label>
+                    <input type="text" id="editSubjectFaculty" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                </div>
+                <button type="submit" class="w-full py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition-all">
+                    Update Subject
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- ==================== ENTER MARKS MODAL (TEACHER) ==================== -->
     <div id="marksModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3 relative">

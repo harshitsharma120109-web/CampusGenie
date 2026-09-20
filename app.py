@@ -806,9 +806,22 @@ def add_subject():
         "name": name,
         "faculty": faculty or "Faculty Assigned"
     }
-    data.setdefault('subjects', []).append(new_sub)
+    subjects = data.setdefault('subjects', [])
+    existing = next((s for s in subjects if s['id'] == sub_id or s['code'].lower() == code.lower()), None)
+    if existing:
+        existing['name'] = name
+        existing['code'] = code
+        existing['faculty'] = faculty or existing.get('faculty', 'Faculty Assigned')
+        new_sub = existing
+    else:
+        subjects.append(new_sub)
+        # Initialize student attendance and marks for every student
+        for stu in data.get('students', []):
+            stu.setdefault('attendance', {})[sub_id] = {"attended": 0, "total": 0, "percentage": 100.0, "status": "safe"}
+            stu.setdefault('marks', {})[sub_id] = {"score": "-", "total": 100, "status": "Pending"}
+
     save_data(data)
-    return jsonify({"success": True, "message": f"Subject '{name}' added to college curriculum!", "subject": new_sub})
+    return jsonify({"success": True, "message": f"Subject '{name}' saved to college curriculum!", "subject": new_sub})
 
 @app.route('/api/admin/timetable/add', methods=['POST'])
 def add_timetable():
@@ -1111,9 +1124,49 @@ def hod_delete_subject():
     orig_len = len(data.get('subjects', []))
     data['subjects'] = [s for s in data.get('subjects', []) if s['id'] != sub_id]
     if len(data['subjects']) < orig_len:
+        # Also clean student records for this subject
+        for stu in data.get('students', []):
+            if 'attendance' in stu and sub_id in stu['attendance']:
+                del stu['attendance'][sub_id]
+            if 'marks' in stu and sub_id in stu['marks']:
+                del stu['marks'][sub_id]
         save_data(data)
         return jsonify({"success": True, "message": "Subject removed from college curriculum."})
     return jsonify({"success": False, "message": "Subject not found."}), 404
+
+@app.route('/api/hod/subject/edit', methods=['POST'])
+def hod_edit_subject():
+    payload = request.json or {}
+    sub_id = payload.get('subject_id')
+    name = payload.get('name', '').strip()
+    code = payload.get('code', '').strip()
+    faculty = payload.get('faculty', '').strip()
+    
+    if not sub_id:
+        return jsonify({"success": False, "message": "Subject ID required."}), 400
+        
+    data = load_data()
+    subjects = data.get('subjects', [])
+    sub = next((s for s in subjects if s['id'] == sub_id), None)
+    if not sub:
+        return jsonify({"success": False, "message": f"Subject '{sub_id}' not found."}), 404
+        
+    if name: sub['name'] = name
+    if code: sub['code'] = code
+    if faculty: sub['faculty'] = faculty
+    
+    save_data(data)
+    return jsonify({"success": True, "message": f"Subject '{sub['name']}' updated successfully!", "subject": sub})
+
+@app.route('/api/state/sync', methods=['POST'])
+def state_sync():
+    payload = request.json or {}
+    data = payload.get('data')
+    if data and isinstance(data, dict):
+        if 'students' in data and 'subjects' in data:
+            save_data(data)
+            return jsonify({"success": True, "message": "State synced with server."})
+    return jsonify({"success": False, "message": "Invalid state payload."}), 400
 
 @app.route('/api/hod/defaulters', methods=['GET'])
 def hod_get_defaulters():

@@ -5,7 +5,62 @@ let currentUser = { name: 'Harshit Sharma', role: 'student', id: '22CS1084', rol
 let activeTeacherSubjectId = 'os';
 let teacherRosterState = {}; // { [studentId]: 'present' | 'absent' }
 
+// ── Persistent Storage & Multi-View Reactive Sync ──────────────────────────
+function getStoredData() {
+    try {
+        const d = localStorage.getItem("campusgenie_data");
+        return d ? JSON.parse(d) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function saveStoredData(data) {
+    if (!data) return;
+    try {
+        localStorage.setItem("campusgenie_data", JSON.stringify(data));
+    } catch (e) {}
+}
+
+function syncStateToServer(data) {
+    if (!data) return;
+    try {
+        fetch("/api/state/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data })
+        }).catch(() => {});
+    } catch (e) {}
+}
+
+function refreshAllViews() {
+    if (!currentData) return;
+    renderDashboard(currentData);
+    renderHodSubjects();
+    renderHodStudents();
+    renderTeacherSubjectCards();
+    loadTeacherRoster(activeTeacherSubjectId);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    // 1. Restore role and active subject from localStorage
+    const savedRole = localStorage.getItem("campusgenie_role");
+    if (savedRole && ['student', 'teacher', 'hod', 'parent'].includes(savedRole)) {
+        currentRole = savedRole;
+    }
+    const savedSub = localStorage.getItem("campusgenie_active_subject");
+    if (savedSub) {
+        activeTeacherSubjectId = savedSub;
+    }
+
+    // 2. Immediately render cached data if available (zero flicker, zero revert)
+    const localData = getStoredData();
+    if (localData && localData.raw_subjects && localData.raw_subjects.length) {
+        currentData = localData;
+        refreshAllViews();
+        switchRole(currentRole, false);
+    }
+
     fetchStudentData();
     fetchNotifications();
 });
@@ -52,7 +107,9 @@ function showToast(message, type = "success") {
 }
 
 // ── Role Switcher ──────────────────────────────────────────────────────────
-function switchRole(role) {
+function switchRole(role, notify = true) {
+    currentRole = role;
+    localStorage.setItem("campusgenie_role", role);
     currentRole = role;
 
     // 1. Update Navigation Pills
@@ -100,7 +157,7 @@ function switchRole(role) {
         if (currentData) renderDashboard(currentData);
     }
 
-    showToast(`Switched to ${role.toUpperCase()} View`, "info");
+    if (notify) showToast(`Switched to ${role.toUpperCase()} View`, "info");
 }
 
 function updateTopBarUserBadge(role) {
@@ -213,10 +270,24 @@ async function fetchStudentData(retryCount = 3) {
         const res = await fetch("/api/student");
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        currentData = data;
-        renderDashboard(data);
+        
+        const localData = getStoredData();
+        if (localData && localData.raw_subjects && localData.raw_subjects.length) {
+            currentData = { ...data, ...localData };
+            syncStateToServer(currentData);
+        } else {
+            currentData = data;
+            saveStoredData(currentData);
+        }
+
+        refreshAllViews();
     } catch (err) {
         console.error("fetchStudentData failed:", err);
+        const localData = getStoredData();
+        if (localData) {
+            currentData = localData;
+            refreshAllViews();
+        }
         if (retryCount > 0) {
             setTimeout(() => fetchStudentData(retryCount - 1), 1200);
         }
@@ -502,21 +573,54 @@ function renderOpportunitiesContainer(opps) {
 
 // ── TEACHER PORTAL LOGIC ───────────────────────────────────────────────────
 async function loadTeacherRoster(subjectId) {
+    const subjects = currentData && currentData.raw_subjects && currentData.raw_subjects.length ? currentData.raw_subjects : [
+        { id: "os", name: "Operating Systems", code: "CS-501", faculty: "Prof. R. K. Verma" }
+    ];
+
+    if (!subjectId || !subjects.some(s => s.id === subjectId)) {
+        subjectId = subjects.length ? subjects[0].id : 'os';
+    }
     activeTeacherSubjectId = subjectId;
+    localStorage.setItem("campusgenie_active_subject", subjectId);
     renderTeacherSubjectCards();
+
+    const currentSub = subjects.find(s => s.id === subjectId) || { name: subjectId, code: "" };
+    const titleEl = document.getElementById("activeSubjectRosterTitle");
+    if (titleEl) {
+        titleEl.innerHTML = `<i class="fa-solid fa-clipboard-user text-indigo-400"></i> ${escapeHtml(currentSub.name)} (${escapeHtml(currentSub.code || '')}) — Class Attendance`;
+    }
+
+    // Build students list immediately from currentData
+    const students = (currentData && currentData.students ? currentData.students : []).map(s => {
+        const att = s.attendance && s.attendance[subjectId] ? s.attendance[subjectId] : { attended: 0, total: 0, percentage: 100.0, status: 'safe' };
+        const marks = s.marks && s.marks[subjectId] ? s.marks[subjectId] : { score: '-', total: 100, status: 'Pending' };
+        return {
+            id: s.id,
+            name: s.name,
+            roll_no: s.roll_no,
+            branch: s.branch || 'CSE',
+            attended: att.attended || 0,
+            total: att.total || 0,
+            percentage: att.percentage !== undefined ? att.percentage : 100.0,
+            status: att.status || 'safe',
+            score: marks.score || '-',
+            total_marks: marks.total || 100,
+            result: marks.status || 'Pending'
+        };
+    });
+
+    renderTeacherRosterTable(students, currentSub);
 
     try {
         const res = await fetch(`/api/teacher/students/by_subject?subject_id=${subjectId}`);
-        const data = await res.json();
-        
-        const titleEl = document.getElementById("activeSubjectRosterTitle");
-        if (titleEl && data.subject) {
-            titleEl.innerHTML = `<i class="fa-solid fa-clipboard-user text-indigo-400"></i> ${escapeHtml(data.subject.name)} (${escapeHtml(data.subject.code)}) — Class Attendance`;
+        if (res.ok) {
+            const data = await res.json();
+            if (data.students && data.students.length) {
+                renderTeacherRosterTable(data.students, data.subject || currentSub);
+            }
         }
-
-        renderTeacherRosterTable(data.students || [], data.subject || {});
     } catch (err) {
-        console.error("loadTeacherRoster error:", err);
+        console.warn("loadTeacherRoster network sync error:", err);
     }
 }
 
@@ -524,12 +628,17 @@ function renderTeacherSubjectCards() {
     const grid = document.getElementById("teacherSubjectCardsGrid");
     if (!grid) return;
 
-    const subjects = currentData && currentData.raw_subjects ? currentData.raw_subjects : [
+    const subjects = currentData && currentData.raw_subjects && currentData.raw_subjects.length ? currentData.raw_subjects : [
         { id: "os", name: "Operating Systems", code: "CS-501", faculty: "Prof. R. K. Verma" },
         { id: "dsa", name: "Data Structures & Algorithms", code: "CS-502", faculty: "Dr. Sunita Rao" },
-        { id: "dbms", name: "Database Systems", code: "CS-503", faculty: "Dr. Alok Gupta" },
+        { id: "dbms", name: "Database Management Systems", code: "CS-503", faculty: "Dr. Alok Gupta" },
         { id: "cn", name: "Computer Networks", code: "CS-504", faculty: "Prof. Sneha Kapoor" }
     ];
+
+    if (!subjects.some(s => s.id === activeTeacherSubjectId)) {
+        activeTeacherSubjectId = subjects[0].id;
+        localStorage.setItem("campusgenie_active_subject", activeTeacherSubjectId);
+    }
 
     grid.innerHTML = subjects.map(s => {
         const isActive = s.id === activeTeacherSubjectId;
@@ -764,11 +873,82 @@ function renderHodSubjects() {
                 <p class="font-bold text-white">${escapeHtml(s.name)}</p>
                 <p class="text-[10px] text-slate-400">${escapeHtml(s.code)} • ${escapeHtml(s.faculty)}</p>
             </div>
-            <button onclick="handleHodDeleteSubject('${s.id}')" class="p-1.5 text-rose-400 hover:text-rose-200 hover:bg-rose-500/20 rounded-lg transition-all" title="Remove Subject">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-            </button>
+            <div class="flex items-center gap-1.5">
+                <button onclick="openEditSubjectModal('${s.id}')" class="p-1.5 text-cyan-400 hover:text-cyan-200 hover:bg-cyan-500/20 rounded-lg transition-all" title="Edit Subject Details">
+                    <i class="fa-solid fa-pen-to-square text-xs"></i>
+                </button>
+                <button onclick="handleHodDeleteSubject('${s.id}')" class="p-1.5 text-rose-400 hover:text-rose-200 hover:bg-rose-500/20 rounded-lg transition-all" title="Remove Subject">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+            </div>
         </div>
     `).join("");
+}
+
+function openEditSubjectModal(subjectId) {
+    const modal = document.getElementById("editSubjectModal");
+    if (!modal) return;
+    const subjects = currentData && currentData.raw_subjects ? currentData.raw_subjects : [];
+    const sub = subjects.find(s => s.id === subjectId);
+    if (!sub) return;
+
+    document.getElementById("editSubjectId").value = sub.id;
+    document.getElementById("editSubjectName").value = sub.name;
+    document.getElementById("editSubjectCode").value = sub.code;
+    document.getElementById("editSubjectFaculty").value = sub.faculty || "";
+    modal.classList.remove("hidden");
+}
+
+function closeEditSubjectModal() {
+    const modal = document.getElementById("editSubjectModal");
+    if (modal) modal.classList.add("hidden");
+}
+
+async function handleHodSaveEditSubject(event) {
+    event.preventDefault();
+    const id = document.getElementById("editSubjectId").value;
+    const name = document.getElementById("editSubjectName").value.trim();
+    const code = document.getElementById("editSubjectCode").value.trim();
+    const faculty = document.getElementById("editSubjectFaculty").value.trim();
+
+    if (!name || !code) {
+        showToast("Name and Course Code required.", "warning");
+        return;
+    }
+
+    if (currentData && currentData.raw_subjects) {
+        const target = currentData.raw_subjects.find(s => s.id === id);
+        if (target) {
+            target.name = name;
+            target.code = code;
+            target.faculty = faculty;
+        }
+    }
+    if (currentData && currentData.subjects) {
+        const target = currentData.subjects.find(s => s.id === id);
+        if (target) {
+            target.name = name;
+            target.code = code;
+            target.faculty = faculty;
+        }
+    }
+
+    saveStoredData(currentData);
+    syncStateToServer(currentData);
+
+    refreshAllViews();
+    closeEditSubjectModal();
+    showToast(`Subject '${name}' updated successfully!`, "success");
+
+    try {
+        await fetch("/api/hod/subject/edit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ subject_id: id, name, code, faculty })
+        });
+    } catch (e) {
+        console.warn("Edit sync error:", e);
+    }
 }
 
 function renderHodStudents() {
@@ -796,40 +976,103 @@ async function handleHodAddSubject(event) {
     const code = document.getElementById("hodNewSubCode").value.trim();
     const faculty = document.getElementById("hodNewSubFaculty").value.trim();
 
+    if (!name || !code) {
+        showToast("Please provide subject name and code.", "warning");
+        return;
+    }
+
+    const subId = code.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const newSubject = {
+        id: subId,
+        code: code,
+        name: name,
+        faculty: faculty || "Faculty Assigned"
+    };
+
+    if (!currentData) currentData = {};
+    if (!currentData.raw_subjects) currentData.raw_subjects = [];
+    currentData.raw_subjects = currentData.raw_subjects.filter(s => s.id !== subId);
+    currentData.raw_subjects.push(newSubject);
+
+    if (currentData.students) {
+        currentData.students.forEach(stu => {
+            if (!stu.attendance) stu.attendance = {};
+            if (!stu.attendance[subId]) stu.attendance[subId] = { attended: 0, total: 0, percentage: 100.0, status: 'safe' };
+            if (!stu.marks) stu.marks = {};
+            if (!stu.marks[subId]) stu.marks[subId] = { score: '-', total: 100, status: 'Pending' };
+        });
+    }
+    if (currentData.subjects) {
+        currentData.subjects = currentData.subjects.filter(s => s.id !== subId);
+        currentData.subjects.push({
+            id: subId,
+            code: code,
+            name: name,
+            faculty: faculty || "Faculty Assigned",
+            attended: 0,
+            total: 0,
+            percentage: 100.0,
+            status: 'safe',
+            score: '-',
+            total_marks: 100,
+            result: 'Pending'
+        });
+    }
+
+    saveStoredData(currentData);
+    syncStateToServer(currentData);
+
+    refreshAllViews();
+    showToast(`Subject '${name}' added to curriculum!`, "success");
+    event.target.reset();
+
     try {
-        const res = await fetch("/api/admin/subject/add", {
+        await fetch("/api/admin/subject/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, code, faculty })
         });
-        const data = await res.json();
-        if (data.success) {
-            showToast(data.message, "success");
-            event.target.reset();
-            await fetchStudentData();
-            renderHodSubjects();
-        }
-    } catch (err) {
-        console.error("handleHodAddSubject error:", err);
+    } catch (e) {
+        console.warn("Backend add sync error:", e);
     }
 }
 
 async function handleHodDeleteSubject(subjectId) {
     if (!confirm("Are you sure you want to remove this subject from curriculum?")) return;
+
+    if (currentData && currentData.raw_subjects) {
+        currentData.raw_subjects = currentData.raw_subjects.filter(s => s.id !== subjectId);
+    }
+    if (currentData && currentData.subjects) {
+        currentData.subjects = currentData.subjects.filter(s => s.id !== subjectId);
+    }
+    if (currentData && currentData.students) {
+        currentData.students.forEach(stu => {
+            if (stu.attendance) delete stu.attendance[subjectId];
+            if (stu.marks) delete stu.marks[subjectId];
+        });
+    }
+
+    if (activeTeacherSubjectId === subjectId) {
+        const remaining = currentData && currentData.raw_subjects && currentData.raw_subjects.length ? currentData.raw_subjects[0].id : '';
+        activeTeacherSubjectId = remaining;
+        localStorage.setItem("campusgenie_active_subject", activeTeacherSubjectId);
+    }
+
+    saveStoredData(currentData);
+    syncStateToServer(currentData);
+
+    refreshAllViews();
+    showToast("Subject removed from college curriculum.", "info");
+
     try {
-        const res = await fetch("/api/hod/subject/delete", {
+        await fetch("/api/hod/subject/delete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ subject_id: subjectId })
         });
-        const data = await res.json();
-        if (data.success) {
-            showToast(data.message, "success");
-            await fetchStudentData();
-            renderHodSubjects();
-        }
-    } catch (err) {
-        console.error("handleHodDeleteSubject error:", err);
+    } catch (e) {
+        console.warn("Backend delete sync error:", e);
     }
 }
 
