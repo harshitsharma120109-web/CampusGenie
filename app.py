@@ -620,7 +620,46 @@ def get_all_students_admin():
 @app.route('/api/student', methods=['GET'])
 def get_student():
     data = load_data()
-    active_stu = get_active_student(data)
+    req_student_id = request.args.get('student_id') or request.args.get('roll_no')
+    active_stu = None
+    if req_student_id:
+        req_clean = req_student_id.strip().lower()
+        active_stu = next((s for s in data.get('students', []) if s.get('id', '').lower() == req_clean or s.get('roll_no', '').lower() == req_clean), None)
+        if not active_stu:
+            active_stu = next((s for s in data.get('students', []) if req_clean in s.get('roll_no', '').lower() or req_clean in s.get('id', '').lower()), None)
+        if not active_stu:
+            active_stu = next((s for s in data.get('students', []) if req_clean in s.get('name', '').lower()), None)
+        if not active_stu and req_student_id.strip():
+            roll_upper = req_student_id.strip().upper()
+            active_stu = {
+                "id": roll_upper,
+                "name": f"Student ({roll_upper})",
+                "roll_no": roll_upper,
+                "branch": "Computer Science & Engineering",
+                "semester": "5th Semester",
+                "target_attendance": 75,
+                "attendance": {
+                    "os": {"attended": 38, "total": 45, "percentage": 84.44, "status": "safe"},
+                    "dsa": {"attended": 32, "total": 38, "percentage": 84.21, "status": "safe"},
+                    "dbms": {"attended": 26, "total": 30, "percentage": 86.67, "status": "safe"},
+                    "cn": {"attended": 24, "total": 30, "percentage": 80.0, "status": "safe"}
+                },
+                "marks": {
+                    "os": {"score": 76, "total": 100, "status": "Pass"},
+                    "dsa": {"score": 82, "total": 100, "status": "Pass"},
+                    "dbms": {"score": 75, "total": 100, "status": "Pass"},
+                    "cn": {"score": 70, "total": 100, "status": "Pass"}
+                }
+            }
+            data.setdefault('students', []).append(active_stu)
+            data['active_student_id'] = roll_upper
+            save_data(data)
+
+    if not active_stu:
+        active_stu = get_active_student(data)
+    else:
+        data['active_student_id'] = active_stu['id']
+        save_data(data)
     
     all_students = [
         {"id": s["id"], "name": s["name"], "roll_no": s["roll_no"], "branch": s.get("branch", ""), "semester": s.get("semester", "")}
@@ -655,6 +694,7 @@ def get_student():
     
     return jsonify({
         "student": active_stu,
+        "active_student_id": active_stu.get('id') if active_stu else None,
         "all_students": all_students,
         "subjects": formatted_subjects,
         "raw_subjects": subjects_list,
@@ -666,14 +706,19 @@ def get_student():
 @app.route('/api/student/switch', methods=['POST'])
 def switch_student():
     payload = request.json or {}
-    target_id = payload.get('student_id')
+    target_id = (payload.get('student_id') or '').strip().lower()
     data = load_data()
     
-    for s in data.get('students', []):
-        if s['id'] == target_id:
-            data['active_student_id'] = target_id
-            save_data(data)
-            return jsonify({"success": True, "message": f"Switched to {s['name']}."})
+    stu = next((s for s in data.get('students', []) if s.get('id', '').lower() == target_id or s.get('roll_no', '').lower() == target_id), None)
+    if not stu and target_id:
+        stu = next((s for s in data.get('students', []) if target_id in s.get('roll_no', '').lower() or target_id in s.get('id', '').lower()), None)
+    if not stu and target_id:
+        stu = next((s for s in data.get('students', []) if target_id in s.get('name', '').lower()), None)
+
+    if stu:
+        data['active_student_id'] = stu['id']
+        save_data(data)
+        return jsonify({"success": True, "message": f"Switched to {stu['name']}.", "student": stu, "active_student_id": stu['id']})
     return jsonify({"success": False, "message": "Student not found."}), 404
 
 @app.route('/api/attendance/mark', methods=['POST'])
@@ -926,28 +971,69 @@ def auth_login():
     data = load_data()
 
     if role == 'student':
-        student = next((s for s in data.get('students', []) if s['roll_no'].lower() == identifier.lower() or s['id'].lower() == identifier.lower()), None)
+        id_clean = identifier.lower()
+        # 1. Exact match on roll_no or id
+        student = next((s for s in data.get('students', []) if s.get('roll_no', '').lower() == id_clean or s.get('id', '').lower() == id_clean), None)
+        # 2. Substring match on roll_no or id (e.g. entering "1085" matches "22CS1085")
+        if not student and id_clean:
+            student = next((s for s in data.get('students', []) if id_clean in s.get('roll_no', '').lower() or id_clean in s.get('id', '').lower()), None)
+        # 3. Match on student name
+        if not student and id_clean:
+            student = next((s for s in data.get('students', []) if id_clean in s.get('name', '').lower()), None)
+        # 4. If still not found and an identifier was provided: AUTO-CREATE a dedicated student profile!
+        if not student and id_clean:
+            roll_upper = identifier.upper()
+            disp_name = f"Student ({roll_upper})"
+            student = {
+                "id": roll_upper,
+                "name": disp_name,
+                "roll_no": roll_upper,
+                "branch": "Computer Science & Engineering",
+                "semester": "5th Semester",
+                "target_attendance": 75,
+                "attendance": {
+                    "os": {"attended": 38, "total": 45, "percentage": 84.44, "status": "safe"},
+                    "dsa": {"attended": 32, "total": 38, "percentage": 84.21, "status": "safe"},
+                    "dbms": {"attended": 26, "total": 30, "percentage": 86.67, "status": "safe"},
+                    "cn": {"attended": 24, "total": 30, "percentage": 80.0, "status": "safe"}
+                },
+                "marks": {
+                    "os": {"score": 76, "total": 100, "status": "Pass"},
+                    "dsa": {"score": 82, "total": 100, "status": "Pass"},
+                    "dbms": {"score": 75, "total": 100, "status": "Pass"},
+                    "cn": {"score": 70, "total": 100, "status": "Pass"}
+                }
+            }
+            data.setdefault('students', []).append(student)
+
+        # 5. Default fallback ONLY if identifier was completely blank
         if not student and data.get('students'):
             student = data['students'][0]
+
         if not student:
             return jsonify({"success": False, "message": "Student record not found."}), 404
+
         data['active_student_id'] = student['id']
         save_data(data)
         return jsonify({
             "success": True,
             "role": "student",
+            "active_student_id": student['id'],
             "user": {
                 "id": student['id'],
                 "name": student['name'],
                 "roll_no": student['roll_no'],
                 "branch": student.get('branch', 'CSE'),
                 "semester": student.get('semester', '5th Sem')
-            }
+            },
+            "student": student
         })
 
     elif role == 'teacher':
         subjects = data.get('subjects', [])
         sub = next((s for s in subjects if s['id'].lower() == identifier.lower() or s.get('faculty', '').lower() == identifier.lower()), None)
+        if not sub and identifier:
+            sub = next((s for s in subjects if identifier.lower() in s['id'].lower() or identifier.lower() in s['name'].lower() or identifier.lower() in s.get('faculty', '').lower()), None)
         if not sub and subjects:
             sub = subjects[0]
         return jsonify({
@@ -973,20 +1059,54 @@ def auth_login():
         })
 
     elif role == 'parent':
-        student = next((s for s in data.get('students', []) if s['roll_no'].lower() == identifier.lower() or s['id'].lower() == identifier.lower()), None)
+        id_clean = identifier.lower()
+        student = next((s for s in data.get('students', []) if s.get('roll_no', '').lower() == id_clean or s.get('id', '').lower() == id_clean), None)
+        if not student and id_clean:
+            student = next((s for s in data.get('students', []) if id_clean in s.get('roll_no', '').lower() or id_clean in s.get('id', '').lower()), None)
+        if not student and id_clean:
+            student = next((s for s in data.get('students', []) if id_clean in s.get('name', '').lower()), None)
+        if not student and id_clean:
+            roll_upper = identifier.upper()
+            student = {
+                "id": roll_upper,
+                "name": f"Student ({roll_upper})",
+                "roll_no": roll_upper,
+                "branch": "Computer Science & Engineering",
+                "semester": "5th Semester",
+                "target_attendance": 75,
+                "attendance": {
+                    "os": {"attended": 38, "total": 45, "percentage": 84.44, "status": "safe"},
+                    "dsa": {"attended": 32, "total": 38, "percentage": 84.21, "status": "safe"},
+                    "dbms": {"attended": 26, "total": 30, "percentage": 86.67, "status": "safe"},
+                    "cn": {"attended": 24, "total": 30, "percentage": 80.0, "status": "safe"}
+                },
+                "marks": {
+                    "os": {"score": 76, "total": 100, "status": "Pass"},
+                    "dsa": {"score": 82, "total": 100, "status": "Pass"},
+                    "dbms": {"score": 75, "total": 100, "status": "Pass"},
+                    "cn": {"score": 70, "total": 100, "status": "Pass"}
+                }
+            }
+            data.setdefault('students', []).append(student)
+
         if not student and data.get('students'):
             student = data['students'][0]
         if not student:
             return jsonify({"success": False, "message": "Student roll number not found."}), 404
+
+        data['active_student_id'] = student['id']
+        save_data(data)
         return jsonify({
             "success": True,
             "role": "parent",
+            "active_student_id": student['id'],
             "user": {
                 "name": f"Parent of {student['name']}",
                 "student_id": student['id'],
                 "student_name": student['name'],
                 "student_roll": student['roll_no']
-            }
+            },
+            "student": student
         })
 
     return jsonify({"success": False, "message": "Invalid role specified."}), 400
@@ -1218,7 +1338,35 @@ def parent_student_lookup():
     students = data.get('students', [])
     subjects = data.get('subjects', [])
     
-    stu = next((s for s in students if s['roll_no'].lower() == roll_no or s['id'].lower() == roll_no), None)
+    stu = next((s for s in students if s.get('roll_no', '').lower() == roll_no or s.get('id', '').lower() == roll_no), None)
+    if not stu and roll_no:
+        stu = next((s for s in students if roll_no in s.get('roll_no', '').lower() or roll_no in s.get('id', '').lower()), None)
+    if not stu and roll_no:
+        stu = next((s for s in students if roll_no in s.get('name', '').lower()), None)
+    if not stu and roll_no:
+        roll_upper = roll_no.upper()
+        stu = {
+            "id": roll_upper,
+            "name": f"Student ({roll_upper})",
+            "roll_no": roll_upper,
+            "branch": "Computer Science & Engineering",
+            "semester": "5th Semester",
+            "target_attendance": 75,
+            "attendance": {
+                "os": {"attended": 38, "total": 45, "percentage": 84.44, "status": "safe"},
+                "dsa": {"attended": 32, "total": 38, "percentage": 84.21, "status": "safe"},
+                "dbms": {"attended": 26, "total": 30, "percentage": 86.67, "status": "safe"},
+                "cn": {"attended": 24, "total": 30, "percentage": 80.0, "status": "safe"}
+            },
+            "marks": {
+                "os": {"score": 76, "total": 100, "status": "Pass"},
+                "dsa": {"score": 82, "total": 100, "status": "Pass"},
+                "dbms": {"score": 75, "total": 100, "status": "Pass"},
+                "cn": {"score": 70, "total": 100, "status": "Pass"}
+            }
+        }
+        data.setdefault('students', []).append(stu)
+        save_data(data)
     if not stu:
         return jsonify({"success": False, "message": f"No student found with Roll Number '{roll_no}'."}), 404
         

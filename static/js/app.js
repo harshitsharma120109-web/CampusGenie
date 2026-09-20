@@ -74,7 +74,8 @@ document.addEventListener("DOMContentLoaded", () => {
         showLoginScreen();
     }
 
-    fetchStudentData();
+    const activeId = (currentUser && currentUser.role === 'student') ? (currentUser.id || currentUser.roll_no) : null;
+    fetchStudentData(3, activeId);
     fetchNotifications();
 });
 
@@ -180,7 +181,7 @@ function updateTopBarUserBadge(role) {
 
     if (role === 'teacher') {
         if (avatar) { avatar.innerText = "VK"; avatar.className = "w-6 h-6 rounded-lg bg-cyan-600 text-white font-bold flex items-center justify-center text-[10px]"; }
-        if (nameEl) nameEl.innerText = currentUser.name && currentUser.role === 'teacher' ? currentUser.name : "Prof. R. K. Verma";
+        if (nameEl) nameEl.innerText = currentUser && currentUser.name && currentUser.role === 'teacher' ? currentUser.name : "Prof. R. K. Verma";
         if (roleEl) roleEl.innerText = "Faculty (Operating Systems)";
     } else if (role === 'hod') {
         if (avatar) { avatar.innerText = "SB"; avatar.className = "w-6 h-6 rounded-lg bg-purple-600 text-white font-bold flex items-center justify-center text-[10px]"; }
@@ -188,14 +189,16 @@ function updateTopBarUserBadge(role) {
         if (roleEl) roleEl.innerText = "HOD (Computer Science)";
     } else if (role === 'parent') {
         if (avatar) { avatar.innerText = "PR"; avatar.className = "w-6 h-6 rounded-lg bg-teal-600 text-white font-bold flex items-center justify-center text-[10px]"; }
-        const stuName = currentData && currentData.student ? currentData.student.name : "Harshit";
+        const stuName = (currentData && currentData.student && currentData.student.name) || (currentUser && currentUser.student_name) || "Harshit";
         if (nameEl) nameEl.innerText = `Parent of ${stuName}`;
         if (roleEl) roleEl.innerText = "Parent Academic Portal";
     } else {
-        const stu = currentData && currentData.student ? currentData.student : { name: "Harshit Sharma", roll_no: "22CS1084" };
-        if (avatar) { avatar.innerText = "HS"; avatar.className = "w-6 h-6 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px]"; }
+        const stu = (currentData && currentData.student) || (currentUser && currentUser.role === 'student' ? currentUser : null) || { name: "Harshit Sharma", roll_no: "22CS1084" };
+        const parts = (stu.name || "Student").trim().split(" ");
+        const initials = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0].slice(0, 2).toUpperCase();
+        if (avatar) { avatar.innerText = initials; avatar.className = "w-6 h-6 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px]"; }
         if (nameEl) nameEl.innerText = stu.name;
-        if (roleEl) roleEl.innerText = `Student (${stu.roll_no})`;
+        if (roleEl) roleEl.innerText = `Student (${stu.roll_no || ''})`;
     }
 }
 
@@ -222,6 +225,11 @@ function showMainApp(role) {
 
 function handleLogout() {
     localStorage.removeItem("campusgenie_authenticated");
+    localStorage.removeItem("campusgenie_role");
+    localStorage.removeItem("campusgenie_user");
+    localStorage.removeItem("campusgenie_data");
+    currentUser = null;
+    currentData = null;
     showLoginScreen();
     showToast("Logged out successfully. Please select a role to sign in.", "info");
 }
@@ -274,6 +282,22 @@ async function performGatewayLogin(role, identifier) {
             localStorage.setItem("campusgenie_authenticated", "true");
             localStorage.setItem("campusgenie_role", role);
             localStorage.setItem("campusgenie_user", JSON.stringify(currentUser));
+
+            if (data.student) {
+                currentData = currentData || {};
+                currentData.student = data.student;
+                currentData.active_student_id = data.active_student_id || data.student.id;
+            }
+
+            if (role === 'student') {
+                const sid = data.active_student_id || (data.user && data.user.id) || identifier;
+                await fetchStudentData(2, sid);
+            } else if (role === 'parent') {
+                const roll = (data.user && data.user.student_roll) || identifier;
+                const rollInput = document.getElementById("parentRollInput");
+                if (rollInput) rollInput.value = roll;
+                await fetchParentStudentData(roll);
+            }
 
             showMainApp(role);
             showToast(`Welcome ${currentUser.name}! Signed in as ${role.toUpperCase()}.`, "success");
@@ -356,14 +380,26 @@ async function quickDemoLogin(role, identifier) {
             localStorage.setItem("campusgenie_role", role);
             localStorage.setItem("campusgenie_user", JSON.stringify(currentUser));
             closeLoginModal();
-            showMainApp(role);
-            if (role === 'teacher' && data.user.subject_id) {
+
+            if (role === 'teacher' && data.user && data.user.subject_id) {
                 activeTeacherSubjectId = data.user.subject_id;
+                localStorage.setItem("campusgenie_active_subject", activeTeacherSubjectId);
+            }
+            if (data.student) {
+                currentData = currentData || {};
+                currentData.student = data.student;
+                currentData.active_student_id = data.active_student_id || data.student.id;
             }
             if (role === 'student') {
-                await fetchStudentData();
+                const sid = data.active_student_id || (data.user && data.user.id) || identifier;
+                await fetchStudentData(2, sid);
+            } else if (role === 'parent') {
+                const roll = (data.user && data.user.student_roll) || identifier;
+                const rollInput = document.getElementById("parentRollInput");
+                if (rollInput) rollInput.value = roll;
+                await fetchParentStudentData(roll);
             }
-            switchRole(role);
+            showMainApp(role);
             showToast(`Logged in successfully as ${currentUser.name}!`, "success");
         } else {
             showToast(data.message || "Login failed", "error");
@@ -382,22 +418,22 @@ async function handleManualLogin(event) {
 }
 
 // ── Fetch Student Data ─────────────────────────────────────────────────────
-async function fetchStudentData(retryCount = 3) {
+async function fetchStudentData(retryCount = 3, targetStudentId = null) {
     try {
-        const res = await fetch("/api/student");
+        let sid = targetStudentId;
+        if (!sid && currentUser && currentUser.role === 'student') {
+            sid = currentUser.id || currentUser.roll_no;
+        }
+        const url = sid ? `/api/student?student_id=${encodeURIComponent(sid)}` : "/api/student";
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         
-        const localData = getStoredData();
-        if (localData && localData.raw_subjects && localData.raw_subjects.length) {
-            currentData = { ...data, ...localData };
-            syncStateToServer(currentData);
-        } else {
-            currentData = data;
-            saveStoredData(currentData);
-        }
+        currentData = data;
+        saveStoredData(currentData);
 
         refreshAllViews();
+        if (currentRole) updateTopBarUserBadge(currentRole);
     } catch (err) {
         console.error("fetchStudentData failed:", err);
         const localData = getStoredData();
@@ -406,7 +442,7 @@ async function fetchStudentData(retryCount = 3) {
             refreshAllViews();
         }
         if (retryCount > 0) {
-            setTimeout(() => fetchStudentData(retryCount - 1), 1200);
+            setTimeout(() => fetchStudentData(retryCount - 1, targetStudentId), 1200);
         }
     }
 }
@@ -422,7 +458,18 @@ async function handleSwitchStudent(studentId) {
         });
         const data = await res.json();
         if (data.success) {
-            await fetchStudentData();
+            if (currentUser && currentUser.role === 'student' && data.student) {
+                currentUser = {
+                    id: data.student.id,
+                    name: data.student.name,
+                    roll_no: data.student.roll_no,
+                    role: 'student',
+                    branch: data.student.branch,
+                    semester: data.student.semester
+                };
+                localStorage.setItem("campusgenie_user", JSON.stringify(currentUser));
+            }
+            await fetchStudentData(2, studentId);
             showToast(`Active student: ${data.message}`, "info");
         }
     } catch (err) {
@@ -1242,7 +1289,13 @@ async function handleHodDeleteStudent(studentId) {
 // ── PARENT PORTAL LOGIC ────────────────────────────────────────────────────
 async function loadParentDashboard() {
     const rollInput = document.getElementById("parentRollInput");
-    const roll = rollInput ? rollInput.value.trim() : "22CS1084";
+    let roll = "22CS1084";
+    if (currentUser && currentUser.role === 'parent' && currentUser.student_roll) {
+        roll = currentUser.student_roll;
+    } else if (rollInput && rollInput.value.trim()) {
+        roll = rollInput.value.trim();
+    }
+    if (rollInput) rollInput.value = roll;
     await fetchParentStudentData(roll);
 }
 
