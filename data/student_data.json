@@ -32,6 +32,18 @@
           "total": 30,
           "percentage": 70.0,
           "status": "warning"
+        },
+        "se": {
+          "attended": 18,
+          "total": 22,
+          "percentage": 81.82,
+          "status": "safe"
+        },
+        "cg": {
+          "attended": 12,
+          "total": 20,
+          "percentage": 60.0,
+          "status": "warning"
         }
       },
       "marks": {
@@ -54,6 +66,16 @@
           "score": 38,
           "total": 100,
           "status": "Fail"
+        },
+        "se": {
+          "score": 65,
+          "total": 100,
+          "status": "Pass"
+        },
+        "cg": {
+          "score": "-",
+          "total": 100,
+          "status": "Pending"
         }
       },
       "password": "student123",
@@ -115,6 +137,18 @@
           "total": 30,
           "percentage": 90.0,
           "status": "safe"
+        },
+        "se": {
+          "attended": 20,
+          "total": 22,
+          "percentage": 90.91,
+          "status": "safe"
+        },
+        "cg": {
+          "attended": 18,
+          "total": 20,
+          "percentage": 90.0,
+          "status": "safe"
         }
       },
       "marks": {
@@ -137,6 +171,16 @@
           "score": 85,
           "total": 100,
           "status": "Pass"
+        },
+        "se": {
+          "score": 90,
+          "total": 100,
+          "status": "Pass"
+        },
+        "cg": {
+          "score": "-",
+          "total": 100,
+          "status": "Pending"
         }
       },
       "password": "student123",
@@ -159,38 +203,81 @@
     },
     {
       "id": "26330",
-      "name": "jay",
+      "name": "Jay Mehta",
       "roll_no": "26330",
       "branch": "CSE GEN B",
-      "semester": "5th Sem",
+      "semester": "5th Semester",
       "target_attendance": 75,
       "attendance": {
         "os": {
-          "attended": 1,
-          "total": 1,
-          "percentage": 100.0,
-          "status": "safe"
+          "attended": 18,
+          "total": 30,
+          "percentage": 60.0,
+          "status": "warning"
         },
         "dsa": {
-          "attended": 0,
-          "total": 1,
-          "percentage": 0.0,
+          "attended": 16,
+          "total": 30,
+          "percentage": 53.33,
           "status": "warning"
         },
         "dbms": {
-          "attended": 1,
-          "total": 1,
-          "percentage": 100.0,
-          "status": "safe"
+          "attended": 20,
+          "total": 30,
+          "percentage": 66.67,
+          "status": "warning"
         },
         "cn": {
-          "attended": 1,
-          "total": 1,
-          "percentage": 100.0,
-          "status": "safe"
+          "attended": 22,
+          "total": 30,
+          "percentage": 73.33,
+          "status": "warning"
+        },
+        "se": {
+          "attended": 14,
+          "total": 22,
+          "percentage": 63.64,
+          "status": "warning"
+        },
+        "cg": {
+          "attended": 12,
+          "total": 20,
+          "percentage": 60.0,
+          "status": "warning"
         }
       },
-      "marks": {},
+      "marks": {
+        "os": {
+          "score": 42,
+          "total": 100,
+          "status": "Pass"
+        },
+        "dsa": {
+          "score": 38,
+          "total": 100,
+          "status": "Fail"
+        },
+        "dbms": {
+          "score": 50,
+          "total": 100,
+          "status": "Pass"
+        },
+        "cn": {
+          "score": 35,
+          "total": 100,
+          "status": "Fail"
+        },
+        "se": {
+          "score": "-",
+          "total": 100,
+          "status": "Pending"
+        },
+        "cg": {
+          "score": "-",
+          "total": 100,
+          "status": "Pending"
+        }
+      },
       "password": "student123",
       "fees": {
         "total_fee": 125000,
@@ -207,6 +294,283 @@
             "status": "Success"
           }
         ]
+      }
+    },
+    {
+      "id": "22CS1086",
+      "name": "Rohan Verma",
+      "roll_no": "22CS1086",
+      "branch": "Computer Science & Engineering",
+      "semester": "5th Semester",
+      "target_attendance": 75,
+      "attendance": {
+        "os": {
+          "attended": 20,
+          "total": 30,
+          "percentage": 66.67,
+          "status": "warning"
+        },
+        "dsa": {
+          "attended": 22,
+          "total": 30,
+          "percentage": 73.33,
+          "status": "warning"
+        },
+        "dbms": {
+          "attended": 24,
+          "total": 30,
+          "percentage": 80.0,
+          "status": "safe"
+        },
+        "cn": {
+          "attended": 18,
+          "total": 30,
+          "percentage": 60.0,
+          "status": "warning"
+        },
+        "se": {
+          "attended": 15,
+          "total": 22,
+          "percentage": 68.18,
+          "status": "warning"
+        },
+        "cg": {
+          "attended": 14,
+          "total": 20,
+          "percentage": 70.0,
+          "status": "warning"
+        }
+      },
+      "marks": {
+        "os": {
+          "score": 55,
+          "total": 100,
+          "status": "Pass"
+        },
+        "dsa": {
+          "score": 61,
+          "total": 100,
+          "status": "Pass"
+        },
+        "dbms": {
+          "score": 70,
+          "total": 100,
+          "status": "Pass"
+        },
+        "cn": {
+          "score": 45,
+          "total": 100,
+          "status": "Pass"
+        },
+        "se": {
+          "score": "-",
+          "total": 100,
+          "status": "Pending"
+        },
+        "cg": {
+          "score": "-",
+          "total": 100,
+          "status": "Pending"
+        }
+      },
+      "password": "student123",
+      "fees": {
+        "total_fee": 125000,
+        "paid_amount": 50000,
+        "due_amount": 75000,
+        "status": "partial",
+        "due_date": "15 Oct 2026",
+        "transactions": [
+          {
+            "receipt_no": "AKGEC-FEE-9112",
+            "date": "12 Aug 2026",
+            "amount": 50000,
+            "mode": "NEFT / Net Banking",
+            "status": "Success"
+          }
+        ]
+      }
+    },
+    {
+      "id": "22CS1087",
+      "name": "Anjali Singh",
+      "roll_no": "22CS1087",
+      "branch": "Computer Science & Engineering",
+      "semester": "5th Semester",
+      "target_attendance": 75,
+      "attendance": {
+        "os": {
+          "attended": 44,
+          "total": 50,
+          "percentage": 88.0,
+          "status": "safe"
+        },
+        "dsa": {
+          "attended": 40,
+          "total": 48,
+          "percentage": 83.33,
+          "status": "safe"
+        },
+        "dbms": {
+          "attended": 28,
+          "total": 30,
+          "percentage": 93.33,
+          "status": "safe"
+        },
+        "cn": {
+          "attended": 26,
+          "total": 30,
+          "percentage": 86.67,
+          "status": "safe"
+        },
+        "se": {
+          "attended": 21,
+          "total": 22,
+          "percentage": 95.45,
+          "status": "safe"
+        },
+        "cg": {
+          "attended": 19,
+          "total": 20,
+          "percentage": 95.0,
+          "status": "safe"
+        }
+      },
+      "marks": {
+        "os": {
+          "score": 92,
+          "total": 100,
+          "status": "Pass"
+        },
+        "dsa": {
+          "score": 89,
+          "total": 100,
+          "status": "Pass"
+        },
+        "dbms": {
+          "score": 95,
+          "total": 100,
+          "status": "Pass"
+        },
+        "cn": {
+          "score": 88,
+          "total": 100,
+          "status": "Pass"
+        },
+        "se": {
+          "score": 91,
+          "total": 100,
+          "status": "Pass"
+        },
+        "cg": {
+          "score": "-",
+          "total": 100,
+          "status": "Pending"
+        }
+      },
+      "password": "student123",
+      "fees": {
+        "total_fee": 125000,
+        "paid_amount": 125000,
+        "due_amount": 0,
+        "status": "paid",
+        "due_date": "15 Oct 2026",
+        "transactions": [
+          {
+            "receipt_no": "AKGEC-FEE-9245",
+            "date": "01 Aug 2026",
+            "amount": 125000,
+            "mode": "Online UPI (GPay / PhonePe)",
+            "status": "Success"
+          }
+        ]
+      }
+    },
+    {
+      "id": "22CS1088",
+      "name": "Karan Malhotra",
+      "roll_no": "22CS1088",
+      "branch": "Computer Science & Engineering",
+      "semester": "5th Semester",
+      "target_attendance": 75,
+      "attendance": {
+        "os": {
+          "attended": 16,
+          "total": 30,
+          "percentage": 53.33,
+          "status": "warning"
+        },
+        "dsa": {
+          "attended": 14,
+          "total": 30,
+          "percentage": 46.67,
+          "status": "warning"
+        },
+        "dbms": {
+          "attended": 20,
+          "total": 30,
+          "percentage": 66.67,
+          "status": "warning"
+        },
+        "cn": {
+          "attended": 13,
+          "total": 30,
+          "percentage": 43.33,
+          "status": "warning"
+        },
+        "se": {
+          "attended": 10,
+          "total": 22,
+          "percentage": 45.45,
+          "status": "warning"
+        },
+        "cg": {
+          "attended": 9,
+          "total": 20,
+          "percentage": 45.0,
+          "status": "warning"
+        }
+      },
+      "marks": {
+        "os": {
+          "score": 30,
+          "total": 100,
+          "status": "Fail"
+        },
+        "dsa": {
+          "score": 28,
+          "total": 100,
+          "status": "Fail"
+        },
+        "dbms": {
+          "score": 45,
+          "total": 100,
+          "status": "Pass"
+        },
+        "cn": {
+          "score": 22,
+          "total": 100,
+          "status": "Fail"
+        },
+        "se": {
+          "score": "-",
+          "total": 100,
+          "status": "Pending"
+        },
+        "cg": {
+          "score": "-",
+          "total": 100,
+          "status": "Pending"
+        }
+      },
+      "password": "student123",
+      "fees": {
+        "total_fee": 125000,
+        "paid_amount": 0,
+        "due_amount": 125000,
+        "status": "overdue",
+        "due_date": "10 Sept 2026",
+        "transactions": []
       }
     }
   ],
@@ -234,6 +598,18 @@
       "code": "CS-504",
       "name": "Computer Networks",
       "faculty": "Prof. Sneha Kapoor"
+    },
+    {
+      "id": "se",
+      "code": "CS-505",
+      "name": "Software Engineering",
+      "faculty": "Prof. Manoj Tiwari"
+    },
+    {
+      "id": "cg",
+      "code": "CS-506",
+      "name": "Computer Graphics",
+      "faculty": "Dr. Priya Sharma"
     }
   ],
   "timetable": [
@@ -272,6 +648,42 @@
       "faculty": "Dr. Alok Gupta",
       "type": "Theory",
       "status": "upcoming"
+    },
+    {
+      "time": "02:45 PM - 03:45 PM",
+      "subject": "Software Engineering",
+      "code": "CS-505",
+      "room": "Room 401 (Lecture Block A)",
+      "faculty": "Prof. Manoj Tiwari",
+      "type": "Theory",
+      "status": "upcoming"
+    },
+    {
+      "time": "04:00 PM - 05:00 PM",
+      "subject": "Computer Graphics Lab",
+      "code": "CS-506P",
+      "room": "Graphics Lab (IT Block, Floor 2)",
+      "faculty": "Dr. Priya Sharma",
+      "type": "Practical",
+      "status": "upcoming"
+    },
+    {
+      "time": "08:00 AM - 09:00 AM",
+      "subject": "Data Structures & Algorithms",
+      "code": "CS-502",
+      "room": "Room 310 (Lecture Block A)",
+      "faculty": "Dr. Sunita Rao",
+      "type": "Theory",
+      "status": "upcoming"
+    },
+    {
+      "time": "03:00 PM - 04:00 PM",
+      "subject": "Computer Networks Lab",
+      "code": "CS-504P",
+      "room": "Network Lab (IT Block, Floor 1)",
+      "faculty": "Prof. Sneha Kapoor",
+      "type": "Practical",
+      "status": "upcoming"
     }
   ],
   "opportunities": [
@@ -301,6 +713,24 @@
       "deadline": "05 Oct 2026",
       "link": "https://www.tcscodevita.com",
       "desc": "Global programming competition. Top performers get direct Interview Call Letters for TCS Digital & Innovator roles."
+    },
+    {
+      "id": 4,
+      "title": "Microsoft Learn Student Ambassadors 2026",
+      "category": "Program",
+      "badge": "Microsoft Official",
+      "deadline": "15 Oct 2026",
+      "link": "https://studentambassadors.microsoft.com",
+      "desc": "Become an MLSA — get Azure credits, Microsoft certifications, mentorship, and exclusive swag. Open to all college students."
+    },
+    {
+      "id": 5,
+      "title": "HackWithInfy 2026 — Infosys Coding Challenge",
+      "category": "Hackathon / Job",
+      "badge": "Placement Track",
+      "deadline": "25 Oct 2026",
+      "link": "https://www.infosys.com/careers/hackwithinfy.html",
+      "desc": "National-level hackathon by Infosys. Shortlisted students get internship offers + PPO (Pre-Placement Offer) for full-time roles."
     }
   ],
   "notices": [
@@ -310,6 +740,20 @@
       "date": "Today",
       "badge": "Urgent",
       "content": "5th Semester exam form deadline is 25th September. Submit via ERP portal."
+    },
+    {
+      "id": 2,
+      "title": "Mid-Semester Examination Schedule — October 2026",
+      "date": "22 Sep 2026",
+      "badge": "Exam",
+      "content": "Mid-semester exams for 5th semester will be held from 10th October to 18th October 2026. Timetable uploaded on AKGEC academic portal. Students must have minimum 75% attendance to appear."
+    },
+    {
+      "id": 3,
+      "title": "Library Clearance — No-Dues Certificate Required",
+      "date": "20 Sep 2026",
+      "badge": "Administrative",
+      "content": "All students are required to clear library dues and return borrowed books by 30th September 2026 to obtain No-Dues Certificate mandatory for exam form submission."
     }
   ],
   "assignments": [
@@ -386,6 +830,22 @@
             "mic_monitored": true,
             "integrity_score": "98% (No Suspicious Eye/Audio Activity Detected)"
           }
+        },
+        "22CS1087": {
+          "student_id": "22CS1087",
+          "student_name": "Anjali Singh",
+          "roll_no": "22CS1087",
+          "date": "21 Sep 2026, 07:15 PM",
+          "score": 18,
+          "total_marks": 20,
+          "percentage": 90.0,
+          "status": "Passed",
+          "proctor_verified": true,
+          "proctor_details": {
+            "camera_monitored": true,
+            "mic_monitored": true,
+            "integrity_score": "99% (No Suspicious Eye/Audio Activity Detected)"
+          }
         }
       }
     },
@@ -446,13 +906,169 @@
           "correct": 1
         }
       ],
+      "submissions": {
+        "22CS1085": {
+          "student_id": "22CS1085",
+          "student_name": "Priya Patel",
+          "roll_no": "22CS1085",
+          "date": "22 Sep 2026, 04:30 PM",
+          "score": 20,
+          "total_marks": 20,
+          "percentage": 100.0,
+          "status": "Passed",
+          "proctor_verified": true,
+          "proctor_details": {
+            "camera_monitored": true,
+            "mic_monitored": true,
+            "integrity_score": "100% (Perfect Session)"
+          }
+        }
+      }
+    },
+    {
+      "id": "asg-dbms-01",
+      "title": "DBMS Normalization & SQL Transactions Lab",
+      "subject": "Database Management Systems",
+      "subject_code": "CS-503",
+      "faculty": "Dr. Alok Gupta",
+      "deadline": "02 Oct 2026",
+      "total_marks": 25,
+      "mode": "hybrid",
+      "pdf_filename": "AKGEC_CS503_DBMS_Assignment_1.pdf",
+      "description": "Database normalization (1NF to BCNF), functional dependencies, and ACID transaction properties.",
+      "questions": [
+        {
+          "id": 1,
+          "q": "A relation is in 3NF if it is in 2NF and has no:",
+          "options": [
+            "Partial Dependencies",
+            "Transitive Dependencies",
+            "Multi-valued Dependencies",
+            "Join Dependencies"
+          ],
+          "correct": 1
+        },
+        {
+          "id": 2,
+          "q": "Which ACID property ensures that a transaction either completes fully or has no effect at all?",
+          "options": [
+            "Consistency",
+            "Isolation",
+            "Atomicity",
+            "Durability"
+          ],
+          "correct": 2
+        },
+        {
+          "id": 3,
+          "q": "In SQL, which JOIN returns all rows from the LEFT table and matched rows from the RIGHT table?",
+          "options": [
+            "INNER JOIN",
+            "RIGHT JOIN",
+            "LEFT JOIN",
+            "CROSS JOIN"
+          ],
+          "correct": 2
+        },
+        {
+          "id": 4,
+          "q": "BCNF (Boyce-Codd Normal Form) is stricter than 3NF because it requires:",
+          "options": [
+            "Every determinant must be a candidate key",
+            "No partial dependencies",
+            "No multi-valued dependencies",
+            "No composite primary keys"
+          ],
+          "correct": 0
+        },
+        {
+          "id": 5,
+          "q": "Which concurrency problem occurs when a transaction reads data that another uncommitted transaction has modified?",
+          "options": [
+            "Phantom Read",
+            "Non-repeatable Read",
+            "Dirty Read",
+            "Lost Update"
+          ],
+          "correct": 2
+        }
+      ],
+      "submissions": {}
+    },
+    {
+      "id": "asg-cn-01",
+      "title": "Computer Networks — TCP/IP & Subnetting Assessment",
+      "subject": "Computer Networks",
+      "subject_code": "CS-504",
+      "faculty": "Prof. Sneha Kapoor",
+      "deadline": "05 Oct 2026",
+      "total_marks": 20,
+      "mode": "proctored",
+      "pdf_filename": "AKGEC_CS504_CN_Assignment_1.pdf",
+      "description": "TCP vs UDP protocol differences, OSI model layers, and IP subnetting calculations.",
+      "questions": [
+        {
+          "id": 1,
+          "q": "Which layer of the OSI model is responsible for end-to-end communication and reliability?",
+          "options": [
+            "Network Layer",
+            "Data Link Layer",
+            "Transport Layer",
+            "Session Layer"
+          ],
+          "correct": 2
+        },
+        {
+          "id": 2,
+          "q": "How many usable host addresses are available in a /26 subnet?",
+          "options": [
+            "62",
+            "64",
+            "30",
+            "126"
+          ],
+          "correct": 0
+        },
+        {
+          "id": 3,
+          "q": "TCP uses a 3-way handshake. What is the correct sequence?",
+          "options": [
+            "SYN, ACK, SYN-ACK",
+            "SYN, SYN-ACK, ACK",
+            "ACK, SYN, SYN-ACK",
+            "SYN-ACK, SYN, ACK"
+          ],
+          "correct": 1
+        },
+        {
+          "id": 4,
+          "q": "Which protocol is used by DNS and why?",
+          "options": [
+            "TCP — for reliability",
+            "UDP — for speed and low overhead",
+            "ICMP — for error reporting",
+            "HTTP — for web compatibility"
+          ],
+          "correct": 1
+        }
+      ],
       "submissions": {}
     }
   ],
   "teacher_attendance_sessions": {
     "os_2026-09-20": {
       "22CS1084": "present",
-      "22CS1085": "present"
+      "22CS1085": "present",
+      "22CS1086": "absent",
+      "22CS1087": "present",
+      "22CS1088": "absent"
+    },
+    "dsa_2026-09-21": {
+      "22CS1084": "present",
+      "22CS1085": "present",
+      "22CS1086": "present",
+      "22CS1087": "present",
+      "22CS1088": "absent"
     }
   }
 }

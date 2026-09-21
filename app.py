@@ -341,6 +341,79 @@ STUDY_KNOWLEDGE = {
         "complexity": "Disk access is 10âµÃ— slower than RAM. Disk scheduling algorithms minimise seek time: FCFS, SSTF (Shortest Seek Time First), SCAN (elevator), C-SCAN (circular), LOOK.",
         "exam_tip": "**Inode structure**: 12 direct pointers + 1 single-indirect + 1 double-indirect + 1 triple-indirect. For block size B and pointer size P: max file size = 12B + (B/P)B + (B/P)Â²B + (B/P)Â³B. Disk scheduling: SSTF minimises seek but causes starvation. SCAN is the standard elevator algorithm — most commonly tested. File permissions in Unix: rwx = read(4) write(2) execute(1). `chmod 755` = rwxr-xr-x."
     },
+
+    # ── PHASE 2 ADDITIONS — Modern CS Topics ─────────────────────────────────
+    "cryptography": {
+        "title": "Cryptography & Network Security",
+        "subject": "CNS",
+        "explanation": "The science of securing communication using mathematical algorithms. **Symmetric encryption**: same key for encrypt & decrypt (AES, DES) — fast, used for bulk data. **Asymmetric encryption**: public key encrypts, private key decrypts (RSA) — slow, used for key exchange & digital signatures. **Hashing**: one-way function (SHA-256, MD5) — verifies integrity, not confidential.",
+        "complexity": "AES-128/256: O(N) for N-byte plaintext | RSA key generation: O(k^3) for k-bit key | SHA-256: O(N) | DH Key Exchange: O(k^2) modular exponentiation.",
+        "exam_tip": "Key concepts: **CIA Triad** = Confidentiality, Integrity, Availability. RSA security relies on integer factorization being hard. Digital signature = encrypt hash with **private** key (not public). SSL/TLS handshake uses asymmetric crypto to exchange symmetric session keys. Common attacks: Man-in-the-Middle (MITM), Replay attack, Brute-force, Dictionary attack."
+    },
+    "cloud computing": {
+        "title": "Cloud Computing — IaaS, PaaS & SaaS",
+        "subject": "CC",
+        "explanation": "Delivery of computing services (servers, storage, databases, networking, software) over the internet. **IaaS** (Infrastructure as a Service): raw VMs & storage — AWS EC2, Azure VMs. **PaaS** (Platform as a Service): managed runtime — Heroku, Google App Engine. **SaaS** (Software as a Service): ready-to-use apps — Gmail, Salesforce. **Serverless**: function-level billing, zero server management — AWS Lambda.",
+        "complexity": "Elasticity: scale horizontally (add instances) or vertically (bigger instance). SLA typically guarantees 99.9% uptime = 8.76 hours downtime/year.",
+        "exam_tip": "Cloud deployment models: **Public** (shared infra, AWS/Azure/GCP), **Private** (on-premise, dedicated), **Hybrid** (mix). Key benefits: no CapEx, on-demand scaling, global reach. Distinguish IaaS vs PaaS vs SaaS responsibility — IaaS: manage OS upward; PaaS: only the app; SaaS: nothing. CAP Theorem: a distributed system guarantees only 2 of 3: **Consistency, Availability, Partition Tolerance**."
+    },
+    "machine learning": {
+        "title": "Machine Learning — Supervised, Unsupervised & Reinforcement",
+        "subject": "AI/ML",
+        "explanation": "A subset of AI where systems **learn patterns from data** without being explicitly programmed. **Supervised Learning**: labeled data to predict output (Linear Regression, Decision Trees, SVM, KNN). **Unsupervised Learning**: unlabeled data to find structure (K-Means Clustering, PCA). **Reinforcement Learning**: agent learns by reward/penalty (Q-Learning, Deep Q-Network).",
+        "complexity": "Training: O(N x D x E) for N samples, D features, E epochs. K-Means: O(N x K x D x I) for K clusters, I iterations.",
+        "exam_tip": "Key terms: **Overfitting** (memorises training data, fails on test) vs **Underfitting** (too simple, poor on both). Solution: regularization (L1 Lasso, L2 Ridge), dropout, cross-validation. **Bias-Variance Tradeoff**: high bias = underfitting, high variance = overfitting. Evaluation metrics: Accuracy, Precision, Recall, F1-Score, ROC-AUC. Feature scaling (StandardScaler, MinMax) is mandatory for SVM and KNN."
+    },
+    "neural networks": {
+        "title": "Neural Networks & Deep Learning",
+        "subject": "AI/ML",
+        "explanation": "Inspired by the human brain — layers of interconnected **neurons** (nodes). Input Layer → Hidden Layers → Output Layer. Each neuron applies: output = activation(weights x inputs + bias). **Backpropagation** trains the network by computing gradients of the loss function and adjusting weights via gradient descent. Deep Learning = many hidden layers (CNN for images, RNN/LSTM for sequences, Transformer for NLP).",
+        "complexity": "Forward pass: O(L x N^2) for L layers, N neurons per layer. Backprop: same complexity. GPU-accelerated training parallelises across millions of parameters.",
+        "exam_tip": "**Activation functions**: Sigmoid (0-1, binary classification output), ReLU (max(0,x) — avoids vanishing gradient, standard hidden layer), Softmax (multi-class output). **Vanishing gradient problem**: gradients shrink through deep sigmoid layers — solved by ReLU and batch normalization. CNN key layers: Convolution (feature extraction), Pooling (downsample), Fully Connected (classify). LSTM solves RNN vanishing gradient for sequential data."
+    },
+    "blockchain": {
+        "title": "Blockchain — Distributed Ledger Technology",
+        "subject": "Blockchain",
+        "explanation": "A **distributed, immutable ledger** where data is stored in linked blocks. Each block contains: data (transactions), a cryptographic hash of itself, and the hash of the previous block — forming a tamper-evident chain. **Consensus mechanisms**: Proof of Work (PoW — Bitcoin, energy-intensive), Proof of Stake (PoS — Ethereum 2.0, eco-friendly). **Smart Contracts**: self-executing code on the blockchain (Ethereum/Solidity) — run when conditions are met, no intermediary needed.",
+        "complexity": "Bitcoin PoW: SHA-256 hash puzzle, ~10 min/block. Ethereum PoS: validators stake ETH. Scalability trilemma: Decentralization, Security, Scalability — pick 2.",
+        "exam_tip": "Key properties: **Immutability** (hash chain makes tampering detectable), **Decentralization** (no single point of failure), **Transparency** (anyone can verify). 51% attack: controlling >51% of hash power allows rewriting history. Types: Public (Bitcoin, Ethereum), Private (Hyperledger Fabric), Consortium (multi-org). Use cases: cryptocurrency, supply chain, NFTs, voting systems, healthcare records."
+    },
+    "iot": {
+        "title": "Internet of Things (IoT)",
+        "subject": "IoT",
+        "explanation": "A network of **physical devices** (sensors, actuators, appliances) embedded with software and connectivity to collect and exchange data. Architecture layers: **Perception** (sensors/actuators), **Network** (WiFi, Bluetooth, Zigbee, LoRa), **Processing** (edge/fog/cloud), **Application** (smart home, healthcare, industry 4.0). **Edge Computing** processes data near the source — reduces latency and bandwidth.",
+        "complexity": "MQTT protocol: lightweight publish-subscribe, ideal for constrained devices (port 1883). CoAP: RESTful protocol for IoT (UDP-based, low overhead). IPv6/6LoWPAN needed for billions of IoT devices.",
+        "exam_tip": "Key protocols: **MQTT** (Message Queuing Telemetry Transport) — publisher sends to broker, subscribers receive — most common IoT protocol. **HTTP vs MQTT**: HTTP is request-response (heavyweight); MQTT is event-driven (lightweight). IoT challenges: security (default passwords, firmware updates), privacy (data collection), interoperability (vendor lock-in), power management. Real-world: smart meters, fitness trackers, industrial sensors, connected vehicles."
+    },
+    "computer graphics": {
+        "title": "Computer Graphics — Rendering & Transformations",
+        "subject": "CG",
+        "explanation": "The science of generating visual content using computers. **Rasterization**: converts vector geometry (triangles) to pixel fragments — used in real-time graphics (OpenGL, DirectX). **Ray Tracing**: simulates real light paths for photorealistic rendering. **2D/3D Transformations**: Translation (move), Scaling (resize), Rotation (angle) — represented as matrices. Homogeneous coordinates allow all transforms as matrix multiplications.",
+        "complexity": "Rasterization: O(triangles x pixels per triangle). Ray Tracing: O(pixels x rays x scene complexity). 4x4 homogeneous transform matrix multiplication: O(16) per vertex.",
+        "exam_tip": "**OpenGL pipeline**: Vertex Shader (transform 3D coords) → Rasterization → Fragment Shader (color per pixel) → Framebuffer. **Bresenham Line Algorithm**: draws lines using integer arithmetic (no floating point). **Cohen-Sutherland**: line clipping. **Phong shading**: Ambient + Diffuse + Specular = realistic lighting. Transformation order: Scale → Rotate → Translate (TRS), applied right-to-left in matrix multiplication."
+    },
+    "compiler design": {
+        "title": "Compiler Design — Phases & Parsing",
+        "subject": "CD",
+        "explanation": "A compiler translates high-level source code to machine code in phases: **Lexical Analysis** (scanner — source text to tokens), **Syntax Analysis** (parser — tokens to Parse Tree using CFG), **Semantic Analysis** (type checking, scope resolution), **Intermediate Code Generation** (3-address code), **Code Optimization** (constant folding, dead code elimination), **Code Generation** (assembly/machine code). Symbol Table maintains variable info across all phases.",
+        "complexity": "Lexical Analysis: O(N) using DFA-based scanner. LL(1)/LR(1) Parsing: O(N) for N tokens. Optimization passes: O(N) to O(N^2) depending on algorithm.",
+        "exam_tip": "**Top-Down Parsing**: LL(1) — uses stack and parsing table, no left recursion allowed. **Bottom-Up Parsing**: LR(0), SLR(1), LALR(1), LR(1) — shift-reduce parsing; real compilers use LALR(1) (e.g. GCC). **First & Follow sets**: used to build LL(1) parsing tables. **Ambiguous grammar**: one string has two or more parse trees — always bad, must be eliminated. **Three-Address Code**: x = y op z — simplest IR for optimization."
+    },
+    "software testing": {
+        "title": "Software Testing — Types, Strategies & TDD",
+        "subject": "SE",
+        "explanation": "The process of evaluating software to find defects and verify it meets requirements. **Testing levels**: Unit (single function), Integration (module interactions), System (end-to-end), Acceptance/UAT (client validates). **Strategies**: **Black-Box** (test without knowing internals — boundary value, equivalence partitioning), **White-Box** (test with code knowledge — path coverage, branch coverage). **TDD** (Test-Driven Development): write test first, then code to pass it.",
+        "complexity": "Statement Coverage: % of code lines executed. Branch Coverage: % of decision branches taken. Path Coverage: all possible execution paths — exponential, impractical for large programs.",
+        "exam_tip": "Key terms: **Alpha testing** (in-house before release), **Beta testing** (real users before final release), **Regression testing** (re-test after fixes), **Smoke testing** (quick sanity check), **Load testing** (performance under load). **Equivalence Partitioning**: divide inputs into valid/invalid classes. **Boundary Value Analysis**: test at min, max, min-1, max+1 — catches off-by-one errors. **Cyclomatic Complexity** = E - N + 2P = number of independent paths."
+    },
+    "microprocessors": {
+        "title": "Microprocessors — 8085/8086 Architecture",
+        "subject": "MP",
+        "explanation": "A microprocessor is a CPU on a single IC chip. **8085 (Intel)**: 8-bit data bus, 16-bit address bus (64KB memory), registers: A (Accumulator), B,C,D,E,H,L (general purpose), SP (Stack Pointer), PC (Program Counter), Flags (S,Z,AC,P,CY). **8086 (Intel)**: 16-bit data bus, 20-bit address bus (1MB memory), segmented memory model (CS, DS, SS, ES). Key concepts: Instruction Set, Addressing Modes (immediate, register, direct, indirect), Interrupts (hardware/software, vectored).",
+        "complexity": "8085 clock: 3-6 MHz. Instruction execution: 1-5 machine cycles. Each machine cycle: 3 T-states. Memory access time must match processor speed.",
+        "exam_tip": "8085 **flags**: Sign (S), Zero (Z), Auxiliary Carry (AC), Parity (P), Carry (CY). **DAA** instruction uses AC and CY flags for BCD arithmetic. **8085 interrupt priority** (high to low): TRAP > RST 7.5 > RST 6.5 > RST 5.5 > INTR. **8086 vs 8085**: 8086 has separate BIU (Bus Interface Unit) and EU (Execution Unit) — enables pipelining (fetch next instruction while executing current). Segment:Offset addressing: Physical address = Segment x 16 + Offset."
+    },
+
 }
 
 # ── Keyword aliases → map alternate phrasings to canonical keys ────────────────
@@ -418,6 +491,49 @@ STUDY_ALIASES = {
     "fractional knapsack": "greedy algorithm",
     "file system": "file system", "disk scheduling": "file system",
     "inode": "file system", "fat": "file system", "sstf": "file system",
+    # Phase 2 new topic aliases
+    "cryptography": "cryptography", "rsa": "cryptography", "aes": "cryptography",
+    "encryption": "cryptography", "cipher": "cryptography", "sha": "cryptography",
+    "digital signature": "cryptography", "ssl": "cryptography", "tls": "cryptography",
+    "cia triad": "cryptography", "network security": "cryptography",
+    "cloud computing": "cloud computing", "cloud": "cloud computing",
+    "iaas": "cloud computing", "paas": "cloud computing", "saas": "cloud computing",
+    "aws": "cloud computing", "azure": "cloud computing", "gcp": "cloud computing",
+    "serverless": "cloud computing", "lambda": "cloud computing", "cap theorem": "cloud computing",
+    "machine learning": "machine learning", "ml": "machine learning",
+    "supervised learning": "machine learning", "unsupervised learning": "machine learning",
+    "reinforcement learning": "machine learning", "overfitting": "machine learning",
+    "underfitting": "machine learning", "regression": "machine learning",
+    "classification": "machine learning", "clustering": "machine learning",
+    "neural network": "neural networks", "deep learning": "neural networks",
+    "cnn": "neural networks", "rnn": "neural networks", "lstm": "neural networks",
+    "transformer": "neural networks", "backpropagation": "neural networks",
+    "activation function": "neural networks", "relu": "neural networks",
+    "vanishing gradient": "neural networks", "perceptron": "neural networks",
+    "blockchain": "blockchain", "bitcoin": "blockchain", "ethereum": "blockchain",
+    "smart contract": "blockchain", "proof of work": "blockchain",
+    "proof of stake": "blockchain", "distributed ledger": "blockchain",
+    "nft": "blockchain", "cryptocurrency": "blockchain", "consensus": "blockchain",
+    "internet of things": "iot", "mqtt": "iot", "edge computing": "iot",
+    "sensor": "iot", "actuator": "iot", "zigbee": "iot", "lora": "iot",
+    "computer graphics": "computer graphics", "opengl": "computer graphics",
+    "ray tracing": "computer graphics", "rasterization": "computer graphics",
+    "rendering": "computer graphics", "bresenham": "computer graphics",
+    "phong": "computer graphics", "3d transformation": "computer graphics",
+    "compiler design": "compiler design", "compiler": "compiler design",
+    "lexical analysis": "compiler design", "parsing": "compiler design",
+    "syntax analysis": "compiler design", "semantic analysis": "compiler design",
+    "code generation": "compiler design", "three address code": "compiler design",
+    "lalr": "compiler design", "ll1": "compiler design",
+    "software testing": "software testing", "unit testing": "software testing",
+    "black box": "software testing", "white box": "software testing",
+    "tdd": "software testing", "test driven": "software testing",
+    "regression testing": "software testing", "boundary value": "software testing",
+    "equivalence partitioning": "software testing", "cyclomatic": "software testing",
+    "microprocessors": "microprocessors", "8085": "microprocessors",
+    "8086": "microprocessors", "microprocessor": "microprocessors",
+    "instruction set": "microprocessors", "addressing mode": "microprocessors",
+
 }
 
 # ── Student Health Triage Knowledge Base ──────────────────────────────────────
@@ -543,6 +659,65 @@ HEALTH_SYMPTOMS = {
         "home_remedy": "Garlic clove paste on the tooth (allicin is antibacterial). Cold compress on the cheek outside reduces swelling. Avoid very hot, cold, or sweet food — use the opposite side of mouth to chew. OTC dental gel (Dentogel/Metrogyl) applied to gums reduces inflammation.",
         "doctor_alert": "🚨 Visit a dentist urgently if: swelling spreading to jaw/neck (abscess can be life-threatening), fever with toothache (infection spreading), severe throbbing pain not relieved by painkillers, or a broken/cracked tooth with exposed nerve."
     },
+
+    # ── PHASE 2 ADDITIONS — Additional Health Conditions ─────────────────────
+    "nausea": {
+        "condition": "Nausea / Queasiness (Non-Vomiting)",
+        "severity": "Mild-Moderate",
+        "first_aid": "Domperidone 10mg (Domstal/Vomistop) — 1 tablet 30 min before meals — reduces nausea signals. Sit upright or lie on your left side (reduces reflux). Sip cold water or ginger ale slowly. Avoid strong smells and lying flat immediately after eating.",
+        "home_remedy": "Ginger tea (1 tsp fresh ginger in hot water with honey) — proven anti-nausea remedy. Peppermint tea. Dry crackers or plain toast to settle the stomach. Lemon water or sniffing a lemon slice helps nausea triggered by smell. Acupressure at P6 point (inner wrist, 3 finger-widths below wrist crease) relieves nausea.",
+        "doctor_alert": "🚨 See a doctor if: nausea lasts > 48 hours with no improvement, accompanied by severe abdominal pain or fever, after a head injury (could be concussion), or if you suspect pregnancy."
+    },
+    "dizziness": {
+        "condition": "Dizziness / Vertigo (Balance Disorder)",
+        "severity": "Mild-Moderate",
+        "first_aid": "Sit or lie down immediately to prevent falls. Cinnarizine 25mg (Stugeron) — anti-vertigo tablet, take with water after food. Focus on a fixed point to reduce spinning sensation. Avoid sudden head movements. Drink water — dizziness is often caused by dehydration or low blood pressure on standing (orthostatic hypotension).",
+        "home_remedy": "Ginger — chew a small piece or drink ginger tea. Lie with head slightly elevated on two pillows. Rise slowly from sitting/lying position. Breathe slowly and deeply. Vitamin D deficiency is a common cause of recurrent vertigo — consider supplements if dizziness is chronic.",
+        "doctor_alert": "🚨 Emergency: sudden severe dizziness with headache, vision changes, one-sided weakness, slurred speech or difficulty walking — these are signs of stroke or TIA. Call emergency services immediately. Also see a doctor if vertigo episodes recur or last more than a few minutes."
+    },
+    "ear pain": {
+        "condition": "Ear Pain / Earache (Otitis / Ear Infection)",
+        "severity": "Mild-Moderate",
+        "first_aid": "Apply a warm compress or warm cloth against the outer ear for relief. Ibuprofen (Combiflam) 400mg after food for pain and inflammation. Otrivin/Nasivion nasal drops (for ear pain caused by blocked Eustachian tube from cold). Do NOT insert objects into the ear canal — this pushes wax deeper and risks perforation.",
+        "home_remedy": "Chew slowly — jaw movement helps equalize ear pressure. Yawn or swallow repeatedly (for pressure-related ear pain during altitude change). Warm olive oil (not hot) — 2-3 drops in the ear canal helps with wax-related discomfort. Keep the affected ear elevated (don't sleep on that side).",
+        "doctor_alert": "🚨 See an ENT doctor if: ear pain comes with fever above 101F, pus or discharge from the ear (sign of infection), sudden hearing loss, ringing in ears (tinnitus), or pain that doesn't improve within 2-3 days. Untreated ear infections can spread to mastoid bone — a serious complication."
+    },
+    "sunburn": {
+        "condition": "Sunburn (UV Radiation Skin Damage)",
+        "severity": "Mild-Moderate",
+        "first_aid": "Move to shade or indoors immediately. Cool the skin with cool (not cold) water compresses for 10-15 minutes. Do NOT use ice directly — it worsens tissue damage. Apply Calamine lotion or Aloe Vera gel generously on affected areas. Paracetamol 500mg for pain and fever. Drink plenty of water — sunburn draws fluid to the skin, causing dehydration.",
+        "home_remedy": "Aloe vera gel (refrigerated) provides instant cooling and healing. Plain yoghurt applied topically soothes burn. Cool baths with oatmeal powder. Avoid further sun exposure until fully healed. Moisturize with light, fragrance-free lotion. Do NOT pop blisters if they appear — this risks infection. Light, breathable cotton clothing covers without trapping heat.",
+        "doctor_alert": "🚨 Seek medical help if: blisters cover large areas, fever above 103F, confusion or fainting (heat stroke), nausea with headache, or skin feels numb or leathery (severe burn). Severe sunburn with fever = sun poisoning — requires IV fluids."
+    },
+    "food poisoning": {
+        "condition": "Food Poisoning (Bacterial / Toxin Contamination)",
+        "severity": "Moderate — watch hydration carefully",
+        "first_aid": "Stop eating solid food for 4-6 hours. Begin ORS (Electral/Pedialyte) immediately — sip every 10-15 minutes even if nausea is present. Ondansetron 4mg (Emeset) for severe nausea/vomiting — under tongue. Loperamide (Eldoper/Imodium) 2mg for diarrhea — reduces frequency. Avoid dairy, fried, or spicy food until recovered.",
+        "home_remedy": "BRAT diet once appetite returns: Banana, Rice, Applesauce, Toast. Tender coconut water or ORS replenishes electrolytes. Ginger tea settles the stomach. Probiotic curd restores gut bacteria after 24 hours. Avoid caffeine, alcohol, and fatty foods for 48-72 hours after recovery. Wash hands thoroughly — food poisoning can spread person-to-person.",
+        "doctor_alert": "🚨 Go to hospital if: symptoms last more than 72 hours, blood or mucus in stool/vomit, fever above 101F + diarrhea (dysentery risk), signs of severe dehydration (no urination 8+ hours, sunken eyes, rapid heartbeat), or suspected contamination at a group meal (report to college health authorities)."
+    },
+    "anxiety": {
+        "condition": "Anxiety / Panic Attack (Acute Stress Response)",
+        "severity": "Moderate — deserves proper attention",
+        "first_aid": "**Grounding Technique (5-4-3-2-1)**: Name 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, 1 you can taste — breaks the panic spiral instantly. **4-7-8 Breathing**: Inhale 4s, hold 7s, exhale slowly 8s — activates parasympathetic nervous system. Cold water on face or wrists resets the nervous system quickly. Sit down, loosen tight clothing.",
+        "home_remedy": "Chamomile tea — has natural anxiolytic (anxiety-reducing) properties. Ashwagandha (KSM-66 extract) reduces cortisol levels with regular use. Lavender oil — inhale or apply diluted on pulse points. Regular exercise (30 min brisk walk) reduces anxiety hormones long-term. Journaling (writing down worries) externalizes fears. Limit caffeine — it directly worsens anxiety.",
+        "doctor_alert": "🚨 Please reach out to: College Counselor (Student Wellness Centre), iCall (9152987821 — free student helpline), Vandrevala Foundation (1860-2662-345, available 24/7). See a doctor if: panic attacks occur frequently (weekly), prevent you from attending class, or are accompanied by chest pain, numbness, or fear of dying. Anxiety is a medical condition — treatment works and you deserve support."
+    },
+    "sore throat": {
+        "condition": "Sore Throat / Pharyngitis (Bacterial or Viral)",
+        "severity": "Mild-Moderate",
+        "first_aid": "Warm salt water gargle immediately — 1/2 tsp salt in 1 glass warm water, gargle for 30 seconds, 3-4 times a day. Strepsils/Cofsils throat lozenges — suck slowly to coat the throat. Betadine gargle (diluted, not swallowed) for bacterial sore throat. Paracetamol 500mg for pain and fever. Rest your voice — avoid shouting, whispering strains vocal cords more than normal speech.",
+        "home_remedy": "1 tsp raw honey + 1/4 tsp cinnamon + warm water — powerful antibacterial soothing remedy. Warm ginger-tulsi-honey tea. Turmeric milk (haldi doodh) at night. Avoid cold drinks, ice cream, and cold air conditioning blowing directly on throat. Steam inhalation (plain hot water) soothes inflamed tissue. Eat soft foods — soups, khichdi, mashed potatoes.",
+        "doctor_alert": "🚨 See a doctor if: sore throat persists beyond 5-7 days, white patches or pus visible on tonsils (strep throat — needs antibiotics), difficulty swallowing saliva (quinsy/peritonsillar abscess risk), muffled voice with neck swelling, or fever above 102F accompanied by throat pain. Strep throat left untreated can lead to rheumatic fever."
+    },
+    "nose bleed": {
+        "condition": "Nosebleed / Epistaxis (Anterior Nasal Bleeding)",
+        "severity": "Mild (usually self-limiting)",
+        "first_aid": "**CORRECT technique**: Sit upright and lean FORWARD (not backward — swallowing blood causes nausea). Pinch the soft part of the nose (just below the bony bridge) firmly for 10-15 minutes continuously — do not release to check. Breathe through your mouth. Apply a cold ice pack wrapped in cloth on the nose bridge. Do NOT tilt the head back — blood flows into the throat and stomach.",
+        "home_remedy": "After bleeding stops: keep head elevated. Avoid blowing nose for several hours. Apply a thin layer of petroleum jelly (Vaseline) inside the nostril to prevent dryness-related rebleeding — especially useful in dry or AC environments. Stay hydrated — dry nasal membranes bleed more easily. Use a saline nasal spray (Nasoclear) to keep nasal passages moist during dry weather.",
+        "doctor_alert": "🚨 Go to hospital if: bleeding does not stop after 20 minutes of correct pressure, blood is flowing in large quantities, blood is coming from both nostrils simultaneously, you take blood thinners (aspirin/warfarin), nosebleed follows a head injury, or you have frequent recurrent nosebleeds (could indicate high blood pressure or clotting disorder requiring investigation)."
+    },
+
 }
 
 # ── Health keyword aliases → canonical keys ────────────────────────────────────
@@ -600,6 +775,29 @@ HEALTH_ALIASES = {
     # Toothache
     "tooth pain": "toothache", "dental": "toothache", "toothache": "toothache",
     "tooth": "toothache", "gum": "toothache",
+    # Phase 2 new health condition aliases
+    "nausea": "nausea", "nauseous": "nausea", "queasiness": "nausea",
+    "queasy": "nausea", "feel sick": "nausea", "motion sickness": "nausea",
+    "dizziness": "dizziness", "dizzy": "dizziness", "vertigo": "dizziness",
+    "lightheaded": "dizziness", "spinning": "dizziness", "balance": "dizziness",
+    "giddy": "dizziness", "faint": "dizziness",
+    "ear pain": "ear pain", "earache": "ear pain", "ear ache": "ear pain",
+    "ear infection": "ear pain", "ear discharge": "ear pain", "tinnitus": "ear pain",
+    "hearing loss": "ear pain", "ear": "ear pain",
+    "sunburn": "sunburn", "sun burn": "sunburn", "burnt skin": "sunburn",
+    "skin burn": "sunburn", "uv burn": "sunburn", "sun exposure": "sunburn",
+    "food poisoning": "food poisoning", "food poison": "food poisoning",
+    "contaminated food": "food poisoning", "bad food": "food poisoning",
+    "gastroenteritis": "food poisoning", "poisoned": "food poisoning",
+    "anxiety": "anxiety", "panic attack": "anxiety", "panic": "anxiety",
+    "anxious": "anxiety", "nervous": "anxiety", "worry": "anxiety",
+    "overthinking": "anxiety", "fear": "anxiety", "heart racing": "anxiety",
+    "sore throat": "sore throat", "throat pain": "sore throat",
+    "throat sore": "sore throat", "tonsil": "sore throat", "pharyngitis": "sore throat",
+    "strep throat": "sore throat", "throat infection": "sore throat",
+    "nose bleed": "nose bleed", "nosebleed": "nose bleed", "epistaxis": "nose bleed",
+    "bleeding nose": "nose bleed", "nose bleeding": "nose bleed",
+
 }
 
 @app.route('/')

@@ -858,7 +858,7 @@
 
             <!-- RIGHT COLUMN: 360° AI COPILOT (Powered by IBM watsonx.ai) (5 Cols) -->
             <div class="lg:col-span-5">
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[calc(100vh-6.5rem)] sticky top-20">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl flex flex-col max-h-[60vh] lg:h-[calc(100vh-6.5rem)] lg:sticky lg:top-20">
 
                     <!-- Chat Header -->
                     <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 rounded-t-2xl">
@@ -932,7 +932,7 @@
 
     <!-- ==================== ROLE LOGIN GATEWAY MODAL ==================== -->
     <div id="roleLoginModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative overflow-y-auto max-h-[90vh]">
             
             <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <i class="fa-solid fa-xmark text-sm"></i>
@@ -1006,7 +1006,7 @@
 
     <!-- ==================== EDIT SUBJECT MODAL (HOD) ==================== -->
     <div id="editSubjectModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3 relative">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3 relative overflow-y-auto max-h-[90vh]">
             <button onclick="closeEditSubjectModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
@@ -1037,7 +1037,7 @@
 
     <!-- ==================== ENTER MARKS MODAL (TEACHER) ==================== -->
     <div id="marksModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3 relative">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3 relative overflow-y-auto max-h-[90vh]">
             <button onclick="closeMarksModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
@@ -1066,7 +1066,7 @@
 
     <!-- ==================== SMART HALL TICKET / ADMIT CARD MODAL ==================== -->
     <div id="hallTicketModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative overflow-y-auto max-h-[90vh]">
             <button onclick="closeHallTicketModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
@@ -1078,7 +1078,7 @@
 
     <!-- ==================== COLLEGE FEES ONLINE PAYMENT MODAL ==================== -->
     <div id="feePaymentModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative my-8">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative my-4 overflow-y-auto max-h-[90vh]">
             <button onclick="closeFeePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
@@ -1175,7 +1175,7 @@
 
     <!-- ==================== PROCTORED ONLINE TEST MODAL (WEBCAM & MIC) ==================== -->
     <div id="proctoredTestModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl space-y-4 relative my-6">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl space-y-4 relative my-4 overflow-y-auto max-h-[90vh]">
             <button onclick="closeProctoredTestModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <i class="fa-solid fa-xmark text-base"></i>
             </button>
@@ -1258,7 +1258,7 @@
 
     <!-- ==================== FORGOT PASSWORD RESET MODAL ==================== -->
     <div id="forgotPasswordModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3.5 relative">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3.5 relative overflow-y-auto max-h-[90vh]">
             <button onclick="closeForgotPasswordModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
