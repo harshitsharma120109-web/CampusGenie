@@ -167,20 +167,145 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Print Styles for Admit Card */
+/* Print Styles for Admit Card & Smart ID */
 @media print {
     body * {
         visibility: hidden;
     }
-    #hallTicketContent, #hallTicketContent * {
+    #hallTicketContent, #hallTicketContent *,
+    #printableIdCard, #printableIdCard *,
+    #examSeatingModal, #examSeatingModal * {
         visibility: visible;
     }
-    #hallTicketContent {
+    #hallTicketContent, #printableIdCard {
         position: absolute;
         left: 0;
         top: 0;
         width: 100%;
-        background: #ffffff !important;
-        color: #000000 !important;
+    }
+}
+
+/* ==================== LIGHT MODE THEME RULES ==================== */
+body.light-theme {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+body.light-theme #loginGatewayScreen {
+    background-color: #f1f5f9 !important;
+}
+
+body.light-theme .text-white {
+    color: #0f172a !important;
+}
+body.light-theme .text-slate-100 {
+    color: #0f172a !important;
+}
+body.light-theme .text-slate-200 {
+    color: #1e293b !important;
+}
+body.light-theme .text-slate-300 {
+    color: #334155 !important;
+}
+body.light-theme .text-slate-400 {
+    color: #475569 !important;
+}
+body.light-theme .text-slate-500 {
+    color: #64748b !important;
+}
+
+body.light-theme .bg-slate-950,
+body.light-theme .bg-slate-950\/80,
+body.light-theme .bg-slate-950\/90,
+body.light-theme .bg-slate-950\/60 {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.light-theme .bg-slate-900,
+body.light-theme .bg-slate-900\/95,
+body.light-theme .bg-slate-900\/90,
+body.light-theme .bg-slate-900\/80,
+body.light-theme .bg-slate-900\/70 {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-theme .bg-slate-800,
+body.light-theme .bg-slate-800\/90,
+body.light-theme .bg-slate-800\/80,
+body.light-theme .bg-slate-800\/60 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+body.light-theme header {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.light-theme .border-slate-800,
+body.light-theme .border-slate-700,
+body.light-theme .border-slate-800\/60,
+body.light-theme .border-slate-800\/80 {
+    border-color: #e2e8f0 !important;
+}
+
+body.light-theme input,
+body.light-theme select {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+}
+
+body.light-theme input::placeholder {
+    color: #94a3b8 !important;
+}
+
+body.light-theme .chat-bot-bubble {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+}
+body.light-theme .chat-bot-bubble strong {
+    color: #0f172a !important;
+}
+
+/* Ensure the Smart ID Card always preserves its premium dark holographic look */
+body.light-theme #printableIdCard {
+    background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a) !important;
+    color: #ffffff !important;
+}
+body.light-theme #printableIdCard * {
+    color: inherit;
+}
+body.light-theme #printableIdCard .text-white {
+    color: #ffffff !important;
+}
+body.light-theme #printableIdCard .text-slate-300 {
+    color: #cbd5e1 !important;
+}
+body.light-theme #printableIdCard .text-slate-400 {
+    color: #94a3b8 !important;
+}
+body.light-theme #printableIdCard .text-cyan-300 {
+    color: #67e8f9 !important;
+}
+
+/* Voice Recording Mic Animation */
+.mic-recording {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.8) !important;
+    animation: mic-pulse 1.2s infinite ease-in-out;
+}
+@keyframes mic-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.18);
     }
 }

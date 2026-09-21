@@ -41,3 +41,30 @@ If judges or college mentors ask to see how you used **IBM Bob** during developm
 
 ### Prompt 8: Role Gateway & Roll Number + Password Authentication
 > "Design a full-screen Login Gateway where students, teachers, HOD, and parents log in. Require both Roll Number and Password for security, and add a working 'Forgot Password?' recovery modal so students can reset their credentials."
+
+---
+
+### Prompt 9: UI Audio Sound Effects Engine & Light/Dark Theme Switcher
+> "Implement an interactive UI Sound Effects Engine using the browser Web Audio API (synthesized pop, chime, ding, alert buzz) with a navbar mute toggle. Also add a sleek Dark / Clean Light Mode theme switcher that smoothly transitions all cards and inputs."
+
+---
+
+### Prompt 10: HOD Student Enrollment with Specific Passwords & 1-Click Credential Card
+> "Enhance HOD student registration so HOD can assign custom or auto-generated passwords to every enrolled student. When registered, generate a popup Credential Card with a 1-Click 'Copy to Clipboard' button to easily dispatch credentials over WhatsApp or email. Enforce strict login password validation for newly enrolled students."
+
+---
+
+### Prompt 11: AI Voice Assistant with Speech-to-Text & Text-to-Speech
+> "Equip the AI Academic Copilot with voice capabilities: add a microphone button to the chat form for Hindi and English speech-to-text dictation, and add a 'Listen' button on all bot responses that reads answers aloud using speech synthesis."
+
+---
+
+### Prompt 12: AKGEC Smart ID Card, Exam Seating, AI Placement Radar & Campus Services
+> "Build a comprehensive suite of campus smart services:
+> 1. Virtual AKGEC Holographic Smart ID Card with scannable QR code and barcode.
+> 2. Mid-Term Examination Seating Plan & Official Printable Admit Card.
+> 3. AI Placement & Resume Readiness Analyzer with recruiters match and preparation advice.
+> 4. Smart CGPA / SGPA Goal Forecaster slider calculator.
+> 5. Campus Lost & Found Community Hub with post and claim functions.
+> 6. AKGEC Hostel & Mess Menu with interactive 5-star student dining reviews.
+> 7. 1-Click WhatsApp Parent Alert Dispatcher for low attendance students."

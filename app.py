@@ -971,6 +971,7 @@ def add_student():
     roll_no = payload.get('roll_no', '').strip()
     branch = payload.get('branch', 'CSE').strip()
     semester = payload.get('semester', '5th Sem').strip()
+    password = payload.get('password', '').strip()
     
     if not name or not roll_no:
         return jsonify({"success": False, "message": "Name and Roll No are required."}), 400
@@ -982,20 +983,68 @@ def add_student():
         if s['id'] == stu_id:
             return jsonify({"success": False, "message": f"Roll No {roll_no} already exists."}), 400
             
+    if not password:
+        password = f"AKGEC@{stu_id[-4:] if len(stu_id)>=4 else '2026'}"
+
     new_stu = {
         "id": stu_id,
         "name": name,
         "roll_no": roll_no,
         "branch": branch,
         "semester": semester,
+        "password": password,
         "target_attendance": 75,
-        "attendance": {},
-        "marks": {}
+        "fees": {
+            "total_fee": 125000,
+            "paid_amount": 0,
+            "due_amount": 125000,
+            "status": "unpaid",
+            "due_date": "15 Oct 2026",
+            "transactions": []
+        },
+        "attendance": {
+            "os": {"attended": 0, "total": 0, "percentage": 0.0, "status": "warning"},
+            "dsa": {"attended": 0, "total": 0, "percentage": 0.0, "status": "warning"},
+            "dbms": {"attended": 0, "total": 0, "percentage": 0.0, "status": "warning"},
+            "cn": {"attended": 0, "total": 0, "percentage": 0.0, "status": "warning"}
+        },
+        "marks": {
+            "os": {"score": 0, "total": 100, "status": "Pending"},
+            "dsa": {"score": 0, "total": 100, "status": "Pending"},
+            "dbms": {"score": 0, "total": 100, "status": "Pending"},
+            "cn": {"score": 0, "total": 100, "status": "Pending"}
+        }
     }
     data.setdefault('students', []).append(new_stu)
     data['active_student_id'] = stu_id
     save_data(data)
-    return jsonify({"success": True, "message": f"Student '{name}' registered!", "student": new_stu})
+    return jsonify({
+        "success": True, 
+        "message": f"Student '{name}' registered successfully!", 
+        "student": new_stu,
+        "credentials": {
+            "name": name,
+            "roll_no": roll_no,
+            "password": password,
+            "branch": branch,
+            "semester": semester
+        }
+    })
+
+@app.route('/api/admin/student/reset_password', methods=['POST'])
+def reset_student_password():
+    payload = request.json or {}
+    student_id = payload.get('student_id', '').strip()
+    new_password = payload.get('password', '').strip()
+    if not student_id or not new_password:
+        return jsonify({"success": False, "message": "Student ID and new password are required."}), 400
+    data = load_data()
+    for s in data.get('students', []):
+        if s['id'].lower() == student_id.lower() or s.get('roll_no', '').lower() == student_id.lower():
+            s['password'] = new_password
+            save_data(data)
+            return jsonify({"success": True, "message": f"Password for {s['name']} reset successfully to '{new_password}'!"})
+    return jsonify({"success": False, "message": "Student record not found."}), 404
 
 @app.route('/api/admin/marks/update', methods=['POST'])
 def update_marks():
@@ -1225,8 +1274,8 @@ def auth_login():
 
         # Validate password if provided
         expected_pw = student.get('password', 'student123')
-        if password and password != expected_pw and password != 'student123':
-            return jsonify({"success": False, "message": "Incorrect password. Default demo password is 'student123'."}), 401
+        if password and password != expected_pw:
+            return jsonify({"success": False, "message": f"Incorrect password for roll number {student.get('roll_no', identifier)}. Please check your credentials."}), 401
 
         data['active_student_id'] = student['id']
         save_data(data)
@@ -2479,6 +2528,235 @@ def chat():
     return jsonify({
         "reply": f"👋 **Hello {student_name}!** Poochiye koi bhi sawaal—academics, health, campus ERP, ya internet se koi bhi general knowledge/tech question!",
         "action": None
+    })
+
+# ==============================================================================
+# ADVANCED CAMPUSGENIE 2026 ERP SUITE API ENDPOINTS
+# ==============================================================================
+
+@app.route('/api/community/lost_found', methods=['GET'])
+def get_lost_found():
+    data = load_data()
+    return jsonify({"success": True, "items": data.get('lost_and_found', [])})
+
+@app.route('/api/community/lost_found/add', methods=['POST'])
+def add_lost_found():
+    payload = request.json or {}
+    item_type = payload.get('type', 'Lost')
+    item_name = payload.get('item', '').strip()
+    location = payload.get('location', '').strip()
+    contact = payload.get('contact', '').strip()
+    reported_by = payload.get('reported_by', 'Student').strip()
+    if not item_name or not location:
+        return jsonify({"success": False, "message": "Item name and location are required."}), 400
+    data = load_data()
+    lf_list = data.setdefault('lost_and_found', [])
+    new_item = {
+        "id": f"LF-{len(lf_list) + 101}",
+        "type": item_type,
+        "item": item_name,
+        "location": location,
+        "date": "Today",
+        "reported_by": reported_by,
+        "contact": contact or "N/A",
+        "status": "Open"
+    }
+    lf_list.insert(0, new_item)
+    save_data(data)
+    return jsonify({"success": True, "message": "Lost/Found report posted to Campus Hub!", "item": new_item})
+
+@app.route('/api/community/lost_found/claim', methods=['POST'])
+def claim_lost_found():
+    payload = request.json or {}
+    item_id = payload.get('id')
+    data = load_data()
+    for item in data.get('lost_and_found', []):
+        if item.get('id') == item_id:
+            item['status'] = 'Claimed'
+            save_data(data)
+            return jsonify({"success": True, "message": f"Item '{item['item']}' marked as Claimed / Resolved!"})
+    return jsonify({"success": False, "message": "Item not found."}), 404
+
+@app.route('/api/mess/menu', methods=['GET'])
+def get_mess_menu():
+    data = load_data()
+    return jsonify({"success": True, "mess_menu": data.get('mess_menu', {})})
+
+@app.route('/api/mess/rate', methods=['POST'])
+def rate_mess():
+    payload = request.json or {}
+    stars = int(payload.get('stars', 5))
+    comment = payload.get('comment', '').strip()
+    student_name = payload.get('student_name', 'Student').strip()
+    data = load_data()
+    mess_menu = data.setdefault('mess_menu', {})
+    ratings = mess_menu.setdefault('ratings', {'total_votes': 142, 'average': 4.4, 'recent_reviews': []})
+    
+    total = ratings.get('total_votes', 0)
+    current_avg = ratings.get('average', 4.4)
+    new_total = total + 1
+    new_avg = round(((current_avg * total) + stars) / new_total, 2)
+    
+    ratings['total_votes'] = new_total
+    ratings['average'] = new_avg
+    if comment:
+        reviews = ratings.setdefault('recent_reviews', [])
+        reviews.insert(0, {'student': student_name, 'stars': stars, 'comment': comment})
+        if len(reviews) > 10:
+            reviews.pop()
+    save_data(data)
+    return jsonify({"success": True, "message": "Thank you for rating today's mess meal!", "ratings": ratings})
+
+@app.route('/api/exam/seating', methods=['GET'])
+def get_exam_seating():
+    student_id = request.args.get('student_id', '').strip()
+    data = load_data()
+    seatings = data.get('seating_arrangements', {})
+    seating = seatings.get(student_id)
+    if not seating:
+        stu = next((s for s in data.get('students', []) if s['id'].lower() == student_id.lower() or s.get('roll_no', '').lower() == student_id.lower()), None)
+        if not stu and data.get('students'):
+            stu = data['students'][0]
+        roll = stu.get('roll_no', student_id) if stu else (student_id or "22CS1084")
+        name = stu.get('name', 'Student') if stu else 'Student'
+        last_num = int(re.sub(r'\D', '', roll)[-2:]) if re.search(r'\d', roll) else 14
+        seating = {
+            'student_name': name,
+            'roll_no': roll,
+            'exam': 'B.Tech V Semester Mid-Term Examination 2026',
+            'exam_center': 'AKGEC Main Academic Complex',
+            'hall_building': 'CS Block (Block-A)',
+            'room_no': f'Room 30{(last_num % 8) + 1} (3rd Floor)',
+            'row': f"Row {chr(65 + (last_num % 4))}",
+            'bench_no': f"Bench {(last_num % 25) + 1}",
+            'seat_no': f"Seat {chr(65 + (last_num % 4))}-{(last_num % 25) + 1}",
+            'reporting_time': '09:00 AM',
+            'instructions': [
+                'Candidates must carry their AKGEC College ID and this printed Admit Card.',
+                'Electronic devices, smartwatches, and programmable calculators are strictly prohibited.',
+                'Report to the examination hall at least 15 minutes before the scheduled time.'
+            ]
+        }
+    return jsonify({"success": True, "seating": seating})
+
+@app.route('/api/parent/alert', methods=['POST'])
+def send_parent_alert():
+    payload = request.json or {}
+    student_id = payload.get('student_id', '')
+    alert_type = payload.get('type', 'attendance')
+    message = payload.get('message', '').strip()
+    data = load_data()
+    stu = next((s for s in data.get('students', []) if s['id'] == student_id or s.get('roll_no') == student_id), None)
+    stu_name = stu.get('name', 'Student') if stu else student_id
+    
+    notices = data.setdefault('notices', [])
+    notices.insert(0, {
+        "id": f"PARENT-ALERT-{len(notices)+1}",
+        "title": f"📲 Parent WhatsApp/SMS Dispatched: {stu_name}",
+        "category": "Parent Alert",
+        "date": "Just now",
+        "priority": "high",
+        "message": message or f"Urgent official notification sent to parent regarding {alert_type} for {stu_name} ({student_id})."
+    })
+    save_data(data)
+    return jsonify({"success": True, "message": f"WhatsApp notification alert successfully sent to parent of {stu_name}!"})
+
+@app.route('/api/placement/analyze', methods=['POST'])
+def analyze_placement():
+    payload = request.json or {}
+    skills = payload.get('skills', [])
+    target_role = payload.get('target_role', 'Full Stack Developer / SDE').strip()
+    
+    weight_map = {
+        'dsa': 25,
+        'cpp': 15,
+        'python': 15,
+        'react': 15,
+        'sql': 15,
+        'cloud': 10,
+        'docker': 10,
+        'system_design': 10,
+        'git': 5,
+        'ml': 10
+    }
+    score = 25
+    matched_skills = []
+    missing_skills = []
+    
+    for s_key, weight in weight_map.items():
+        if s_key in skills:
+            score += weight
+            matched_skills.append(s_key.upper())
+        else:
+            missing_skills.append(s_key.upper())
+            
+    score = min(score, 98)
+    
+    companies = []
+    if score >= 80:
+        companies = ["Amazon AWS (SDE-1 - 24 LPA)", "TCS Digital (7.5 LPA)", "Accenture Advanced Associate", "Paytm Technologies"]
+    elif score >= 60:
+        companies = ["TCS Ninja (3.6 LPA)", "Infosys Specialist Programmer (5 LPA)", "Cognizant GenC Elevate", "Wipro Turbo"]
+    else:
+        companies = ["Service-based Foundation Drives", "Incubated Startups @ AKGEC", "TCS National Qualifier (NQT)"]
+        
+    tips = []
+    if 'DSA' in missing_skills:
+        tips.append("Focus heavily on DSA: Solve 50+ LeetCode Medium problems on Trees, Graphs, and DP.")
+    if 'SQL' in missing_skills:
+        tips.append("Master SQL queries: Practice subqueries, indexing, and normalization questions for technical rounds.")
+    if 'CLOUD' in missing_skills:
+        tips.append("Learn Cloud Fundamentals: Complete AWS Cloud Practitioner or IBM watsonx / Cloud badges.")
+    if not tips:
+        tips.append("Great skill profile! Practice mock HR and System Design interviews on AKGEC portal.")
+
+    return jsonify({
+        "success": True,
+        "score": score,
+        "readiness": "High" if score >= 75 else ("Moderate" if score >= 55 else "Developing"),
+        "target_role": target_role,
+        "eligible_companies": companies,
+        "matched_skills": matched_skills,
+        "tips": tips
+    })
+
+@app.route('/api/hod/analytics', methods=['GET'])
+def get_hod_analytics():
+    data = load_data()
+    students = data.get('students', [])
+    total_students = len(students)
+    
+    total_att_pct = 0
+    defaulter_count = 0
+    total_fee_due = 0
+    total_fee_paid = 0
+    
+    for s in students:
+        att_dict = s.get('attendance', {})
+        if att_dict:
+            s_pcts = [subj.get('percentage', 0) for subj in att_dict.values()]
+            avg_p = sum(s_pcts) / len(s_pcts) if s_pcts else 0
+            total_att_pct += avg_p
+            if avg_p < 75:
+                defaulter_count += 1
+        fees = s.get('fees', {})
+        total_fee_paid += fees.get('paid_amount', 0)
+        total_fee_due += fees.get('due_amount', 0)
+        
+    dept_att_avg = round(total_att_pct / total_students, 1) if total_students else 0
+    fee_collection_rate = round((total_fee_paid / (total_fee_paid + total_fee_due) * 100), 1) if (total_fee_paid + total_fee_due) > 0 else 0
+    
+    return jsonify({
+        "success": True,
+        "analytics": {
+            "total_students": total_students,
+            "department_attendance_avg": dept_att_avg,
+            "defaulter_count": defaulter_count,
+            "total_fee_collected": total_fee_paid,
+            "total_fee_outstanding": total_fee_due,
+            "fee_collection_rate": fee_collection_rate,
+            "placement_rate": 88.5
+        }
     })
 
 if __name__ == '__main__':

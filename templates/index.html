@@ -32,10 +32,20 @@
                     <p class="text-[11px] sm:text-xs text-slate-400">360° Smart Campus ERP & AI Academic/Health Copilot</p>
                 </div>
             </div>
-            <span class="hidden sm:flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-slate-300 shadow-md">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                IBM SkillsBuild Hackathon @ AKGEC
-            </span>
+            <div class="flex items-center space-x-2">
+                <!-- Sound Effects (SFX) Toggle -->
+                <button onclick="toggleSoundEffects()" class="p-2 sm:p-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white transition-all shadow-md" title="Toggle Sound Effects">
+                    <i class="gwSfxIcon fa-solid fa-volume-high text-xs text-cyan-400"></i>
+                </button>
+                <!-- Light / Dark Theme Switcher -->
+                <button onclick="toggleTheme()" class="p-2 sm:p-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white transition-all shadow-md" title="Toggle Light / Dark Theme">
+                    <i class="gwThemeIcon fa-solid fa-moon text-xs text-amber-400"></i>
+                </button>
+                <span class="hidden sm:flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-slate-300 shadow-md">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    IBM SkillsBuild Hackathon @ AKGEC
+                </span>
+            </div>
         </header>
 
         <!-- Main Hero & 4 Role Portals Container -->
@@ -228,11 +238,21 @@
             </div>
 
             <!-- Right Controls: Notification Bell, Profile Badge, Logout -->
-            <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+            <div class="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
+
+                <!-- UI Sound Effects Toggle -->
+                <button id="sfxToggleBtn" onclick="toggleSoundEffects()" class="p-2 sm:p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all shadow-sm" title="Toggle Sound Effects (Pop/Chime/Ding)">
+                    <i id="sfxToggleIcon" class="fa-solid fa-volume-high text-xs text-cyan-400"></i>
+                </button>
+
+                <!-- Light / Dark Theme Switcher -->
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 sm:p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all shadow-sm" title="Toggle Light / Dark Mode">
+                    <i id="themeToggleIcon" class="fa-solid fa-moon text-xs text-amber-400"></i>
+                </button>
 
                 <!-- Notification Bell & Dropdown -->
                 <div class="relative">
-                    <button id="notifBellBtn" onclick="toggleNotificationDropdown()" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all relative">
+                    <button id="notifBellBtn" onclick="toggleNotificationDropdown()" class="p-2 sm:p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all relative">
                         <i class="fa-solid fa-bell text-sm"></i>
                         <span id="notifBadgeCount" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-slate-900">3</span>
                     </button>
@@ -315,6 +335,46 @@
                                 <i class="fa-solid fa-id-card-clip text-cyan-300"></i> Admit Card
                             </button>
                         </div>
+                    </div>
+
+                    <!-- CAMPUS SMART SERVICES QUICK BAR -->
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center text-xs">
+                        <button onclick="openStudentIdCard()" class="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 transition-all flex flex-col items-center justify-center gap-1.5 group shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-address-card"></i>
+                            </div>
+                            <span class="font-bold text-[11px] text-slate-200">Smart ID</span>
+                        </button>
+                        <button onclick="openExamSeating()" class="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/50 transition-all flex flex-col items-center justify-center gap-1.5 group shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-chair"></i>
+                            </div>
+                            <span class="font-bold text-[11px] text-slate-200">Seating Plan</span>
+                        </button>
+                        <button onclick="openPlacementAnalyzer()" class="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/50 transition-all flex flex-col items-center justify-center gap-1.5 group shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-briefcase"></i>
+                            </div>
+                            <span class="font-bold text-[11px] text-slate-200">AI Placement</span>
+                        </button>
+                        <button onclick="openCgpaCalculator()" class="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 transition-all flex flex-col items-center justify-center gap-1.5 group shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-calculator"></i>
+                            </div>
+                            <span class="font-bold text-[11px] text-slate-200">CGPA Target</span>
+                        </button>
+                        <button onclick="openLostFound()" class="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-rose-500/50 transition-all flex flex-col items-center justify-center gap-1.5 group shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-box-open"></i>
+                            </div>
+                            <span class="font-bold text-[11px] text-slate-200">Lost & Found</span>
+                        </button>
+                        <button onclick="openMessMenu()" class="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/50 transition-all flex flex-col items-center justify-center gap-1.5 group shadow-sm">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-utensils"></i>
+                            </div>
+                            <span class="font-bold text-[11px] text-slate-200">Mess Menu</span>
+                        </button>
                     </div>
 
                     <!-- COLLEGE FEES & INSTANT ONLINE PAYMENT DESK -->
@@ -610,6 +670,46 @@
                         </span>
                     </div>
 
+                    <!-- HOD REAL-TIME DEPARTMENT ANALYTICS -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg">
+                            <span class="text-[10px] text-slate-400 font-semibold block">Dept. Attendance Avg</span>
+                            <div class="flex items-center justify-between mt-1">
+                                <span id="hodStatAttAvg" class="text-lg font-extrabold text-white">82.4%</span>
+                                <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                            </div>
+                            <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                                <div id="hodStatAttBar" class="bg-emerald-500 h-full rounded-full" style="width: 82%"></div>
+                            </div>
+                        </div>
+                        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg">
+                            <span class="text-[10px] text-slate-400 font-semibold block">Debarment Radar (<75%)</span>
+                            <div class="flex items-center justify-between mt-1">
+                                <span id="hodStatDefaulters" class="text-lg font-extrabold text-rose-400">3 Students</span>
+                                <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+                            </div>
+                            <span class="text-[10px] text-slate-500 mt-1 block">At risk of Exam Debarment</span>
+                        </div>
+                        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg">
+                            <span class="text-[10px] text-slate-400 font-semibold block">Fee Clearance Rate</span>
+                            <div class="flex items-center justify-between mt-1">
+                                <span id="hodStatFeeRate" class="text-lg font-extrabold text-cyan-400">55.3%</span>
+                                <i class="fa-solid fa-indian-rupee-sign text-cyan-400"></i>
+                            </div>
+                            <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                                <div id="hodStatFeeBar" class="bg-cyan-500 h-full rounded-full" style="width: 55%"></div>
+                            </div>
+                        </div>
+                        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg">
+                            <span class="text-[10px] text-slate-400 font-semibold block">Placement Readiness</span>
+                            <div class="flex items-center justify-between mt-1">
+                                <span id="hodStatPlacementRate" class="text-lg font-extrabold text-purple-400">88.5%</span>
+                                <i class="fa-solid fa-graduation-cap text-purple-400"></i>
+                            </div>
+                            <span class="text-[10px] text-slate-500 mt-1 block">AKGEC Placement Drive</span>
+                        </div>
+                    </div>
+
                     <!-- DEFAULTER RADAR CARD (< 75% Critical Alert) -->
                     <div class="p-5 rounded-2xl bg-slate-900/90 border border-rose-500/40 shadow-xl space-y-3">
                         <div class="flex items-center justify-between">
@@ -657,16 +757,22 @@
                                 <i class="fa-solid fa-users-gear text-emerald-400"></i>
                                 Student Enrollment & Master Directory
                             </h3>
-                            <span class="text-[10px] text-slate-400">Edit details or Remove records</span>
+                            <span class="text-[10px] text-slate-400">Edit details, Passwords or Remove records</span>
                         </div>
 
-                        <!-- Add Student Form -->
-                        <form onsubmit="handleHodAddStudent(event)" class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                        <!-- Add Student Form with Dedicated Password -->
+                        <form onsubmit="handleHodAddStudent(event)" class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-xs bg-slate-950/80 p-3 rounded-xl border border-slate-800">
                             <input type="text" id="hodNewStuName" placeholder="Full Name" required class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500">
                             <input type="text" id="hodNewStuRoll" placeholder="Roll No (22CS...)" required class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500">
                             <input type="text" id="hodNewStuBranch" placeholder="Branch (CSE)" required class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500">
                             <input type="text" id="hodNewStuSem" placeholder="Semester (5th Sem)" required class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500">
-                            <button type="submit" class="col-span-2 sm:col-span-1 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all">
+                            <div class="relative flex items-center col-span-2 sm:col-span-1">
+                                <input type="text" id="hodNewStuPassword" placeholder="Password (Auto/Custom)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 pr-12 text-white focus:outline-none focus:border-emerald-500">
+                                <button type="button" onclick="autoGenHodPassword()" class="absolute right-1 text-[10px] bg-slate-800 hover:bg-slate-700 px-1.5 py-0.5 rounded text-cyan-300 font-bold border border-slate-600" title="Generate Random Password">
+                                    🎲 Auto
+                                </button>
+                            </div>
+                            <button type="submit" class="col-span-2 sm:col-span-1 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-md">
                                 + Enroll Student
                             </button>
                         </form>
@@ -912,14 +1018,18 @@
 
                     <!-- Chat Input Bar -->
                     <form id="chatForm" onsubmit="handleChatSubmit(event)" class="p-3 border-t border-slate-800 bg-slate-900/90 rounded-b-2xl flex items-center space-x-2">
+                        <!-- Voice Speech-to-Text Input Button -->
+                        <button type="button" id="micBtn" onclick="toggleVoiceInput()" class="p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 transition-all text-xs shrink-0" title="Voice Input (Hindi/English Speech-to-Text)">
+                            <i id="micIcon" class="fa-solid fa-microphone text-cyan-400"></i>
+                        </button>
                         <input
                             type="text"
                             id="chatInput"
-                            placeholder="Ask doubts, health, campus ERP, or ANY question (searches live internet with links)..."
+                            placeholder="Ask doubts, health, campus ERP, or speak with mic (voice enabled)..."
                             class="flex-1 bg-slate-950/80 border border-slate-700/80 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl transition-all"
                             autocomplete="off"
                         >
-                        <button type="submit" id="sendBtn" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition-all shadow-md shadow-indigo-600/30 flex items-center justify-center">
+                        <button type="submit" id="sendBtn" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition-all shadow-md shadow-indigo-600/30 flex items-center justify-center shrink-0">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </form>
@@ -1292,6 +1402,466 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js?v=20260920_1"></script>
+    <!-- ==================== 1. AKGEC SMART STUDENT ID CARD MODAL ==================== -->
+    <div id="studentIdCardModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative overflow-y-auto max-h-[90vh]">
+            <button onclick="closeModal('studentIdCardModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <div class="text-center">
+                <h3 class="text-sm font-extrabold text-white flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-address-card text-cyan-400"></i> Virtual Smart Student ID Card
+                </h3>
+                <p class="text-[11px] text-slate-400">Official RFID Digital College Identity</p>
+            </div>
+
+            <!-- The Holographic ID Card Canvas -->
+            <div id="printableIdCard" class="relative rounded-2xl p-5 border-2 border-indigo-500/50 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 shadow-2xl overflow-hidden text-white space-y-4">
+                <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                <!-- Card Header -->
+                <div class="flex items-center justify-between border-b border-indigo-500/30 pb-3">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-base font-bold shadow-md">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-extrabold tracking-wide text-white leading-tight">AJAY KUMAR GARG ENGG. COLLEGE</h4>
+                            <p class="text-[9px] text-indigo-300 font-semibold tracking-wider">AKGEC GHAZIABAD • AFFILIATED TO AKTU</p>
+                        </div>
+                    </div>
+                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/40">ACTIVE</span>
+                </div>
+
+                <!-- Card Body -->
+                <div class="flex items-center space-x-4">
+                    <div class="w-20 h-24 rounded-xl bg-gradient-to-tr from-indigo-700 to-cyan-500 p-0.5 shadow-md shrink-0 flex flex-col items-center justify-center text-center">
+                        <div class="w-full h-full bg-slate-900 rounded-[10px] flex flex-col items-center justify-center text-white">
+                            <i class="fa-solid fa-user-graduate text-2xl text-cyan-400 mb-1"></i>
+                            <span id="idCardPhotoRoll" class="text-[9px] font-mono text-slate-400 font-bold">22CS1084</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1 text-xs flex-1">
+                        <h4 id="idCardName" class="font-extrabold text-sm text-white leading-tight">Harshit Sharma</h4>
+                        <p class="text-[11px] text-cyan-300 font-mono" id="idCardRoll">Roll No: 22CS1084</p>
+                        <p class="text-[10px] text-slate-300" id="idCardBranch">Dept: Computer Science & Engg.</p>
+                        <p class="text-[10px] text-slate-400" id="idCardSem">Sem: 5th Semester • Section CS-3</p>
+                        <div class="flex items-center gap-3 text-[10px] text-slate-400 pt-1">
+                            <span>Blood: <strong class="text-rose-400">O+</strong></span>
+                            <span>Valid Upto: <strong class="text-slate-200">JULY 2026</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Footer: QR Code & Barcode -->
+                <div class="border-t border-indigo-500/30 pt-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <div id="idCardQrContainer" class="w-12 h-12 bg-white p-1 rounded-lg flex items-center justify-center">
+                            <!-- Real QR Code Image -->
+                            <img id="idCardQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=AKGEC-STUDENT-22CS1084" alt="QR" class="w-full h-full object-contain">
+                        </div>
+                        <div class="text-[9px] text-slate-400">
+                            <span class="block font-bold text-slate-200">Scan to Verify</span>
+                            <span>RFID: 8849-AKG-992</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-mono text-[9px] tracking-widest text-slate-400">||||| |||| || |||||||</div>
+                        <span class="text-[9px] text-indigo-300 font-semibold">Registrar Signature</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+                <button onclick="window.print()" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-md">
+                    <i class="fa-solid fa-print"></i> Print / Download Card
+                </button>
+                <button onclick="closeModal('studentIdCardModal')" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-all">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 2. EXAM SEATING & PRINTABLE ADMIT CARD MODAL ==================== -->
+    <div id="examSeatingModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 relative overflow-y-auto max-h-[90vh]">
+            <button onclick="closeModal('examSeatingModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <div class="text-center">
+                <h3 class="text-sm font-extrabold text-white flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-chair text-purple-400"></i> Mid-Term Exam Seating & Admit Card
+                </h3>
+                <p class="text-[11px] text-slate-400">Official Hall Ticket & Seating Arrangement</p>
+            </div>
+
+            <!-- Seating Highlights Card -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs">
+                <div class="p-3 rounded-xl bg-purple-950/40 border border-purple-500/40">
+                    <span class="text-[10px] text-purple-300 block font-semibold">Exam Hall</span>
+                    <span id="seatingHall" class="font-extrabold text-white text-sm mt-0.5 block">CS Block</span>
+                </div>
+                <div class="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/40">
+                    <span class="text-[10px] text-indigo-300 block font-semibold">Room No</span>
+                    <span id="seatingRoom" class="font-extrabold text-white text-sm mt-0.5 block">Room 304</span>
+                </div>
+                <div class="p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/40">
+                    <span class="text-[10px] text-cyan-300 block font-semibold">Row & Bench</span>
+                    <span id="seatingBench" class="font-extrabold text-white text-sm mt-0.5 block">Row B, B-14</span>
+                </div>
+                <div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40">
+                    <span class="text-[10px] text-emerald-300 block font-semibold">Reporting Time</span>
+                    <span id="seatingTime" class="font-extrabold text-emerald-300 text-sm mt-0.5 block">09:00 AM</span>
+                </div>
+            </div>
+
+            <!-- Examination Schedule Table -->
+            <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-3 space-y-2 text-xs">
+                <h4 class="font-bold text-slate-200 flex items-center justify-between">
+                    <span>Approved Exam Papers</span>
+                    <span class="text-[10px] text-emerald-400 font-mono">Attendance Gate Passed (>75%)</span>
+                </h4>
+                <div class="space-y-1.5 text-[11px]">
+                    <div class="flex justify-between p-1.5 rounded bg-slate-900 border border-slate-800">
+                        <span class="font-semibold text-white">Operating Systems (CS-501)</span>
+                        <span class="text-slate-400">25 Sep 2026 • 09:30 AM - 12:30 PM</span>
+                    </div>
+                    <div class="flex justify-between p-1.5 rounded bg-slate-900 border border-slate-800">
+                        <span class="font-semibold text-white">Design & Analysis of Algorithms (CS-502)</span>
+                        <span class="text-slate-400">27 Sep 2026 • 09:30 AM - 12:30 PM</span>
+                    </div>
+                    <div class="flex justify-between p-1.5 rounded bg-slate-900 border border-slate-800">
+                        <span class="font-semibold text-white">Database Management Systems (CS-503)</span>
+                        <span class="text-slate-400">29 Sep 2026 • 09:30 AM - 12:30 PM</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                <p class="font-bold text-amber-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Exam Rules:</p>
+                <p>• Mandatory to bring this printed admit card and original AKGEC College ID card.</p>
+                <p>• Mobile phones, smartwatches, and study notes are strictly forbidden inside Room 304.</p>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="window.print()" class="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-md">
+                    <i class="fa-solid fa-print"></i> Print Official Admit Card
+                </button>
+                <button onclick="closeModal('examSeatingModal')" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-all">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 3. AI PLACEMENT READINESS ANALYZER MODAL ==================== -->
+    <div id="placementAnalyzerModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative overflow-y-auto max-h-[90vh]">
+            <button onclick="closeModal('placementAnalyzerModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <div class="text-center">
+                <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">watsonx Career Copilot</span>
+                <h3 class="text-sm font-extrabold text-white mt-1 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-briefcase text-emerald-400"></i> AI Placement & Resume Readiness Radar
+                </h3>
+                <p class="text-[11px] text-slate-400">Evaluate your eligibility for AKGEC on-campus placement drives</p>
+            </div>
+
+            <!-- Skills Checklist Selector -->
+            <div class="space-y-2 text-xs">
+                <label class="font-bold text-slate-300 block">Select the technical skills you have mastered:</label>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <label class="flex items-center space-x-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/60">
+                        <input type="checkbox" name="placement_skill" value="dsa" checked class="rounded text-emerald-500 focus:ring-0">
+                        <span class="text-slate-200">Data Structures</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/60">
+                        <input type="checkbox" name="placement_skill" value="cpp" checked class="rounded text-emerald-500 focus:ring-0">
+                        <span class="text-slate-200">C++ / OOPs</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/60">
+                        <input type="checkbox" name="placement_skill" value="python" checked class="rounded text-emerald-500 focus:ring-0">
+                        <span class="text-slate-200">Python</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/60">
+                        <input type="checkbox" name="placement_skill" value="react" checked class="rounded text-emerald-500 focus:ring-0">
+                        <span class="text-slate-200">React.js / Web</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/60">
+                        <input type="checkbox" name="placement_skill" value="sql" checked class="rounded text-emerald-500 focus:ring-0">
+                        <span class="text-slate-200">SQL / DBMS</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/60">
+                        <input type="checkbox" name="placement_skill" value="cloud" class="rounded text-emerald-500 focus:ring-0">
+                        <span class="text-slate-200">Cloud / AWS</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/60">
+                        <input type="checkbox" name="placement_skill" value="docker" class="rounded text-emerald-500 focus:ring-0">
+                        <span class="text-slate-200">Docker / DevOps</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/60">
+                        <input type="checkbox" name="placement_skill" value="system_design" class="rounded text-emerald-500 focus:ring-0">
+                        <span class="text-slate-200">System Design</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/60">
+                        <input type="checkbox" name="placement_skill" value="ml" class="rounded text-emerald-500 focus:ring-0">
+                        <span class="text-slate-200">Machine Learning</span>
+                    </label>
+                </div>
+            </div>
+
+            <button onclick="calculatePlacementScore()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs transition-all shadow-md shadow-emerald-600/30">
+                ⚡ Calculate Placement Readiness Score
+            </button>
+
+            <!-- Results Output Box -->
+            <div id="placementResultBox" class="rounded-xl p-4 bg-slate-950 border border-emerald-500/40 space-y-3 text-xs">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] text-slate-400">Readiness Score</span>
+                        <div class="text-2xl font-black text-emerald-400" id="placementScoreVal">95%</div>
+                    </div>
+                    <span id="placementBadge" class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Super Dream Tier Ready</span>
+                </div>
+                <div class="space-y-1">
+                    <span class="font-bold text-slate-300 block text-[11px]">Matching AKGEC Recruiters:</span>
+                    <div id="placementCompanies" class="flex flex-wrap gap-1.5 text-[11px]">
+                        <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200">Amazon AWS</span>
+                        <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200">TCS Digital</span>
+                        <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200">Accenture</span>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <span class="font-bold text-cyan-300 block text-[11px]">💡 AI Recommendations:</span>
+                    <ul id="placementTips" class="list-disc pl-4 space-y-0.5 text-slate-400 text-[11px]">
+                        <li>Master advanced dynamic programming and graph traversals.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 4. SMART CGPA / SGPA TARGET CALCULATOR MODAL ==================== -->
+    <div id="cgpaCalculatorModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative overflow-y-auto max-h-[90vh]">
+            <button onclick="closeModal('cgpaCalculatorModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <div class="text-center">
+                <h3 class="text-sm font-extrabold text-white flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator text-amber-400"></i> Smart CGPA / SGPA Goal Forecaster
+                </h3>
+                <p class="text-[11px] text-slate-400">Calculate required SGPA for AKTU Degree Honors (8.5+)</p>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <div class="flex justify-between text-slate-300 mb-1">
+                        <span>Current CGPA:</span>
+                        <span id="cgpaCurrentVal" class="font-bold text-cyan-400">8.10</span>
+                    </div>
+                    <input type="range" id="cgpaCurrentSlider" min="5.0" max="9.8" step="0.05" value="8.10" oninput="updateCgpaCalculation()" class="w-full accent-cyan-500">
+                </div>
+                <div>
+                    <div class="flex justify-between text-slate-300 mb-1">
+                        <span>Desired Target CGPA at Graduation:</span>
+                        <span id="cgpaTargetVal" class="font-bold text-amber-400">8.50 (Honors)</span>
+                    </div>
+                    <input type="range" id="cgpaTargetSlider" min="6.0" max="10.0" step="0.05" value="8.50" oninput="updateCgpaCalculation()" class="w-full accent-amber-500">
+                </div>
+                <div>
+                    <div class="flex justify-between text-slate-300 mb-1">
+                        <span>Semesters Already Completed:</span>
+                        <span id="cgpaSemsVal" class="font-bold text-indigo-400">4 Semesters</span>
+                    </div>
+                    <input type="range" id="cgpaSemsSlider" min="1" max="7" step="1" value="4" oninput="updateCgpaCalculation()" class="w-full accent-indigo-500">
+                </div>
+            </div>
+
+            <!-- Output Calculation Box -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-amber-500/40 text-center space-y-2">
+                <span class="text-[11px] text-slate-400">Required SGPA In Remaining Semesters:</span>
+                <div id="cgpaResultSgpa" class="text-3xl font-black text-amber-400">8.90</div>
+                <div id="cgpaFeasibilityBadge" class="text-xs font-bold text-emerald-300 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 w-fit mx-auto">
+                    ✅ Highly Achievable with consistent internal marks!
+                </div>
+            </div>
+
+            <button onclick="closeModal('cgpaCalculatorModal')" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all">
+                Close Calculator
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== 5. CAMPUS LOST & FOUND HUB MODAL ==================== -->
+    <div id="lostFoundModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative overflow-y-auto max-h-[90vh]">
+            <button onclick="closeModal('lostFoundModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-box-open text-rose-400"></i> Campus Lost & Found Hub
+                    </h3>
+                    <p class="text-[11px] text-slate-400">Post or claim items misplaced around AKGEC</p>
+                </div>
+                <button onclick="toggleLostFoundForm()" id="btnToggleLfForm" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition-all">
+                    + Post Item
+                </button>
+            </div>
+
+            <!-- Post New Item Form (Toggled) -->
+            <form id="lostFoundForm" onsubmit="handlePostLostFound(event)" class="hidden p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Status Type:</label>
+                        <select id="lfInputType" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+                            <option value="Lost">Lost (Kho gaya)</option>
+                            <option value="Found">Found (Mila hai)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Item Name:</label>
+                        <input type="text" id="lfInputItem" placeholder="e.g. Scientific Calculator" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Location:</label>
+                        <input type="text" id="lfInputLocation" placeholder="e.g. Library 2nd Floor" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Contact Phone/Email:</label>
+                        <input type="text" id="lfInputContact" placeholder="9876543210" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold transition-all">
+                    Submit to Campus Board
+                </button>
+            </form>
+
+            <!-- Items Feed -->
+            <div id="lostFoundList" class="space-y-2.5 max-h-72 overflow-y-auto pr-1 text-xs">
+                <!-- Loaded dynamically by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 6. HOSTEL MESS MENU & LIVE RATINGS MODAL ==================== -->
+    <div id="messMenuModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative overflow-y-auto max-h-[90vh]">
+            <button onclick="closeModal('messMenuModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-utensils text-blue-400"></i> AKGEC Hostel & Mess Menu
+                    </h3>
+                    <p class="text-[11px] text-slate-400">Official Daily Dining & Student Rating Desk</p>
+                </div>
+                <span id="messAvgRatingPill" class="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                    ⭐ 4.4 / 5.0 (143 reviews)
+                </span>
+            </div>
+
+            <!-- Day Selector Tabs -->
+            <div id="messDayTabs" class="flex gap-1.5 overflow-x-auto pb-1 text-xs">
+                <!-- Injected by JS: Monday, Tuesday... -->
+            </div>
+
+            <!-- Meal Items Grid -->
+            <div id="messMealsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <!-- Injected by JS -->
+            </div>
+
+            <!-- Interactive Rating Section -->
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                <span class="font-bold text-slate-200 block">Rate Today's Food Quality:</span>
+                <div class="flex items-center gap-2 text-lg text-amber-400 cursor-pointer" id="messStarContainer">
+                    <i class="fa-solid fa-star" onclick="setMessStarRating(1)"></i>
+                    <i class="fa-solid fa-star" onclick="setMessStarRating(2)"></i>
+                    <i class="fa-solid fa-star" onclick="setMessStarRating(3)"></i>
+                    <i class="fa-solid fa-star" onclick="setMessStarRating(4)"></i>
+                    <i class="fa-solid fa-star" onclick="setMessStarRating(5)"></i>
+                    <span id="messSelectedStarText" class="text-xs text-slate-400 font-semibold ml-2">5 Stars (Excellent)</span>
+                </div>
+                <input type="text" id="messReviewComment" placeholder="Write feedback (e.g. Paneer was delicious, tea was hot)..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+                <button onclick="submitMessRating()" class="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all">
+                    Submit Food Rating
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 7. HOD STUDENT CREDENTIALS POPUP MODAL ==================== -->
+    <div id="hodStudentCreatedModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-emerald-500/50 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative overflow-y-auto max-h-[90vh]">
+            <button onclick="closeModal('hodStudentCreatedModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <div class="text-center space-y-1">
+                <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl mx-auto border border-emerald-500/40">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 class="text-base font-extrabold text-white">Student Enrolled Successfully!</h3>
+                <p class="text-xs text-slate-400">Share these official login credentials with the student.</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                <div class="flex justify-between border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">Student Name:</span>
+                    <strong id="createdStuName" class="text-white">Student</strong>
+                </div>
+                <div class="flex justify-between border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">Roll Number:</span>
+                    <strong id="createdStuRoll" class="text-cyan-300 font-mono">22CS0000</strong>
+                </div>
+                <div class="flex justify-between border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">Assigned Password:</span>
+                    <strong id="createdStuPassword" class="text-emerald-400 font-mono font-bold">AKGEC@2026</strong>
+                </div>
+                <div class="flex justify-between pt-1">
+                    <span class="text-slate-400">Portal URL:</span>
+                    <span class="text-indigo-400 font-mono text-[11px]">campus-genie-theta.vercel.app</span>
+                </div>
+            </div>
+
+            <button onclick="copyEnrolledCredentials()" id="btnCopyCredentials" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-md">
+                <i class="fa-solid fa-copy"></i> 📋 Copy Credentials to Clipboard
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== 8. HOD PASSWORD RESET MODAL ==================== -->
+    <div id="hodResetPasswordModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 relative overflow-y-auto max-h-[90vh]">
+            <button onclick="closeModal('hodResetPasswordModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <div class="text-center">
+                <h3 class="text-sm font-extrabold text-white flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-key text-purple-400"></i> Reset Student Password
+                </h3>
+                <p id="resetTargetStudentText" class="text-xs text-slate-400 mt-0.5">Roll: 22CS1084</p>
+            </div>
+            <div class="space-y-2 text-xs">
+                <label class="text-[11px] text-slate-400 block">New Password:</label>
+                <div class="relative flex items-center">
+                    <input type="text" id="hodResetNewPwInput" placeholder="Enter new password" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 pr-14 text-white focus:outline-none focus:border-purple-500">
+                    <button type="button" onclick="autoGenHodResetPw()" class="absolute right-1.5 text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-cyan-300 font-bold border border-slate-600">
+                        🎲 Auto
+                    </button>
+                </div>
+            </div>
+            <button onclick="submitHodResetPassword()" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all shadow-md">
+                Confirm & Update Password
+            </button>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js?v=20260921_2"></script>
 </body>
 </html>

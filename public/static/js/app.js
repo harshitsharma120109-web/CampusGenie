@@ -1034,9 +1034,14 @@ function renderHodDefaulters(data) {
                     ${d.shortages.map(sh => `<span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-medium border border-rose-500/30">${escapeHtml(sh.subject)}: ${sh.percentage}% (Need ${sh.classes_needed} classes)</span>`).join("")}
                 </div>
             </div>
-            <div class="text-right">
-                <span class="text-xs font-extrabold text-rose-400">${d.overall_pct}% Overall</span>
-                <p class="text-[10px] text-slate-500">Debarment Notice Active</p>
+            <div class="flex sm:flex-col items-center sm:items-end justify-between gap-1.5 text-right">
+                <div>
+                    <span class="text-xs font-extrabold text-rose-400">${d.overall_pct}% Overall</span>
+                    <p class="text-[10px] text-slate-500">Debarment Radar</p>
+                </div>
+                <button onclick="sendParentAlert('${d.id || d.roll_no}', 'attendance', '${escapeHtml(d.name)}')" class="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/60 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-brands fa-whatsapp text-emerald-400"></i> WhatsApp Alert
+                </button>
             </div>
         </div>
     `).join("");
@@ -1141,7 +1146,10 @@ function renderHodStudents() {
             <td class="py-2.5 font-bold text-white">${escapeHtml(s.name)}</td>
             <td class="py-2.5 font-mono text-slate-400">${escapeHtml(s.roll_no)}</td>
             <td class="py-2.5 text-slate-400">${escapeHtml(s.branch || 'CSE')} (${escapeHtml(s.semester || '5th')})</td>
-            <td class="py-2.5 text-right space-x-2">
+            <td class="py-2.5 text-right space-x-1.5">
+                <button onclick="openHodResetPassword('${s.id}', '${escapeHtml(s.name)}', '${escapeHtml(s.roll_no)}')" class="px-2 py-1 rounded bg-purple-500/20 hover:bg-purple-500/40 border border-purple-500/30 text-purple-300 font-bold text-[10px] transition-all" title="Reset this student password">
+                    <i class="fa-solid fa-key mr-1"></i> Reset Pw
+                </button>
                 <button onclick="handleHodDeleteStudent('${s.id}')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/40 border border-rose-500/30 text-rose-300 font-bold text-[10px] transition-all">
                     <i class="fa-solid fa-trash-can mr-1"></i> Remove
                 </button>
@@ -1258,28 +1266,50 @@ async function handleHodDeleteSubject(subjectId) {
 
 async function handleHodAddStudent(event) {
     event.preventDefault();
+    initAudio();
+    playSfx('click');
     const name = document.getElementById("hodNewStuName").value.trim();
     const roll_no = document.getElementById("hodNewStuRoll").value.trim();
     const branch = document.getElementById("hodNewStuBranch").value.trim();
     const semester = document.getElementById("hodNewStuSem").value.trim();
+    const password = document.getElementById("hodNewStuPassword") ? document.getElementById("hodNewStuPassword").value.trim() : "";
 
     try {
         const res = await fetch("/api/admin/student/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, roll_no, branch, semester })
+            body: JSON.stringify({ name, roll_no, branch, semester, password })
         });
         const data = await res.json();
         if (data.success) {
+            playSfx('success');
             showToast(data.message, "success");
             event.target.reset();
+            
+            // Show Credential Card
+            if (data.credentials) {
+                lastCreatedStudentCredentials = data.credentials;
+                const nameEl = document.getElementById("createdStuName");
+                const rollEl = document.getElementById("createdStuRoll");
+                const pwEl = document.getElementById("createdStuPassword");
+                if (nameEl) nameEl.innerText = data.credentials.name;
+                if (rollEl) rollEl.innerText = data.credentials.roll_no;
+                if (pwEl) pwEl.innerText = data.credentials.password;
+                const modal = document.getElementById("hodStudentCreatedModal");
+                if (modal) modal.classList.remove("hidden");
+            }
+
             await fetchStudentData();
             renderHodStudents();
+            await loadHodAnalytics();
         } else {
+            playSfx('alert');
             showToast(data.message || "Failed to enroll student.", "error");
         }
     } catch (err) {
         console.error("handleHodAddStudent error:", err);
+        playSfx('alert');
+        showToast("Network error enrolling student.", "error");
     }
 }
 
@@ -1661,6 +1691,7 @@ function appendChatMessage(sender, text) {
 
     const div = document.createElement("div");
     if (sender === "user") {
+        playSfx('click');
         div.className = "flex items-start justify-end space-x-2";
         div.innerHTML = `
             <div class="chat-user-bubble text-xs text-white leading-relaxed space-y-1 shadow-md">
@@ -1671,15 +1702,25 @@ function appendChatMessage(sender, text) {
             </div>
         `;
     } else {
+        const replyId = "reply_" + Math.random().toString(36).substring(2, 9);
         div.className = "flex items-start space-x-2.5";
         div.innerHTML = `
             <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white text-[10px] shrink-0 mt-0.5 shadow-md">
                 <i class="fa-solid fa-microchip"></i>
             </div>
-            <div class="chat-bot-bubble text-xs text-slate-200 leading-relaxed space-y-1 shadow-md">
-                ${formatBotReply(text)}
+            <div class="chat-bot-bubble text-xs text-slate-200 leading-relaxed space-y-2 shadow-md">
+                <div id="${replyId}">${formatBotReply(text)}</div>
+                <div class="pt-1 flex items-center justify-between border-t border-slate-700/50 text-[10px]">
+                    <span class="text-slate-500 flex items-center gap-1">
+                        <i class="fa-solid fa-sparkles text-cyan-400"></i> IBM watsonx.ai
+                    </span>
+                    <button onclick="readAloudBotReply('${replyId}')" class="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 hover:text-white font-bold transition-all flex items-center gap-1">
+                        <i class="fa-solid fa-volume-high text-[10px]"></i> Listen
+                    </button>
+                </div>
             </div>
         `;
+        playSfx('bell');
     }
 
     container.appendChild(div);
@@ -2509,3 +2550,739 @@ async function handleHodCreateAssignment(event) {
         showToast("Network error publishing assignment.", "error");
     }
 }
+
+// ==============================================================================
+// 1. WEB AUDIO API SOUND EFFECTS ENGINE (Zero-Asset Synthesizer)
+// ==============================================================================
+let audioCtx = null;
+let soundEnabled = localStorage.getItem('campusgenie_sound') !== 'false';
+
+function initAudio() {
+    if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function playSfx(type = 'click') {
+    if (!soundEnabled) return;
+    try {
+        initAudio();
+        if (!audioCtx) return;
+
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'click') {
+            // Soft pleasant pop
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(650, now);
+            osc.frequency.exponentialRampToValueAtTime(320, now + 0.04);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.linearRampToValueAtTime(0.001, now + 0.04);
+            osc.start(now);
+            osc.stop(now + 0.04);
+        } else if (type === 'success') {
+            // Celebratory harmonic chord
+            [659.25, 830.61, 987.77].forEach((freq, i) => {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.connect(g);
+                g.connect(audioCtx.destination);
+                o.type = 'triangle';
+                o.frequency.setValueAtTime(freq, now + i * 0.07);
+                g.gain.setValueAtTime(0.12, now + i * 0.07);
+                g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.4);
+                o.start(now + i * 0.07);
+                o.stop(now + i * 0.07 + 0.4);
+            });
+        } else if (type === 'bell') {
+            // Notification ding
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, now);
+            osc.frequency.exponentialRampToValueAtTime(440, now + 0.35);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+            osc.start(now);
+            osc.stop(now + 0.35);
+        } else if (type === 'alert' || type === 'warning') {
+            // Soft double alert buzz
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.setValueAtTime(260, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        }
+    } catch (e) {
+        console.warn("SFX audio error:", e);
+    }
+}
+
+function toggleSoundEffects() {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem('campusgenie_sound', soundEnabled ? 'true' : 'false');
+    updateSoundIcons();
+    if (soundEnabled) {
+        playSfx('success');
+        showToast("🔊 UI Sound Effects: Enabled", "success");
+    } else {
+        showToast("🔇 UI Sound Effects: Muted", "info");
+    }
+}
+
+function updateSoundIcons() {
+    const icons = document.querySelectorAll('#sfxToggleIcon, .gwSfxIcon');
+    icons.forEach(ic => {
+        if (soundEnabled) {
+            ic.className = (ic.className.includes('gw') ? 'gwSfxIcon ' : '') + 'fa-solid fa-volume-high text-xs text-cyan-400';
+        } else {
+            ic.className = (ic.className.includes('gw') ? 'gwSfxIcon ' : '') + 'fa-solid fa-volume-xmark text-xs text-rose-400';
+        }
+    });
+}
+
+// ==============================================================================
+// 2. THEME SWITCHER (Dark & Light Mode Engine)
+// ==============================================================================
+let currentTheme = localStorage.getItem('campusgenie_theme') || 'dark';
+
+function initTheme() {
+    if (currentTheme === 'light') {
+        document.body.classList.add('light-theme');
+    } else {
+        document.body.classList.remove('light-theme');
+    }
+    updateThemeIcons();
+}
+
+function toggleTheme() {
+    initAudio();
+    playSfx('click');
+    if (document.body.classList.contains('light-theme')) {
+        document.body.classList.remove('light-theme');
+        currentTheme = 'dark';
+        showToast("🌙 Switched to Cyber Dark Mode", "info");
+    } else {
+        document.body.classList.add('light-theme');
+        currentTheme = 'light';
+        showToast("☀️ Switched to Clean Light Mode", "info");
+    }
+    localStorage.setItem('campusgenie_theme', currentTheme);
+    updateThemeIcons();
+}
+
+function updateThemeIcons() {
+    const icons = document.querySelectorAll('#themeToggleIcon, .gwThemeIcon');
+    icons.forEach(ic => {
+        if (currentTheme === 'light') {
+            ic.className = (ic.className.includes('gw') ? 'gwThemeIcon ' : '') + 'fa-solid fa-sun text-xs text-amber-500';
+        } else {
+            ic.className = (ic.className.includes('gw') ? 'gwThemeIcon ' : '') + 'fa-solid fa-moon text-xs text-amber-400';
+        }
+    });
+}
+
+// ==============================================================================
+// 3. AI VOICE ASSISTANT (Speech-to-Text & Text-to-Speech)
+// ==============================================================================
+let voiceRecognition = null;
+let isRecordingVoice = false;
+
+function toggleVoiceInput() {
+    initAudio();
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        showToast("Speech Recognition not supported in this browser. Please use Chrome/Edge.", "warning");
+        return;
+    }
+
+    const micBtn = document.getElementById("micBtn");
+    const micIcon = document.getElementById("micIcon");
+
+    if (isRecordingVoice && voiceRecognition) {
+        voiceRecognition.stop();
+        isRecordingVoice = false;
+        if (micBtn) micBtn.classList.remove("mic-recording");
+        if (micIcon) micIcon.className = "fa-solid fa-microphone text-cyan-400";
+        showToast("Voice input stopped.", "info");
+        return;
+    }
+
+    voiceRecognition = new SpeechRecognition();
+    voiceRecognition.continuous = false;
+    voiceRecognition.interimResults = false;
+    voiceRecognition.lang = "en-IN";
+
+    voiceRecognition.onstart = () => {
+        isRecordingVoice = true;
+        playSfx('click');
+        if (micBtn) micBtn.classList.add("mic-recording");
+        if (micIcon) micIcon.className = "fa-solid fa-waveform-lines text-white";
+        showToast("🎙️ Listening... Speak your doubt or question!", "info");
+    };
+
+    voiceRecognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        const input = document.getElementById("chatInput");
+        if (input) {
+            input.value = transcript;
+            playSfx('bell');
+            showToast(`Heard: "${transcript}"`, "success");
+            handleChatSubmit();
+        }
+    };
+
+    voiceRecognition.onerror = (e) => {
+        console.warn("Speech recognition error:", e.error);
+        isRecordingVoice = false;
+        if (micBtn) micBtn.classList.remove("mic-recording");
+        if (micIcon) micIcon.className = "fa-solid fa-microphone text-cyan-400";
+        showToast("Mic audio timeout or permission denied.", "warning");
+    };
+
+    voiceRecognition.onend = () => {
+        isRecordingVoice = false;
+        if (micBtn) micBtn.classList.remove("mic-recording");
+        if (micIcon) micIcon.className = "fa-solid fa-microphone text-cyan-400";
+    };
+
+    try {
+        voiceRecognition.start();
+    } catch (e) {
+        console.error("Failed to start voice recognition:", e);
+    }
+}
+
+function readAloudBotReply(elementId) {
+    initAudio();
+    playSfx('click');
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    if (!('speechSynthesis' in window)) {
+        showToast("Speech synthesis not supported in this browser.", "warning");
+        return;
+    }
+
+    window.speechSynthesis.cancel();
+    const cleanText = el.innerText.replace(/[\*\_#`]/g, '').trim();
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.lang = 'en-US';
+
+    showToast("🔊 Reading answer aloud...", "info");
+    window.speechSynthesis.speak(utterance);
+}
+
+// ==============================================================================
+// 4. SMART ID CARD & EXAM SEATING MODALS
+// ==============================================================================
+function closeModal(modalId) {
+    playSfx('click');
+    const el = document.getElementById(modalId);
+    if (el) el.classList.add('hidden');
+}
+
+function openStudentIdCard() {
+    initAudio();
+    playSfx('click');
+    const stu = (currentData && currentData.student) || currentUser || { name: 'Harshit Sharma', roll_no: '22CS1084', branch: 'CSE', semester: '5th Sem' };
+    const nameEl = document.getElementById('idCardName');
+    const rollEl = document.getElementById('idCardRoll');
+    const branchEl = document.getElementById('idCardBranch');
+    const semEl = document.getElementById('idCardSem');
+    const photoRoll = document.getElementById('idCardPhotoRoll');
+    const qrImg = document.getElementById('idCardQrImg');
+
+    if (nameEl) nameEl.innerText = stu.name;
+    if (rollEl) rollEl.innerText = `Roll No: ${stu.roll_no}`;
+    if (branchEl) branchEl.innerText = `Dept: ${stu.branch || 'Computer Science & Engineering'}`;
+    if (semEl) semEl.innerText = `Sem: ${stu.semester || '5th Semester'} • Section CS-3`;
+    if (photoRoll) photoRoll.innerText = stu.roll_no;
+    if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=AKGEC-STUDENT-${encodeURIComponent(stu.roll_no)}`;
+
+    const modal = document.getElementById('studentIdCardModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+async function openExamSeating() {
+    initAudio();
+    playSfx('click');
+    const stuId = (currentData && currentData.student && currentData.student.id) || (currentUser && currentUser.id) || '22CS1084';
+    try {
+        const res = await fetch(`/api/exam/seating?student_id=${encodeURIComponent(stuId)}`);
+        const data = await res.json();
+        if (data.success && data.seating) {
+            const s = data.seating;
+            const hall = document.getElementById('seatingHall');
+            const room = document.getElementById('seatingRoom');
+            const bench = document.getElementById('seatingBench');
+            const time = document.getElementById('seatingTime');
+            if (hall) hall.innerText = s.hall_building;
+            if (room) room.innerText = s.room_no;
+            if (bench) bench.innerText = `${s.row}, ${s.seat_no}`;
+            if (time) time.innerText = s.reporting_time;
+        }
+    } catch (e) {
+        console.error("Exam seating error:", e);
+    }
+    const modal = document.getElementById('examSeatingModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+// ==============================================================================
+// 5. AI PLACEMENT ANALYZER & CGPA CALCULATOR
+// ==============================================================================
+function openPlacementAnalyzer() {
+    initAudio();
+    playSfx('click');
+    const modal = document.getElementById('placementAnalyzerModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+async function calculatePlacementScore() {
+    initAudio();
+    playSfx('click');
+    const checked = Array.from(document.querySelectorAll("input[name='placement_skill']:checked")).map(el => el.value);
+    try {
+        const res = await fetch('/api/placement/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ skills: checked })
+        });
+        const data = await res.json();
+        if (data.success) {
+            playSfx('success');
+            const scoreVal = document.getElementById('placementScoreVal');
+            const badge = document.getElementById('placementBadge');
+            const compContainer = document.getElementById('placementCompanies');
+            const tipsContainer = document.getElementById('placementTips');
+
+            if (scoreVal) scoreVal.innerText = `${data.score}%`;
+            if (badge) badge.innerText = `${data.readiness} Placement Readiness`;
+            if (compContainer) {
+                compContainer.innerHTML = data.eligible_companies.map(c => `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">${escapeHtml(c)}</span>`).join('');
+            }
+            if (tipsContainer) {
+                tipsContainer.innerHTML = data.tips.map(t => `<li>${escapeHtml(t)}</li>`).join('');
+            }
+            showToast(`Placement Readiness: ${data.score}% calculated!`, 'success');
+        }
+    } catch (e) {
+        console.error("calculatePlacementScore error:", e);
+    }
+}
+
+function openCgpaCalculator() {
+    initAudio();
+    playSfx('click');
+    updateCgpaCalculation();
+    const modal = document.getElementById('cgpaCalculatorModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function updateCgpaCalculation() {
+    const curSlider = document.getElementById('cgpaCurrentSlider');
+    const tarSlider = document.getElementById('cgpaTargetSlider');
+    const semSlider = document.getElementById('cgpaSemsSlider');
+
+    if (!curSlider || !tarSlider || !semSlider) return;
+
+    const cur = parseFloat(curSlider.value);
+    const tar = parseFloat(tarSlider.value);
+    const completed = parseInt(semSlider.value);
+    const totalSems = 8;
+    const remaining = totalSems - completed;
+
+    document.getElementById('cgpaCurrentVal').innerText = cur.toFixed(2);
+    document.getElementById('cgpaTargetVal').innerText = tar.toFixed(2) + (tar >= 8.5 ? " (Honors 🎖️)" : "");
+    document.getElementById('cgpaSemsVal').innerText = `${completed} Semesters Completed`;
+
+    let reqSgpa = ((tar * totalSems) - (cur * completed)) / remaining;
+    reqSgpa = Math.max(0, reqSgpa);
+
+    const resEl = document.getElementById('cgpaResultSgpa');
+    const badge = document.getElementById('cgpaFeasibilityBadge');
+
+    if (resEl) resEl.innerText = reqSgpa.toFixed(2);
+    if (badge) {
+        if (reqSgpa > 10.0) {
+            badge.className = "text-xs font-bold text-rose-300 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 w-fit mx-auto";
+            badge.innerText = "⚠️ Mathematically beyond 10.0 SGPA ceiling. Aim for highest score!";
+        } else if (reqSgpa >= 9.0) {
+            badge.className = "text-xs font-bold text-amber-300 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 w-fit mx-auto";
+            badge.innerText = "🔥 High Target: Needs 9.0+ SGPA in internal & theory papers!";
+        } else {
+            badge.className = "text-xs font-bold text-emerald-300 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 w-fit mx-auto";
+            badge.innerText = "✅ Highly Realistic & Achievable with regular attendance!";
+        }
+    }
+}
+
+// ==============================================================================
+// 6. CAMPUS LOST & FOUND HUB
+// ==============================================================================
+async function openLostFound() {
+    initAudio();
+    playSfx('click');
+    await loadLostFound();
+    const modal = document.getElementById('lostFoundModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+async function loadLostFound() {
+    try {
+        const res = await fetch('/api/community/lost_found');
+        const data = await res.json();
+        const list = document.getElementById('lostFoundList');
+        if (!list) return;
+
+        if (!data.items || !data.items.length) {
+            list.innerHTML = "<p class='text-slate-500 text-center py-4'>No lost/found reports currently active.</p>";
+            return;
+        }
+
+        list.innerHTML = data.items.map(it => `
+            <div class="p-3 rounded-xl bg-slate-950 border ${it.type === 'Lost' ? 'border-rose-500/30' : 'border-emerald-500/30'} flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] px-2 py-0.5 rounded font-bold uppercase ${it.type === 'Lost' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'}">${escapeHtml(it.type)}</span>
+                        <strong class="text-white text-xs">${escapeHtml(it.item)}</strong>
+                        <span class="text-[10px] text-slate-500 font-mono">• ${escapeHtml(it.date)}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">📍 Location: <span class="text-slate-300">${escapeHtml(it.location)}</span> | Contact: <span class="text-cyan-400 font-mono">${escapeHtml(it.contact)}</span></p>
+                </div>
+                <div>
+                    ${it.status === 'Claimed' 
+                        ? `<span class="text-[10px] px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 font-bold">✅ Resolved</span>` 
+                        : `<button onclick="claimLostItem('${it.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 border border-indigo-500/40 text-indigo-300 hover:text-white font-bold text-[10px] transition-all">Claim Item</button>`
+                    }
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error("loadLostFound error:", e);
+    }
+}
+
+function toggleLostFoundForm() {
+    initAudio();
+    playSfx('click');
+    const form = document.getElementById('lostFoundForm');
+    const btn = document.getElementById('btnToggleLfForm');
+    if (form) {
+        form.classList.toggle('hidden');
+        if (btn) btn.innerText = form.classList.contains('hidden') ? '+ Post Item' : '✕ Cancel';
+    }
+}
+
+async function handlePostLostFound(event) {
+    event.preventDefault();
+    initAudio();
+    const type = document.getElementById('lfInputType').value;
+    const item = document.getElementById('lfInputItem').value.trim();
+    const location = document.getElementById('lfInputLocation').value.trim();
+    const contact = document.getElementById('lfInputContact').value.trim();
+    const stuName = (currentData && currentData.student && currentData.student.name) || (currentUser && currentUser.name) || 'Student';
+
+    try {
+        const res = await fetch('/api/community/lost_found/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, item, location, contact, reported_by: stuName })
+        });
+        const data = await res.json();
+        if (data.success) {
+            playSfx('success');
+            showToast(data.message, 'success');
+            event.target.reset();
+            toggleLostFoundForm();
+            await loadLostFound();
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch (e) {
+        console.error("handlePostLostFound error:", e);
+    }
+}
+
+async function claimLostItem(itemId) {
+    initAudio();
+    try {
+        const res = await fetch('/api/community/lost_found/claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: itemId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            playSfx('success');
+            showToast(data.message, 'success');
+            await loadLostFound();
+        }
+    } catch (e) {
+        console.error("claimLostItem error:", e);
+    }
+}
+
+// ==============================================================================
+// 7. HOSTEL MESS MENU & LIVE RATINGS
+// ==============================================================================
+let selectedMessDay = 'Monday';
+let selectedMessStars = 5;
+
+async function openMessMenu() {
+    initAudio();
+    playSfx('click');
+    await loadMessMenu();
+    const modal = document.getElementById('messMenuModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+async function loadMessMenu() {
+    try {
+        const res = await fetch('/api/mess/menu');
+        const data = await res.json();
+        if (!data.success || !data.mess_menu) return;
+        const menu = data.mess_menu;
+
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const tabsContainer = document.getElementById('messDayTabs');
+        if (tabsContainer) {
+            tabsContainer.innerHTML = days.map(d => `
+                <button onclick="selectMessDay('${d}')" class="px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all ${d === selectedMessDay ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-950 text-slate-400 hover:text-white'}">
+                    ${d}
+                </button>
+            `).join('');
+        }
+
+        const ratingPill = document.getElementById('messAvgRatingPill');
+        if (ratingPill && menu.ratings) {
+            ratingPill.innerText = `⭐ ${menu.ratings.average} / 5.0 (${menu.ratings.total_votes} reviews)`;
+        }
+
+        renderMessMealsForDay(menu, selectedMessDay);
+    } catch (e) {
+        console.error("loadMessMenu error:", e);
+    }
+}
+
+function selectMessDay(day) {
+    initAudio();
+    playSfx('click');
+    selectedMessDay = day;
+    loadMessMenu();
+}
+
+function renderMessMealsForDay(menu, day) {
+    const container = document.getElementById('messMealsContainer');
+    if (!container || !menu.weekly_schedule) return;
+    const schedule = menu.weekly_schedule[day] || {};
+
+    container.innerHTML = `
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+            <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">🍳 Breakfast (07:30 - 09:30 AM)</span>
+            <p class="text-slate-200 text-xs">${escapeHtml(schedule.breakfast || 'Menu updating...')}</p>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">🍛 Lunch (12:30 - 02:30 PM)</span>
+            <p class="text-slate-200 text-xs">${escapeHtml(schedule.lunch || 'Menu updating...')}</p>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+            <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block">☕ Evening Snacks (05:00 - 06:00 PM)</span>
+            <p class="text-slate-200 text-xs">${escapeHtml(schedule.snacks || 'Menu updating...')}</p>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+            <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">🍲 Dinner (08:00 - 10:00 PM)</span>
+            <p class="text-slate-200 text-xs">${escapeHtml(schedule.dinner || 'Menu updating...')}</p>
+        </div>
+    `;
+}
+
+function setMessStarRating(stars) {
+    initAudio();
+    playSfx('click');
+    selectedMessStars = stars;
+    const starIcons = document.querySelectorAll('#messStarContainer i');
+    starIcons.forEach((ic, idx) => {
+        if (idx < stars) {
+            ic.className = 'fa-solid fa-star';
+        } else {
+            ic.className = 'fa-regular fa-star text-slate-600';
+        }
+    });
+    const label = document.getElementById('messSelectedStarText');
+    const descriptions = ['', '1 Star (Poor)', '2 Stars (Fair)', '3 Stars (Average)', '4 Stars (Good)', '5 Stars (Excellent)'];
+    if (label) label.innerText = descriptions[stars] || `${stars} Stars`;
+}
+
+async function submitMessRating() {
+    initAudio();
+    const comment = document.getElementById('messReviewComment').value.trim();
+    const stuName = (currentData && currentData.student && currentData.student.name) || (currentUser && currentUser.name) || 'Student';
+
+    try {
+        const res = await fetch('/api/mess/rate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stars: selectedMessStars, comment, student_name: stuName })
+        });
+        const data = await res.json();
+        if (data.success) {
+            playSfx('success');
+            showToast("⭐⭐⭐⭐⭐ " + data.message, 'success');
+            document.getElementById('messReviewComment').value = '';
+            await loadMessMenu();
+        }
+    } catch (e) {
+        console.error("submitMessRating error:", e);
+    }
+}
+
+// ==============================================================================
+// 8. PARENT WHATSAPP ALERTS & HOD UTILITIES
+// ==============================================================================
+async function sendParentAlert(studentId, type = 'attendance', studentName = 'Student') {
+    initAudio();
+    playSfx('click');
+    const message = `Official AKGEC CSE Alert: Your ward ${studentName} (${studentId}) has low attendance. Please contact department immediately.`;
+    
+    try {
+        const res = await fetch('/api/parent/alert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ student_id: studentId, type, message })
+        });
+        const data = await res.json();
+        if (data.success) {
+            playSfx('success');
+            showToast(`📲 WhatsApp Alert dispatched to Parent of ${studentName}!`, 'success');
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+    } catch (e) {
+        console.error("sendParentAlert error:", e);
+    }
+}
+
+let lastCreatedStudentCredentials = null;
+
+function autoGenHodPassword() {
+    playSfx('click');
+    const num = Math.floor(1000 + Math.random() * 9000);
+    const pw = `AKGEC@${num}`;
+    const inp = document.getElementById("hodNewStuPassword");
+    if (inp) inp.value = pw;
+    showToast(`Generated: ${pw}`, "info");
+}
+
+function copyEnrolledCredentials() {
+    initAudio();
+    playSfx('click');
+    if (!lastCreatedStudentCredentials) return;
+    const text = `🎓 AKGEC Smart Campus ERP — Student Login Credentials\n\nName: ${lastCreatedStudentCredentials.name}\nRoll Number: ${lastCreatedStudentCredentials.roll_no}\nPassword: ${lastCreatedStudentCredentials.password}\nPortal Link: https://campus-genie-theta.vercel.app/\n\nPlease log in with your Roll Number and Password.`;
+    navigator.clipboard.writeText(text).then(() => {
+        playSfx('bell');
+        const btn = document.getElementById('btnCopyCredentials');
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-check"></i> ✅ Credentials Copied!`;
+        showToast("Credentials copied to clipboard! Ready to share on WhatsApp.", "success");
+        setTimeout(() => {
+            if (btn) btn.innerHTML = `<i class="fa-solid fa-copy"></i> 📋 Copy Credentials to Clipboard`;
+        }, 3000);
+    });
+}
+
+let currentResetTargetStudentId = null;
+
+function openHodResetPassword(studentId, name, roll) {
+    initAudio();
+    playSfx('click');
+    currentResetTargetStudentId = studentId;
+    const text = document.getElementById('resetTargetStudentText');
+    if (text) text.innerText = `${name} (${roll})`;
+    autoGenHodResetPw();
+    const modal = document.getElementById('hodResetPasswordModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function autoGenHodResetPw() {
+    const num = Math.floor(1000 + Math.random() * 9000);
+    const inp = document.getElementById('hodResetNewPwInput');
+    if (inp) inp.value = `AKGEC@${num}`;
+}
+
+async function submitHodResetPassword() {
+    initAudio();
+    const newPw = document.getElementById('hodResetNewPwInput').value.trim();
+    if (!newPw) {
+        showToast("Please enter a new password.", "warning");
+        return;
+    }
+    try {
+        const res = await fetch('/api/admin/student/reset_password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ student_id: currentResetTargetStudentId, password: newPw })
+        });
+        const data = await res.json();
+        if (data.success) {
+            playSfx('success');
+            showToast(data.message, 'success');
+            closeModal('hodResetPasswordModal');
+            await fetchStudentData();
+            renderHodStudents();
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch (e) {
+        console.error("submitHodResetPassword error:", e);
+    }
+}
+
+async function loadHodAnalytics() {
+    try {
+        const res = await fetch('/api/hod/analytics');
+        const data = await res.json();
+        if (data.success && data.analytics) {
+            const a = data.analytics;
+            const attAvg = document.getElementById('hodStatAttAvg');
+            const attBar = document.getElementById('hodStatAttBar');
+            const defCount = document.getElementById('hodStatDefaulters');
+            const feeRate = document.getElementById('hodStatFeeRate');
+            const feeBar = document.getElementById('hodStatFeeBar');
+            const placeRate = document.getElementById('hodStatPlacementRate');
+
+            if (attAvg) attAvg.innerText = `${a.department_attendance_avg}%`;
+            if (attBar) attBar.style.width = `${Math.min(100, a.department_attendance_avg)}%`;
+            if (defCount) defCount.innerText = `${a.defaulter_count} Students`;
+            if (feeRate) feeRate.innerText = `${a.fee_collection_rate}%`;
+            if (feeBar) feeBar.style.width = `${Math.min(100, a.fee_collection_rate)}%`;
+            if (placeRate) placeRate.innerText = `${a.placement_rate}%`;
+        }
+    } catch (e) {
+        console.error("loadHodAnalytics error:", e);
+    }
+}
+
+// Global button click SFX delegate & Theme initialization
+document.addEventListener("DOMContentLoaded", () => {
+    initTheme();
+    updateSoundIcons();
+    document.addEventListener("click", (e) => {
+        const btn = e.target.closest("button, .chip, select");
+        if (btn) {
+            initAudio();
+            playSfx('click');
+        }
+    });
+});
+

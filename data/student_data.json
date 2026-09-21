@@ -735,6 +735,14 @@
   ],
   "notices": [
     {
+      "id": "PARENT-ALERT-4",
+      "title": "📲 Parent WhatsApp/SMS Dispatched: Harshit Sharma",
+      "category": "Parent Alert",
+      "date": "Just now",
+      "priority": "high",
+      "message": "Urgent official notification sent to parent regarding attendance for Harshit Sharma (22CS1084)."
+    },
+    {
       "id": 1,
       "title": "Semester Examination Form Submission",
       "date": "Today",
@@ -1069,6 +1077,142 @@
       "22CS1086": "present",
       "22CS1087": "present",
       "22CS1088": "absent"
+    }
+  },
+  "lost_and_found": [
+    {
+      "id": "LF-101",
+      "type": "Lost",
+      "item": "Casio Scientific Calculator FX-991CW",
+      "location": "CS Block 2nd Floor (Lab 4)",
+      "date": "20 Sep 2026",
+      "reported_by": "Rahul Verma (22CS1085)",
+      "contact": "9876543210",
+      "status": "Open"
+    },
+    {
+      "id": "LF-102",
+      "type": "Found",
+      "item": "Noise Air Buds Pro in Navy Blue Case",
+      "location": "Central Library Reading Hall",
+      "date": "19 Sep 2026",
+      "reported_by": "Librarian Desk",
+      "contact": "library@akgec.ac.in",
+      "status": "Open"
+    },
+    {
+      "id": "LF-103",
+      "type": "Lost",
+      "item": "AKGEC College ID Card & Lanyard",
+      "location": "College Canteen / Nescafe Point",
+      "date": "18 Sep 2026",
+      "reported_by": "Priya Singh (22CS1086)",
+      "contact": "9811223344",
+      "status": "Claimed"
+    }
+  ],
+  "mess_menu": {
+    "current_day": "Monday",
+    "weekly_schedule": {
+      "Monday": {
+        "breakfast": "Aloo Poha, Boiled Egg/Sprouts, Bread Butter, Tea/Milk",
+        "lunch": "Rajma Masala, Steamed Basmati Rice, Seasonal Veg, Boondi Raita, Chapati",
+        "snacks": "Veg Samosa, Green Mint Chutney, Hot Tea",
+        "dinner": "Paneer Butter Masala, Dal Tadka, Jeera Rice, Gulab Jamun, Chapati"
+      },
+      "Tuesday": {
+        "breakfast": "Stuffed Paneer Paratha, Curd, Pickle, Tea/Coffee",
+        "lunch": "Kadhi Pakora, Jeera Rice, Aloo Gobhi, Salad, Chapati",
+        "snacks": "Bread Pakora, Tomato Sauce, Tea",
+        "dinner": "Mix Veg Kofta, Dal Makhani, Pulao, Fruit Custard, Chapati"
+      },
+      "Wednesday": {
+        "breakfast": "Idli Sambhar, Coconut Chutney, Upma, Tea/Milk",
+        "lunch": "Chole Bhature, Sweet Lassi, Cucumber Onion Salad",
+        "snacks": "Pasta Arrabbiata, Filter Coffee",
+        "dinner": "Butter Chicken / Shahi Paneer, Dal Fry, Jeera Rice, Ice Cream, Butter Naan"
+      },
+      "Thursday": {
+        "breakfast": "Methi Paratha, Butter, Boiled Egg / Curd, Tea",
+        "lunch": "Black Dal (Maa ki Dal), Rice, Baingan Bharta, Salad, Roti",
+        "snacks": "Aloo Tikki Chaat, Masala Chai",
+        "dinner": "Matar Mushroom, Moong Dal, Steamed Rice, Halwa, Chapati"
+      },
+      "Friday": {
+        "breakfast": "Club Sandwich, Veg Cutlet, Tomato Ketchup, Tea/Milk",
+        "lunch": "Dum Aloo Kashmiri, Dal Tadka, Peas Pulao, Boondi Raita, Chapati",
+        "snacks": "Pani Puri / Bhel Puri, Tea",
+        "dinner": "Veg Biryani with Salan / Chicken Biryani, Raita, Rasgulla"
+      },
+      "Saturday": {
+        "breakfast": "Puri Bhaji (Aloo Tamatar), Suji Halwa, Tea",
+        "lunch": "Lauki Kofta, Arhar Dal, Steamed Rice, Green Salad, Chapati",
+        "snacks": "Khaman Dhokla, Mint Chutney, Tea",
+        "dinner": "Malai Kofta, Chana Dal, Jeera Rice, Kheer, Tandoori Roti"
+      },
+      "Sunday": {
+        "breakfast": "Masala Dosa, Sambhar, Coconut & Red Chutney, Filter Coffee",
+        "lunch": "Special AKGEC Sunday Thali: Dal Makhani, Paneer Do Pyaza, Veg Pulao, Jalebi, Naan",
+        "snacks": "Maggi Masala Bowls, Cold Coffee",
+        "dinner": "Egg Curry / Kadai Paneer, Yellow Dal, Steamed Rice, Sevaiyan, Chapati"
+      }
+    },
+    "ratings": {
+      "total_votes": 142,
+      "average": 4.4,
+      "recent_reviews": [
+        {
+          "student": "Harshit S.",
+          "stars": 5,
+          "comment": "Monday dinner Paneer Butter Masala was top notch!"
+        },
+        {
+          "student": "Rohan V.",
+          "stars": 4,
+          "comment": "Sunday Chole Bhature was very fresh and crispy."
+        },
+        {
+          "student": "Ananya G.",
+          "stars": 4,
+          "comment": "Breakfast Poha was great, tea was piping hot."
+        }
+      ]
+    }
+  },
+  "seating_arrangements": {
+    "22CS1084": {
+      "student_name": "Harshit Sharma",
+      "roll_no": "22CS1084",
+      "exam": "B.Tech V Semester Mid-Term Examination 2026",
+      "exam_center": "AKGEC Main Academic Complex",
+      "hall_building": "CS Block (Block-A)",
+      "room_no": "Room 304 (3rd Floor)",
+      "row": "Row B",
+      "bench_no": "Bench 14",
+      "seat_no": "Seat B-14",
+      "reporting_time": "09:00 AM",
+      "instructions": [
+        "Candidates must carry their AKGEC College ID and this printed Admit Card.",
+        "Electronic devices, smartwatches, and programmable calculators are strictly prohibited.",
+        "Report to the examination hall at least 15 minutes before the scheduled time."
+      ]
+    },
+    "22CS1085": {
+      "student_name": "Aarav Gupta",
+      "roll_no": "22CS1085",
+      "exam": "B.Tech V Semester Mid-Term Examination 2026",
+      "exam_center": "AKGEC Main Academic Complex",
+      "hall_building": "CS Block (Block-A)",
+      "room_no": "Room 304 (3rd Floor)",
+      "row": "Row B",
+      "bench_no": "Bench 15",
+      "seat_no": "Seat B-15",
+      "reporting_time": "09:00 AM",
+      "instructions": [
+        "Candidates must carry their AKGEC College ID and this printed Admit Card.",
+        "Electronic devices, smartwatches, and programmable calculators are strictly prohibited.",
+        "Report to the examination hall at least 15 minutes before the scheduled time."
+      ]
     }
   }
 }
