@@ -967,6 +967,10 @@ def mark_attendance():
 @app.route('/api/admin/student/add', methods=['POST'])
 def add_student():
     payload = request.json or {}
+    caller_role = (payload.get('caller_role') or '').lower()
+    if caller_role == 'student':
+        return jsonify({"success": False, "message": "Access Denied: Students are not authorized to enroll students."}), 403
+
     name = payload.get('name', '').strip()
     roll_no = payload.get('roll_no', '').strip()
     branch = payload.get('branch', 'CSE').strip()
@@ -1034,6 +1038,10 @@ def add_student():
 @app.route('/api/admin/student/reset_password', methods=['POST'])
 def reset_student_password():
     payload = request.json or {}
+    caller_role = (payload.get('caller_role') or '').lower()
+    if caller_role == 'student':
+        return jsonify({"success": False, "message": "Access Denied: Students cannot reset administrative credentials."}), 403
+
     student_id = payload.get('student_id', '').strip()
     new_password = payload.get('password', '').strip()
     if not student_id or not new_password:
@@ -1736,6 +1744,10 @@ def get_teacher_students_by_subject():
 @app.route('/api/teacher/attendance/submit', methods=['POST'])
 def teacher_submit_attendance():
     payload = request.json or {}
+    caller_role = (payload.get('caller_role') or '').lower()
+    if caller_role == 'student':
+        return jsonify({"success": False, "message": "Access Denied: Students are strictly forbidden from marking attendance."}), 403
+
     sub_id = payload.get('subject_id', '').strip().lower()
     records = payload.get('records', [])
     session_date = payload.get('date') or payload.get('session_date')

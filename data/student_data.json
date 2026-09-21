@@ -10,9 +10,9 @@
       "target_attendance": 75,
       "attendance": {
         "os": {
-          "attended": 43,
-          "total": 52,
-          "percentage": 82.69,
+          "attended": 44,
+          "total": 53,
+          "percentage": 83.02,
           "status": "safe"
         },
         "dsa": {
@@ -1077,6 +1077,9 @@
       "22CS1086": "present",
       "22CS1087": "present",
       "22CS1088": "absent"
+    },
+    "os_2026-09-21": {
+      "22CS1084": "present"
     }
   },
   "lost_and_found": [

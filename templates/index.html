@@ -221,19 +221,17 @@
                 </div>
             </div>
 
-            <!-- 4-Role Switcher Navigation Pills (Desktop) -->
-            <div class="hidden md:flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
-                <button id="navBtnStudent" onclick="switchRole('student')" class="px-3 py-1.5 font-bold rounded-lg transition-all flex items-center gap-1.5 bg-indigo-600 text-white shadow-sm">
-                    <i class="fa-solid fa-user-graduate"></i> Student
-                </button>
-                <button id="navBtnTeacher" onclick="switchRole('teacher')" class="px-3 py-1.5 font-bold rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
-                    <i class="fa-solid fa-chalkboard-user"></i> Teacher
-                </button>
-                <button id="navBtnHod" onclick="switchRole('hod')" class="px-3 py-1.5 font-bold rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
-                    <i class="fa-solid fa-shield-halved"></i> HOD
-                </button>
-                <button id="navBtnParent" onclick="switchRole('parent')" class="px-3 py-1.5 font-bold rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
-                    <i class="fa-solid fa-people-roof"></i> Parent
+            <!-- Authenticated Role Locked Badge (Enterprise RBAC Protection) -->
+            <div id="navRoleStatusContainer" class="hidden md:flex items-center gap-2">
+                <div id="desktopActiveRoleBadge" class="px-3.5 py-1.5 rounded-xl bg-slate-950/80 border border-indigo-500/40 text-xs font-bold text-indigo-300 flex items-center gap-2 shadow-inner">
+                    <i id="desktopActiveRoleIcon" class="fa-solid fa-user-graduate text-cyan-400"></i>
+                    <span id="desktopActiveRoleText">Student Workspace</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1 font-mono">
+                        <i class="fa-solid fa-lock text-[9px] text-emerald-400"></i> RBAC Locked
+                    </span>
+                </div>
+                <button onclick="handleLogout()" title="Switch Account or Role" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-[11px] text-cyan-400"></i> Switch Role
                 </button>
             </div>
 
@@ -291,13 +289,17 @@
 
         </div>
         
-        <!-- Mobile 4-Role Navigation Bar -->
-        <div class="md:hidden flex items-center justify-around border-t border-slate-800/60 bg-slate-950/60 px-2 py-1.5 text-[11px]">
-            <button onclick="switchRole('student')" class="px-2 py-1 font-bold text-indigo-400"><i class="fa-solid fa-user-graduate mr-1"></i>Student</button>
-            <button onclick="switchRole('teacher')" class="px-2 py-1 font-bold text-slate-400"><i class="fa-solid fa-chalkboard-user mr-1"></i>Teacher</button>
-            <button onclick="switchRole('hod')" class="px-2 py-1 font-bold text-slate-400"><i class="fa-solid fa-shield-halved mr-1"></i>HOD</button>
-            <button onclick="switchRole('parent')" class="px-2 py-1 font-bold text-slate-400"><i class="fa-solid fa-people-roof mr-1"></i>Parent</button>
-            <button onclick="handleLogout()" class="px-2 py-1 font-bold text-rose-400"><i class="fa-solid fa-right-from-bracket mr-1"></i>Logout</button>
+        <!-- Mobile Navigation Bar (Role-Locked RBAC) -->
+        <div id="mobileNavRoleContainer" class="md:hidden flex items-center justify-between border-t border-slate-800/60 bg-slate-950/90 px-3 py-2 text-xs">
+            <div id="mobileActiveRoleBadge" class="flex items-center gap-1.5 font-bold text-indigo-400">
+                <i class="fa-solid fa-lock text-[10px] text-emerald-400"></i>
+                <span id="mobileActiveRoleText">Student Portal</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="handleLogout()" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 border border-rose-500/30 font-bold text-[11px] flex items-center gap-1 transition-all">
+                    <i class="fa-solid fa-arrow-right-arrow-left"></i> Switch Role
+                </button>
+            </div>
         </div>
     </header>
 

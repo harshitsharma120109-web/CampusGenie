@@ -123,26 +123,19 @@ function showToast(message, type = "success") {
     }, 3200);
 }
 
-// ── Role Switcher ──────────────────────────────────────────────────────────
+// ── Role Switcher (Enterprise RBAC Protected) ──────────────────────────────
 function switchRole(role, notify = true) {
+    // 0. Strict RBAC Enforcement: Prevent unauthorized cross-role access
+    if (currentUser && currentUser.role && currentUser.role !== role) {
+        playSfx('alert');
+        showToast(`⛔ ACCESS DENIED: You are logged in as ${currentUser.role.toUpperCase()} (${currentUser.roll_no || currentUser.id || ''}). You cannot access the ${role.toUpperCase()} console. Please logout to switch accounts.`, "error");
+        return;
+    }
+
     currentRole = role;
     localStorage.setItem("campusgenie_role", role);
-    currentRole = role;
 
-    // 1. Update Navigation Pills
-    const roles = ['student', 'teacher', 'hod', 'parent'];
-    roles.forEach(r => {
-        const btn = document.getElementById(`navBtn${r.charAt(0).toUpperCase() + r.slice(1)}`);
-        if (btn) {
-            if (r === role) {
-                btn.className = "px-3 py-1.5 font-bold rounded-lg transition-all flex items-center gap-1.5 bg-indigo-600 text-white shadow-sm";
-            } else {
-                btn.className = "px-3 py-1.5 font-bold rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-slate-200";
-            }
-        }
-    });
-
-    // 2. Hide all role view containers
+    // 1. Hide all role view containers
     const viewMap = {
         student: document.getElementById("studentPortalSection"),
         teacher: document.getElementById("teacherPortalSection"),
@@ -160,21 +153,22 @@ function switchRole(role, notify = true) {
         }
     });
 
-    // 3. Update User Badge in Top Bar
+    // 2. Update User Badge & Role Locked status in Top Bar
     updateTopBarUserBadge(role);
 
-    // 4. Trigger Role-Specific Data Loading
+    // 3. Trigger Role-Specific Data Loading
     if (role === 'teacher') {
         loadTeacherRoster(activeTeacherSubjectId);
     } else if (role === 'hod') {
         loadHodDashboard();
+        loadHodAnalytics();
     } else if (role === 'parent') {
         loadParentDashboard();
     } else if (role === 'student') {
         if (currentData) renderDashboard(currentData);
     }
 
-    if (notify) showToast(`Switched to ${role.toUpperCase()} View`, "info");
+    if (notify) showToast(`Active Portal: ${role.toUpperCase()}`, "info");
 }
 
 function updateTopBarUserBadge(role) {
@@ -182,19 +176,33 @@ function updateTopBarUserBadge(role) {
     const nameEl = document.getElementById("activeUserName");
     const roleEl = document.getElementById("activeUserRole");
 
+    // Dynamic Desktop and Mobile Role Badges
+    const dText = document.getElementById("desktopActiveRoleText");
+    const dIcon = document.getElementById("desktopActiveRoleIcon");
+    const mText = document.getElementById("mobileActiveRoleText");
+
     if (role === 'teacher') {
-        if (avatar) { avatar.innerText = "VK"; avatar.className = "w-6 h-6 rounded-lg bg-cyan-600 text-white font-bold flex items-center justify-center text-[10px]"; }
+        if (avatar) { avatar.innerText = "VK"; avatar.className = "w-6 h-6 rounded-lg bg-teal-600 text-white font-bold flex items-center justify-center text-[10px]"; }
         if (nameEl) nameEl.innerText = currentUser && currentUser.name && currentUser.role === 'teacher' ? currentUser.name : "Prof. R. K. Verma";
         if (roleEl) roleEl.innerText = "Faculty (Operating Systems)";
+        if (dText) dText.innerText = "Faculty Academic Workspace (CS-501)";
+        if (dIcon) dIcon.className = "fa-solid fa-chalkboard-user text-teal-400";
+        if (mText) mText.innerText = "Faculty Portal";
     } else if (role === 'hod') {
         if (avatar) { avatar.innerText = "SB"; avatar.className = "w-6 h-6 rounded-lg bg-purple-600 text-white font-bold flex items-center justify-center text-[10px]"; }
         if (nameEl) nameEl.innerText = "Dr. S. K. Bansal";
         if (roleEl) roleEl.innerText = "HOD (Computer Science)";
+        if (dText) dText.innerText = "HOD Master Console (Dr. Bansal)";
+        if (dIcon) dIcon.className = "fa-solid fa-shield-halved text-purple-400";
+        if (mText) mText.innerText = "HOD Console";
     } else if (role === 'parent') {
-        if (avatar) { avatar.innerText = "PR"; avatar.className = "w-6 h-6 rounded-lg bg-teal-600 text-white font-bold flex items-center justify-center text-[10px]"; }
+        if (avatar) { avatar.innerText = "PR"; avatar.className = "w-6 h-6 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center text-[10px]"; }
         const stuName = (currentData && currentData.student && currentData.student.name) || (currentUser && currentUser.student_name) || "Harshit";
         if (nameEl) nameEl.innerText = `Parent of ${stuName}`;
         if (roleEl) roleEl.innerText = "Parent Academic Portal";
+        if (dText) dText.innerText = `Parent Observatory (${stuName})`;
+        if (dIcon) dIcon.className = "fa-solid fa-people-roof text-blue-400";
+        if (mText) mText.innerText = "Parent Portal";
     } else {
         const stu = (currentData && currentData.student) || (currentUser && currentUser.role === 'student' ? currentUser : null) || { name: "Harshit Sharma", roll_no: "22CS1084" };
         const parts = (stu.name || "Student").trim().split(" ");
@@ -202,6 +210,9 @@ function updateTopBarUserBadge(role) {
         if (avatar) { avatar.innerText = initials; avatar.className = "w-6 h-6 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px]"; }
         if (nameEl) nameEl.innerText = stu.name;
         if (roleEl) roleEl.innerText = `Student (${stu.roll_no || ''})`;
+        if (dText) dText.innerText = `Student Workspace (${stu.roll_no || ''})`;
+        if (dIcon) dIcon.className = "fa-solid fa-user-graduate text-cyan-400";
+        if (mText) mText.innerText = `Student Portal (${stu.roll_no || ''})`;
     }
 }
 
@@ -906,6 +917,13 @@ function bulkSetAttendance(status) {
 }
 
 async function submitClassAttendance() {
+    initAudio();
+    if (currentUser && currentUser.role === 'student') {
+        playSfx('alert');
+        showToast("⛔ Access Denied: Students are strictly forbidden from modifying faculty attendance records!", "error");
+        return;
+    }
+
     const records = Object.entries(teacherRosterState).map(([student_id, status]) => ({
         student_id,
         status
@@ -928,15 +946,18 @@ async function submitClassAttendance() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 subject_id: activeTeacherSubjectId,
-                records
+                records,
+                caller_role: (currentUser && currentUser.role) || 'teacher'
             })
         });
         const data = await res.json();
         if (data.success) {
+            playSfx('success');
             showToast(data.message, "success");
             await fetchStudentData();
             await loadTeacherRoster(activeTeacherSubjectId);
         } else {
+            playSfx('alert');
             showToast(data.message || "Failed to save attendance.", "error");
         }
     } catch (err) {

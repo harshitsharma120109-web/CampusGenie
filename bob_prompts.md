@@ -68,3 +68,8 @@ If judges or college mentors ask to see how you used **IBM Bob** during developm
 > 5. Campus Lost & Found Community Hub with post and claim functions.
 > 6. AKGEC Hostel & Mess Menu with interactive 5-star student dining reviews.
 > 7. 1-Click WhatsApp Parent Alert Dispatcher for low attendance students."
+
+---
+
+### Prompt 13: Enterprise RBAC Session Lock & Attendance Tampering Prevention
+> "Fix a security loophole where logged-in students could freely switch to Teacher or HOD dashboards and modify their own attendance. Lock the navigation bar to the authenticated role with an 'RBAC Verified' badge, block cross-role UI access, and enforce backend 403 Forbidden checks on attendance and administrative routes when called by student identities."
