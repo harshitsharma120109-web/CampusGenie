@@ -7,3 +7,6 @@ venv/
 chrome_temp/
 chrome_debug/
 screenshot*.png
+node_modules/
+npm-debug.log*
+

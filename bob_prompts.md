@@ -73,3 +73,9 @@ If judges or college mentors ask to see how you used **IBM Bob** during developm
 
 ### Prompt 13: Enterprise RBAC Session Lock & Attendance Tampering Prevention
 > "Fix a security loophole where logged-in students could freely switch to Teacher or HOD dashboards and modify their own attendance. Lock the navigation bar to the authenticated role with an 'RBAC Verified' badge, block cross-role UI access, and enforce backend 403 Forbidden checks on attendance and administrative routes when called by student identities."
+
+---
+
+### Prompt 14: Node.js & Express REST API Backend Architecture
+> "Architect a production-grade Node.js and Express REST API backend (`server.js`) for CampusGenie with 100% endpoint parity across all 35+ routes (Student ERP, Attendance Bunk Calculator, College Fees UPI Desk, AI-Proctored Online Tests, Academic Copilot Chatbot, Lost & Found, Mess Menu, Exam Seating, and Placement Readiness Analyzer). Maintain dual-backend compatibility with Python Flask and enforce 3-Layer Enterprise RBAC security with 403 Forbidden checks on student access."
+

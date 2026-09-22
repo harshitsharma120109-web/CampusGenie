@@ -30,7 +30,7 @@
         "cn": {
           "attended": 21,
           "total": 30,
-          "percentage": 70.0,
+          "percentage": 70,
           "status": "warning"
         },
         "se": {
@@ -42,7 +42,7 @@
         "cg": {
           "attended": 12,
           "total": 20,
-          "percentage": 60.0,
+          "percentage": 60,
           "status": "warning"
         }
       },
@@ -80,21 +80,21 @@
       },
       "password": "student123",
       "fees": {
-        "total_fee": 125000.0,
-        "paid_amount": 90000.0,
-        "due_amount": 35000.0,
+        "total_fee": 125000,
+        "paid_amount": 90000,
+        "due_amount": 35000,
         "status": "partial",
         "due_date": "15 Oct 2026",
         "transactions": [
           {
             "receipt_no": "AKGEC-FEE-90397",
             "date": "20 Sep 2026",
-            "amount": 5000.0,
+            "amount": 5000,
             "mode": "Online UPI (GPay / PhonePe)",
             "status": "Success",
             "student_name": "Harshit Sharma",
             "roll_no": "22CS1084",
-            "remaining_balance": 45000.0
+            "remaining_balance": 45000
           },
           {
             "receipt_no": "AKGEC-FEE-8812",
@@ -129,13 +129,13 @@
         "dbms": {
           "attended": 27,
           "total": 30,
-          "percentage": 90.0,
+          "percentage": 90,
           "status": "safe"
         },
         "cn": {
           "attended": 27,
           "total": 30,
-          "percentage": 90.0,
+          "percentage": 90,
           "status": "safe"
         },
         "se": {
@@ -147,7 +147,7 @@
         "cg": {
           "attended": 18,
           "total": 20,
-          "percentage": 90.0,
+          "percentage": 90,
           "status": "safe"
         }
       },
@@ -212,7 +212,7 @@
         "os": {
           "attended": 18,
           "total": 30,
-          "percentage": 60.0,
+          "percentage": 60,
           "status": "warning"
         },
         "dsa": {
@@ -242,7 +242,7 @@
         "cg": {
           "attended": 12,
           "total": 20,
-          "percentage": 60.0,
+          "percentage": 60,
           "status": "warning"
         }
       },
@@ -319,13 +319,13 @@
         "dbms": {
           "attended": 24,
           "total": 30,
-          "percentage": 80.0,
+          "percentage": 80,
           "status": "safe"
         },
         "cn": {
           "attended": 18,
           "total": 30,
-          "percentage": 60.0,
+          "percentage": 60,
           "status": "warning"
         },
         "se": {
@@ -337,7 +337,7 @@
         "cg": {
           "attended": 14,
           "total": 20,
-          "percentage": 70.0,
+          "percentage": 70,
           "status": "warning"
         }
       },
@@ -402,7 +402,7 @@
         "os": {
           "attended": 44,
           "total": 50,
-          "percentage": 88.0,
+          "percentage": 88,
           "status": "safe"
         },
         "dsa": {
@@ -432,7 +432,7 @@
         "cg": {
           "attended": 19,
           "total": 20,
-          "percentage": 95.0,
+          "percentage": 95,
           "status": "safe"
         }
       },
@@ -527,7 +527,7 @@
         "cg": {
           "attended": 9,
           "total": 20,
-          "percentage": 45.0,
+          "percentage": 45,
           "status": "warning"
         }
       },
@@ -830,7 +830,7 @@
           "date": "20 Sep 2026, 09:26 PM",
           "score": 5,
           "total_marks": 20,
-          "percentage": 25.0,
+          "percentage": 25,
           "status": "Needs Improvement",
           "proctor_verified": true,
           "proctor_details": {
@@ -846,7 +846,7 @@
           "date": "21 Sep 2026, 07:15 PM",
           "score": 18,
           "total_marks": 20,
-          "percentage": 90.0,
+          "percentage": 90,
           "status": "Passed",
           "proctor_verified": true,
           "proctor_details": {
@@ -922,7 +922,7 @@
           "date": "22 Sep 2026, 04:30 PM",
           "score": 20,
           "total_marks": 20,
-          "percentage": 100.0,
+          "percentage": 100,
           "status": "Passed",
           "proctor_verified": true,
           "proctor_details": {

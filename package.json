@@ -1,0 +1,26 @@
+{
+  "name": "campus-genie",
+  "version": "1.0.0",
+  "description": "CampusGenie - AI-Powered Academic Copilot & College ERP System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test_node_server.js"
+  },
+  "keywords": [
+    "campusgenie",
+    "ai",
+    "education",
+    "erp",
+    "attendance",
+    "express",
+    "nodejs"
+  ],
+  "author": "harshitsharma120109",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
